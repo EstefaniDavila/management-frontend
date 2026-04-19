@@ -1,0 +1,100 @@
+import React from 'react'
+import GeneralError from '../../pages/general/errors/general-error'
+import PrivateRoute from '../../utils/PrivateRoutes'
+
+const adminRoutes = [
+  {
+    path: '/',
+    element: <PrivateRoute />,
+    children: [
+      {
+        path: '/',
+        lazy: async () => {
+          const AppShell = await import('../../components/app-shell')
+          return { Component: AppShell.default }
+        },
+        children: [
+
+          // ── Dashboard ──
+          {
+            index: true,
+            lazy: async () => ({
+              Component: (await import('../../app/dashboard/dashboard')).default,
+            }),
+          },
+
+          // ── Logistics & Warehouse ──
+          {
+            path: 'inventory',
+            lazy: async () => ({
+              Component: (await import('../../pages/panels/admin/logistics/inventory/inventory')).default,
+            }),
+          },
+          {
+            path: 'suppliers',
+            lazy: async () => ({
+              Component: (await import('../../pages/panels/admin/logistics/suppliers/Suppliers')).default,
+            }),
+          },
+
+          // ── Production & Operations ──
+          {
+            path: 'maintenance',
+            lazy: async () => ({
+              Component: (await import('../../pages/panels/admin/operations/maintenance/Maintenance')).default,
+            }),
+          },
+          
+
+          // ── Marketing & Sales (por hacer) ──
+          { path: 'quotations',    lazy: async () => ({ Component: (await import('../../pages/panels/admin/marketing/Quotations')).default }) },
+          { path: 'customers',  lazy: async () => ({ Component: (await import('../../pages/panels/admin/marketing/Customers')).default }) },
+          // { path: 'customers',     lazy: async () => ({ Component: (await import('../../pages/panels/admin/marketing/Customers')).default }) },
+     
+          // ── Settings ──
+          {
+            path: 'settings',
+            lazy: async () => ({
+              Component: (await import('../../pages/general/settings')).default,
+            }),
+            children: [
+              {
+                index: true,
+                lazy: async () => ({
+                  Component: (await import('../../pages/general/settings/profile')).default,
+                }),
+              },
+              {
+                path: 'account',
+                lazy: async () => ({
+                  Component: (await import('../../pages/general/settings/account')).default,
+                }),
+              },
+              {
+                path: 'appearance',
+                lazy: async () => ({
+                  Component: (await import('../../pages/general/settings/appearance')).default,
+                }),
+              },
+              {
+                path: 'notifications',
+                lazy: async () => ({
+                  Component: (await import('../../pages/general/settings/notifications')).default,
+                }),
+              },
+              {
+                path: 'display',
+                lazy: async () => ({
+                  Component: (await import('../../pages/general/settings/display')).default,
+                }),
+              },
+            ],
+          },
+
+        ],
+      },
+    ],
+  },
+]
+
+export default adminRoutes
