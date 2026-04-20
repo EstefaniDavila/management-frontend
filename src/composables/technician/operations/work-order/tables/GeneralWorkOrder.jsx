@@ -2,9 +2,11 @@ import React, { useMemo } from 'react'
 import DataTable from '@/components/custom/data_table'
 import columns from '@/services/technician/operations/work-order/columns'
 import useEntityMutation from '@/hooks/useEntityMutation'
+import { useNavigate } from 'react-router-dom'
 
 const TableWorkOrders = ({ handleOpenModal, data, fetchData, pagination, setPagination, setWorkOrder, setTypeModal, totalPages, search, setSearch, searchFields, setSearchFields }) => {
   const {mutateAsync} = useEntityMutation({entityName : 'workOrder'})
+  const navigate = useNavigate()
 
   const handleDelete = async (id) => {
     // try {
@@ -23,9 +25,7 @@ const TableWorkOrders = ({ handleOpenModal, data, fetchData, pagination, setPagi
     handleOpenModal('show', workOrder)
   }
   const handleBuild = (workOrder) => {
-    setWorkOrder(workOrder)
-    setTypeModal('build')
-    handleOpenModal('build', workOrder)
+    navigate(`/work-orders/${workOrder.id}`)
   }
 
   const columnsWithActions = useMemo(() => columns(handleShow, handleBuild))

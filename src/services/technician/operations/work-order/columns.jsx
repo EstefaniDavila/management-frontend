@@ -79,7 +79,7 @@ const columns = (handleShow, handleBuild) => [
                 <GiNotebook size={20}/>
               </span>
             }
-            onClick={()=> handleShow(row?.original, 'edit')}
+            onClick={()=> handleBuild(row?.original, 'edit')}
           />
         )}
         {status === "Completado" && (
@@ -90,7 +90,7 @@ const columns = (handleShow, handleBuild) => [
                 <Eye size={20}/>
               </span>
             }
-            onClick={()=> handleBuild(row?.original, 'edit')}
+            onClick={()=> handleShow(row?.original, 'edit')}
           />
         )}
         {/* <GeneralTooltip

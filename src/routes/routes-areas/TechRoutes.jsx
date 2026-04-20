@@ -19,6 +19,12 @@ const techRoutes = [
               Component: (await import('../../pages/panels/technician/operations/work-order/WorkOrder')).default,
             }),
           },
+          {
+            path: "work-orders/:id",
+            lazy: async () => ({
+              Component: (await import('../../pages/panels/technician/operations/work-order/WorkOrderDetail')).default,
+            }),
+          },
           // {
           //   path: "customer-management",
           //   lazy: async () => ({
