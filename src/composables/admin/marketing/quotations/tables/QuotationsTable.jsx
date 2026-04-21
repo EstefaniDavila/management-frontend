@@ -5,10 +5,10 @@ import columns from '@/services/admin/marketing/quotations/columns'
 const QuotationsTable = ({
   data, fetchData, pagination, setPagination, totalPages,
   search, setSearch, searchFields, setSearchFields,
-  onView, onApprove, onReject, onDelete
+  onView, onApprove, onReject, onDelete, onEdit 
 }) => {
   const columnsWithActions = useMemo(() =>
-    columns(onView, onApprove, onReject, onDelete)
+    columns(onView, onApprove, onReject, onDelete, onEdit)  
   )
 
   return (
