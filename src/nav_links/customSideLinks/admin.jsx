@@ -8,7 +8,7 @@ import {
   BuildingIcon,
   SettingsIcon,
   FileTextIcon,
-  PackageCheck
+  PackageCheck,
   ClockIcon,
 } from "lucide-react"
 
