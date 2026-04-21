@@ -12,17 +12,16 @@ const GeneralInventoryTable = ({
   setSearch,
   searchFields,
   setSearchFields,
-  onEditProduct,
-  onDeleteProduct,
-  onOpenHistory, 
+  handleOpenModal,
 }) => {
 
-  const columnsWithActions = useMemo(() => columns(
-    onEditProduct,    
-    null,            
-    onOpenHistory,   
-    onDeleteProduct   
-  ), [onEditProduct, onOpenHistory, onDeleteProduct]);
+  const handleEdit    = (product) => handleOpenModal('edit', product);
+  const handleDelete  = (product) => handleOpenModal('delete', product);
+  const handleHistory = (product) => handleOpenModal('history', product);
+
+  const columnsWithActions = useMemo(() =>
+    columns(handleEdit, handleHistory, handleDelete),
+  [handleOpenModal]);
 
   return (
     <div className="w-full space-y-4">

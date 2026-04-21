@@ -118,21 +118,24 @@ const Suppliers = () => {
       <div className="max-w-[1600px] mx-auto">
         <div className="flex flex-col gap-6">
           {/* Cabecera */}
-          <div className="flex items-center justify-between">
-            <h1 className="text-2xl font-bold tracking-tight">
-              GESTIÓN DE PROVEEDORES
-            </h1>
-            <Button 
-              variant="default" 
-              className="gap-2 shadow-sm"
-              onClick={() => handleOpenModal('new')}
-            >
-              <Plus className="h-4 w-4" /> NUEVO PROVEEDOR
-            </Button>
-          </div>
+          {/* Cabecera Responsiva */}
+<div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+  <h1 className="text-xl md:text-2xl font-bold tracking-tight">
+    GESTIÓN DE PROVEEDORES
+  </h1>
+  <Button 
+    variant="default" 
+    className="w-full sm:w-auto gap-2 shadow-sm"
+    onClick={() => handleOpenModal('new')}
+  >
+    <Plus className="h-4 w-4" /> NUEVO PROVEEDOR
+  </Button>
+</div>
 
 
-          <div className="w-full bg-card rounded-xl border shadow-sm p-4">
+          <div className="w-full bg-card rounded-xl border shadow-sm overflow-hidden">
+            <div className="overflow-x-auto w-full">
+              <div className="inline-block min-w-full align-middle p-4">
             <GeneralProveedoresTable
               data={fakeProveedores.rows}
               fetchData={refetchData}
@@ -148,6 +151,8 @@ const Suppliers = () => {
               onViewDetails={handleViewDetails}      
               onCreateOrder={handleCreateOrder}     
             />
+            </div>
+            </div>
           </div>
         </div>
       </div>
