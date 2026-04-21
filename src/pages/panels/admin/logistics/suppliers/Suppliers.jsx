@@ -4,6 +4,7 @@ import { Plus } from 'lucide-react';
 import SupplierTable from '@/composables/admin/logistics/suppliers/tables/SupplierTable';
 import CreateNewSupplierModal from '@/composables/admin/logistics/suppliers/modals/CreateNewSupplierModal';
 import UpdateSupplierModal from '@/composables/admin/logistics/suppliers/modals/UpdateSupplierModal';
+import DeleteSupplierModal from '@/composables/admin/logistics/suppliers/modals/DeleteSupplierModal';
 
 const fakeProveedores = [
   {
@@ -168,7 +169,17 @@ const Suppliers = () => {
           onSave={handleUpdateProveedor}
         />
       )}
-      {/* {typeModal === 'delete' && <DeleteSupplierModal ... />} */}
+      {typeModal === 'delete' && (
+        <DeleteSupplierModal
+          open={isModalOpen}
+          setOpen={handleCloseModal}
+          title="Eliminar Proveedor"
+          itemName={selectedProveedor?.nombre} 
+          onConfirm={() => {
+            handleDeleteConfirm(selectedProveedor.id);
+          }}
+        />
+      )}
       {/* {typeModal === 'details' && <DetailsSupplierModal ... />} */}
       {/* {typeModal === 'order' && <OrderSupplierModal ... />} */}
     </div>
