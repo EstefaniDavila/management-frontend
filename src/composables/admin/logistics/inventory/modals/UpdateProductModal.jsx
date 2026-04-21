@@ -20,11 +20,10 @@ const UpdateProductModal = ({ open, setOpen, onSave, productToEdit }) => {
     type: 'repuesto'
   });
 
-  // Cargar datos del producto cuando se abre el modal o cambia productToEdit
   useEffect(() => {
     if (productToEdit && open) {
       setFormData({
-        codigo: productToEdit.id || productToEdit.codigo || '',  // ✅ CORREGIDO
+        codigo: productToEdit.id || productToEdit.codigo || '', 
         desc: productToEdit.desc || '',
         stock: productToEdit.stock || 0,
         loc: productToEdit.loc || '',

@@ -12,6 +12,7 @@ import GeneralInventoryTable from '@/composables/admin/logistics/inventory/table
 import CreateProductModal from '@/composables/admin/logistics/inventory/modals/CreateProductModal';
 import UpdateProductModal from '@/composables/admin/logistics/inventory/modals/UpdateProductModal';
 import HistoryProductModal from '@/composables/admin/logistics/inventory/modals/HistoryProduct/HistoryProductModal';
+import DeleteProductModal from '@/composables/admin/logistics/inventory/modals/DeleteProductModal';
 
 const fakeInventory = {
   rows: [
@@ -96,6 +97,19 @@ const Inventory = () => {
     } catch (error) {
       console.error("Error al actualizar:", error);
       alert("Error al actualizar el producto");
+    }
+  };
+
+  const handleDeleteProduct = async (product) => {
+    try {
+      console.log("Eliminando producto:", product);
+
+      setProducts(prev => prev.filter(p => p.id !== product.id));
+      handleCloseModal();
+
+    } catch (error) {
+      console.error("Error al eliminar:", error);
+      alert("Error al eliminar el producto");
     }
   };
 
@@ -191,7 +205,14 @@ const Inventory = () => {
           onSave={handleUpdateProduct}
         />
       )}
-      {/* {typeModal === 'delete' && <DeleteProductModal ... />} */}
+      {typeModal === 'delete' && (
+        <DeleteProductModal
+          open={isModalOpen}
+          setOpen={handleCloseModal}
+          product={selectedProduct}
+          onConfirm={handleDeleteProduct}
+        />
+      )}
       {typeModal === 'history' && (
         <HistoryProductModal
           open={isModalOpen}
