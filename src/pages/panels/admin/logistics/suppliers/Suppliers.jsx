@@ -5,6 +5,7 @@ import SupplierTable from '@/composables/admin/logistics/suppliers/tables/Suppli
 import CreateNewSupplierModal from '@/composables/admin/logistics/suppliers/modals/CreateNewSupplierModal';
 import UpdateSupplierModal from '@/composables/admin/logistics/suppliers/modals/UpdateSupplierModal';
 import DeleteSupplierModal from '@/composables/admin/logistics/suppliers/modals/DeleteSupplierModal';
+import SupplierOrderModal from '@/composables/admin/logistics/suppliers/modals/SupplierOrderModal/SupplierOrderModal';
 
 const fakeProveedores = [
   {
@@ -174,13 +175,19 @@ const Suppliers = () => {
           open={isModalOpen}
           setOpen={handleCloseModal}
           title="Eliminar Proveedor"
-          itemName={selectedProveedor?.nombre} 
+          itemName={selectedProveedor?.nombre}
           onConfirm={() => {
             handleDeleteConfirm(selectedProveedor.id);
           }}
         />
       )}
-      {/* {typeModal === 'details' && <DetailsSupplierModal ... />} */}
+      {typeModal === 'details' && (
+        <SupplierOrderModal
+          open={isModalOpen}
+          setOpen={handleCloseModal}
+          supplier={selectedProveedor}
+        />
+      )}
       {/* {typeModal === 'order' && <OrderSupplierModal ... />} */}
     </div>
   );
