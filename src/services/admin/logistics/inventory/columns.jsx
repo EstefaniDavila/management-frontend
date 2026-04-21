@@ -48,10 +48,10 @@ const columns = (handleEdit, handleHistory, handleDelete) => [
     enableColumnFilter: true,
   },
   {
-    header: () => <div className="text-center">ACCIONES</div>, // Forzamos el centro en el título
-    id: 'actions', // Es buena práctica poner un ID cuando no hay accessorKey
+    header: () => <div className="text-center">ACCIONES</div>,
+    id: 'actions',
     cell: ({ row }) => (
-      /* justify-center asegura que los botones estén centrados */
+
       <div className="flex items-center justify-center gap-2">
         <Button
           variant="ghost"

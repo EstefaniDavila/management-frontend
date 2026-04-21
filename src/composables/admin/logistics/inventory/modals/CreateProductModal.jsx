@@ -1,5 +1,5 @@
 import React, { useState } from 'react'
-import Modal from '@/components/custom/modal' // Tu componente base intacto
+import Modal from '@/components/custom/modal' 
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { 
@@ -11,7 +11,7 @@ import {
 } from "@/components/ui/select"
 
 const CreateProductModal = ({ open, setOpen, onSave }) => {
-  // Estado interno para los campos del formulario
+
   const [formData, setFormData] = useState({
     codigo: '',
     desc: '',
@@ -25,13 +25,13 @@ const CreateProductModal = ({ open, setOpen, onSave }) => {
     setFormData(prev => ({ ...prev, [name]: value }));
   };
 
-  // Función que se dispara cuando el botón "Guardar" del Modal base ejecuta el callBack
+
   const handleActionSave = async () => {
     if (!formData.codigo || !formData.desc) {
       alert("Código y Descripción son obligatorios");
       return;
     }
-    // Ejecutamos la lógica de guardado que nos pase el padre
+   
     await onSave(formData);
   };
 
@@ -42,9 +42,9 @@ const CreateProductModal = ({ open, setOpen, onSave }) => {
       title="Nuevo Producto"
       description="Complete los campos para registrar el producto en el inventario."
       size="md"
-      callBack={handleActionSave} // Aquí conectamos tu lógica con el botón verde del Modal base
+      callBack={handleActionSave}
     >
-      {/* El contenido (children) que se inyectará en tu Modal */}
+
       <div className="grid gap-4 py-5">
         <div className="flex flex-col gap-2">
           <Label htmlFor="codigo">Código *</Label>

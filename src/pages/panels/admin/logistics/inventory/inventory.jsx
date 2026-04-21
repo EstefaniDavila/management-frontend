@@ -8,6 +8,7 @@ import {
   DropdownMenuItem,
 } from "@/components/ui/dropdown-menu";
 import GeneralInventoryTable from "@/composables/admin/logistics/inventory/tables/GeneralInventoryTable";
+import CreateProductModal from '@/composables/admin/logistics/inventory/modals/CreateProductModal';
 
 const fakeInventory = {
   rows: [
@@ -43,6 +44,31 @@ const Inventory = () => {
     setTypeModal("");
     setSelectedProduct(null);
     setIsModalOpen(false);
+  };
+
+   const handleSaveProduct = async (newProduct) => {
+    try {
+      console.log("Guardando producto:", newProduct);
+
+      const productToAdd = {
+        id: newProduct.codigo,
+        desc: newProduct.desc,
+        stock: parseInt(newProduct.stock),
+        loc: newProduct.loc,
+        type: newProduct.type,
+        status: "OK" 
+      };
+
+      setProducts(prev => [productToAdd, ...prev]);
+
+      handleCloseModal();
+
+      alert("Producto creado exitosamente");
+      
+    } catch (error) {
+      console.error("Error al guardar:", error);
+      alert("Error al crear el producto");
+    }
   };
 
   const filteredData = products.filter(item => {
@@ -120,8 +146,15 @@ const Inventory = () => {
 
       </div>
 
-      {/* Aquí irán los modales */}
-      {/* {typeModal === 'create' && <CreateProductModal ... />} */}
+     {typeModal === 'create' && (
+        <CreateProductModal
+          open={isModalOpen}
+          setOpen={handleCloseModal}
+          onSave={handleSaveProduct}
+        />
+      )}
+
+
       {/* {typeModal === 'edit' && <UpdateProductModal ... />} */}
       {/* {typeModal === 'delete' && <DeleteProductModal ... />} */}
       {/* {typeModal === 'history' && <HistoryProductModal ... />} */}
