@@ -8,6 +8,7 @@ import {
   BuildingIcon,
   SettingsIcon,
   FileTextIcon,
+  PackageCheck
   ClockIcon,
 } from "lucide-react"
 
@@ -64,6 +65,13 @@ export const adminLinks = [
     title: "Proveedores",
     href: "/suppliers",
     icon: TruckIcon,
+    area: "Logistics & Warehouse",
+  },
+
+  {
+    title: "Despacho",
+    href: "/dispatch",
+    icon: PackageCheck,
     area: "Logistics & Warehouse",
   },
 
