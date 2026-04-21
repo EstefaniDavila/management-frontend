@@ -37,6 +37,14 @@ const adminRoutes = [
             }),
           },
 
+          {
+            path: 'dispatch',
+            lazy: async () => ({
+              Component: (await import('../../pages/panels/admin/logistics/dispatch/Dispatch')).default,
+            }),
+          },
+
+
           // ── Production & Operations ──
           {
             path: 'maintenance',
