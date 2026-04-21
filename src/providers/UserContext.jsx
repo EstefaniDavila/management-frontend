@@ -137,7 +137,60 @@ export const UserProvider = ({ children }) => {
 
         window.location.href = "/";
 
-      } else {
+      }if (
+        (document_number === "advisor" || document_number === "advisor@email.com") &&
+        password === "123456"
+      ) {
+        const fakeData = {
+          access_token: "fake-jwt-token",
+          refresh_token: "fake-refresh-token",
+          expire_at: new Date().getTime() + 1000 * 60 * 60,
+          user: {
+            id: 2,
+            name: "Asesor Comercial",
+            email: "advisor@email.com",
+            role: "SalesAdvisor"
+          },
+          message: "Login successful"
+        };
+
+        setAuthTokens(fakeData);
+        authTokensRef.current = fakeData;
+
+        setUser(fakeData.user);
+        userRef.current = fakeData.user;
+
+        localStorage.setItem("authTokens", JSON.stringify(fakeData));
+        localStorage.setItem("user", JSON.stringify(fakeData.user));
+
+        window.location.href = "/";
+      } 
+      if (
+        (document_number === "manager" || document_number === "manager@email.com") &&
+        password === "123456"
+      ) {
+        const fakeData = {
+          access_token: "fake-jwt-token",
+          refresh_token: "fake-refresh-token",
+          expire_at: new Date().getTime() + 1000 * 60 * 60,
+          user: {
+            id: 3,
+            name: "Jefe Comercial",
+            email: "manager@email.com",
+            role: "Manager"
+          },
+          message: "Login successful"
+        };
+
+        setAuthTokens(fakeData);
+        authTokensRef.current = fakeData;
+        setUser(fakeData.user);
+        userRef.current = fakeData.user;
+        localStorage.setItem("authTokens", JSON.stringify(fakeData));
+        localStorage.setItem("user", JSON.stringify(fakeData.user));
+        window.location.href = "/";
+      }
+      else {
         alert("Credenciales incorrectas");
       }
 

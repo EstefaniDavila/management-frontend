@@ -1,5 +1,5 @@
 import { adminLinks }    from "./customSideLinks/admin"
-import { managerLinks } from "./customSideLinks/managerLinks"
+import { areaManagerLinks } from "./customSideLinks/areaManagerLinks"
 import { advisorLinks } from "./customSideLinks/advisorLinks"
 import { techLinks } from "./customSideLinks/techLinks"
 import { warehouseLinks } from "./customSideLinks/warehouseLinks"
@@ -7,7 +7,7 @@ import { customerLinks } from "./customSideLinks/customer"
 
 const roleLinks = {
   Admin:            adminLinks,
-  Manager:          managerLinks,   // Jefe de área
+  Manager:          areaManagerLinks,   // Jefe de área
   SalesAdvisor:     advisorLinks,   // Asesor comercial
   Technician:       techLinks,
   WarehouseOp:      warehouseLinks, // Almacenero
