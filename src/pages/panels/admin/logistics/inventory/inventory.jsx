@@ -7,9 +7,11 @@ import {
   DropdownMenuContent,
   DropdownMenuItem,
 } from "@/components/ui/dropdown-menu";
-import GeneralInventoryTable from "@/composables/admin/logistics/inventory/tables/GeneralInventoryTable";
+
+import GeneralInventoryTable from '@/composables/admin/logistics/inventory/tables/GeneralInventoryTable';
 import CreateProductModal from '@/composables/admin/logistics/inventory/modals/CreateProductModal';
 import UpdateProductModal from '@/composables/admin/logistics/inventory/modals/UpdateProductModal';
+import HistoryProductModal from '@/composables/admin/logistics/inventory/modals/HistoryProduct/HistoryProductModal';
 
 const fakeInventory = {
   rows: [
@@ -73,30 +75,29 @@ const Inventory = () => {
   };
 
   const handleUpdateProduct = async (updatedData) => {
-  try {
-    console.log("Datos actualizados:", updatedData);
-    
-    // Mapear los datos correctamente
-    const updatedProduct = {
-      id: updatedData.codigo,        // ← mapear codigo → id
-      desc: updatedData.desc,
-      stock: parseInt(updatedData.stock),
-      loc: updatedData.loc,
-      type: updatedData.type,
-      status: updatedData.stock == 0 ? "AGOT" : updatedData.stock < 10 ? "Bajo" : "OK"
-    };
-    
-    setProducts(prev => 
-      prev.map(p => p.id === selectedProduct.id ? updatedProduct : p)
-    );
-    
-    handleCloseModal();
-    alert("Producto actualizado exitosamente");
-  } catch (error) {
-    console.error("Error al actualizar:", error);
-    alert("Error al actualizar el producto");
-  }
-};
+    try {
+      console.log("Datos actualizados:", updatedData);
+
+      const updatedProduct = {
+        id: updatedData.codigo,
+        desc: updatedData.desc,
+        stock: parseInt(updatedData.stock),
+        loc: updatedData.loc,
+        type: updatedData.type,
+        status: updatedData.stock == 0 ? "AGOT" : updatedData.stock < 10 ? "Bajo" : "OK"
+      };
+
+      setProducts(prev =>
+        prev.map(p => p.id === selectedProduct.id ? updatedProduct : p)
+      );
+
+      handleCloseModal();
+      alert("Producto actualizado exitosamente");
+    } catch (error) {
+      console.error("Error al actualizar:", error);
+      alert("Error al actualizar el producto");
+    }
+  };
 
   const filteredData = products.filter(item => {
     const matchStatus = filterStatus === "todos" || item.status.toLowerCase() === filterStatus.toLowerCase();
@@ -183,15 +184,21 @@ const Inventory = () => {
 
 
       {isModalOpen && typeModal === 'edit' && (
-  <UpdateProductModal 
-    open={isModalOpen} 
-    setOpen={handleCloseModal}  
-    productToEdit={selectedProduct}
-    onSave={handleUpdateProduct}
-  />
-)}
+        <UpdateProductModal
+          open={isModalOpen}
+          setOpen={handleCloseModal}
+          productToEdit={selectedProduct}
+          onSave={handleUpdateProduct}
+        />
+      )}
       {/* {typeModal === 'delete' && <DeleteProductModal ... />} */}
-      {/* {typeModal === 'history' && <HistoryProductModal ... />} */}
+      {typeModal === 'history' && (
+        <HistoryProductModal
+          open={isModalOpen}
+          setOpen={handleCloseModal}
+          product={selectedProduct}
+        />
+      )}
 
     </div>
   );

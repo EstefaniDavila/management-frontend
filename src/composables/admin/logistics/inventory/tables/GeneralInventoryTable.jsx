@@ -20,7 +20,7 @@ const GeneralInventoryTable = ({
   const handleHistory = (product) => handleOpenModal('history', product);
 
 const columnsWithActions = useMemo(() => 
-  columns(handleEdit, handleHistory, handleDelete),  // ✅ ORDEN CORRECTO
+  columns(handleEdit, handleHistory, handleDelete), 
   [handleEdit, handleDelete, handleHistory]
 );
 
