@@ -3,6 +3,7 @@ import { Button } from '@/components/ui/button';
 import { Plus } from 'lucide-react';
 import SupplierTable from '@/composables/admin/logistics/suppliers/tables/SupplierTable';
 import CreateNewSupplierModal from '@/composables/admin/logistics/suppliers/modals/CreateNewSupplierModal';
+import UpdateSupplierModal from '@/composables/admin/logistics/suppliers/modals/UpdateSupplierModal';
 
 const fakeProveedores = [
   {
@@ -103,6 +104,15 @@ const Suppliers = () => {
     handleCloseModal();
   };
 
+  const handleUpdateProveedor = async (formData) => {
+    setProveedores(prev => prev.map(p =>
+      p.id === selectedProveedor.id
+        ? { ...p, ...formData, status: formData.estado === 'activo' ? 'Activo' : 'Inactivo' }
+        : p
+    ));
+    handleCloseModal();
+  };
+
   return (
     <div className="p-6 w-full min-h-screen bg-background">
       <div className="max-w-[1600px] mx-auto">
@@ -150,7 +160,14 @@ const Suppliers = () => {
           onSave={handleSaveProveedor}
         />
       )}
-      {/* {typeModal === 'edit' && <EditSupplierModal ... />} */}
+      {typeModal === 'edit' && (
+        <UpdateSupplierModal
+          open={isModalOpen}
+          setOpen={handleCloseModal}
+          supplierToEdit={selectedProveedor}
+          onSave={handleUpdateProveedor}
+        />
+      )}
       {/* {typeModal === 'delete' && <DeleteSupplierModal ... />} */}
       {/* {typeModal === 'details' && <DetailsSupplierModal ... />} */}
       {/* {typeModal === 'order' && <OrderSupplierModal ... />} */}
