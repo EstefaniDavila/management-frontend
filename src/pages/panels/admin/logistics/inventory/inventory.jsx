@@ -9,6 +9,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import GeneralInventoryTable from "@/composables/admin/logistics/inventory/tables/GeneralInventoryTable";
 import CreateProductModal from '@/composables/admin/logistics/inventory/modals/CreateProductModal';
+import UpdateProductModal from '@/composables/admin/logistics/inventory/modals/UpdateProductModal';
 
 const fakeInventory = {
   rows: [
@@ -46,7 +47,7 @@ const Inventory = () => {
     setIsModalOpen(false);
   };
 
-   const handleSaveProduct = async (newProduct) => {
+  const handleSaveProduct = async (newProduct) => {
     try {
       console.log("Guardando producto:", newProduct);
 
@@ -56,7 +57,7 @@ const Inventory = () => {
         stock: parseInt(newProduct.stock),
         loc: newProduct.loc,
         type: newProduct.type,
-        status: "OK" 
+        status: "OK"
       };
 
       setProducts(prev => [productToAdd, ...prev]);
@@ -64,12 +65,38 @@ const Inventory = () => {
       handleCloseModal();
 
       alert("Producto creado exitosamente");
-      
+
     } catch (error) {
       console.error("Error al guardar:", error);
       alert("Error al crear el producto");
     }
   };
+
+  const handleUpdateProduct = async (updatedData) => {
+  try {
+    console.log("Datos actualizados:", updatedData);
+    
+    // Mapear los datos correctamente
+    const updatedProduct = {
+      id: updatedData.codigo,        // ← mapear codigo → id
+      desc: updatedData.desc,
+      stock: parseInt(updatedData.stock),
+      loc: updatedData.loc,
+      type: updatedData.type,
+      status: updatedData.stock == 0 ? "AGOT" : updatedData.stock < 10 ? "Bajo" : "OK"
+    };
+    
+    setProducts(prev => 
+      prev.map(p => p.id === selectedProduct.id ? updatedProduct : p)
+    );
+    
+    handleCloseModal();
+    alert("Producto actualizado exitosamente");
+  } catch (error) {
+    console.error("Error al actualizar:", error);
+    alert("Error al actualizar el producto");
+  }
+};
 
   const filteredData = products.filter(item => {
     const matchStatus = filterStatus === "todos" || item.status.toLowerCase() === filterStatus.toLowerCase();
@@ -146,7 +173,7 @@ const Inventory = () => {
 
       </div>
 
-     {typeModal === 'create' && (
+      {typeModal === 'create' && (
         <CreateProductModal
           open={isModalOpen}
           setOpen={handleCloseModal}
@@ -155,7 +182,14 @@ const Inventory = () => {
       )}
 
 
-      {/* {typeModal === 'edit' && <UpdateProductModal ... />} */}
+      {isModalOpen && typeModal === 'edit' && (
+  <UpdateProductModal 
+    open={isModalOpen} 
+    setOpen={handleCloseModal}  
+    productToEdit={selectedProduct}
+    onSave={handleUpdateProduct}
+  />
+)}
       {/* {typeModal === 'delete' && <DeleteProductModal ... />} */}
       {/* {typeModal === 'history' && <HistoryProductModal ... />} */}
 

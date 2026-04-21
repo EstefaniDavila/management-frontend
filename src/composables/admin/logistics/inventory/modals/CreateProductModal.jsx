@@ -1,13 +1,13 @@
 import React, { useState } from 'react'
-import Modal from '@/components/custom/modal' 
+import Modal from '@/components/custom/modal'
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
-import { 
-  Select, 
-  SelectContent, 
-  SelectItem, 
-  SelectTrigger, 
-  SelectValue 
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue
 } from "@/components/ui/select"
 
 const CreateProductModal = ({ open, setOpen, onSave }) => {
@@ -31,7 +31,7 @@ const CreateProductModal = ({ open, setOpen, onSave }) => {
       alert("Código y Descripción son obligatorios");
       return;
     }
-   
+
     await onSave(formData);
   };
 
@@ -48,10 +48,10 @@ const CreateProductModal = ({ open, setOpen, onSave }) => {
       <div className="grid gap-4 py-5">
         <div className="flex flex-col gap-2">
           <Label htmlFor="codigo">Código *</Label>
-          <Input 
-            id="codigo" 
-            name="codigo" 
-            placeholder="Ej: 1R-0750" 
+          <Input
+            id="codigo"
+            name="codigo"
+            placeholder="Ej: 1R-0750"
             value={formData.codigo}
             onChange={handleChange}
           />
@@ -59,10 +59,10 @@ const CreateProductModal = ({ open, setOpen, onSave }) => {
 
         <div className="flex flex-col gap-2">
           <Label htmlFor="desc">Descripción *</Label>
-          <Input 
-            id="desc" 
-            name="desc" 
-            placeholder="Nombre del producto" 
+          <Input
+            id="desc"
+            name="desc"
+            placeholder="Nombre del producto"
             value={formData.desc}
             onChange={handleChange}
           />
@@ -71,20 +71,20 @@ const CreateProductModal = ({ open, setOpen, onSave }) => {
         <div className="grid grid-cols-2 gap-4">
           <div className="flex flex-col gap-2">
             <Label htmlFor="stock">Stock *</Label>
-            <Input 
-              id="stock" 
-              name="stock" 
-              type="number" 
+            <Input
+              id="stock"
+              name="stock"
+              type="number"
               value={formData.stock}
               onChange={handleChange}
             />
           </div>
           <div className="flex flex-col gap-2">
             <Label htmlFor="loc">Ubicación *</Label>
-            <Input 
-              id="loc" 
-              name="loc" 
-              placeholder="Estante / Zona" 
+            <Input
+              id="loc"
+              name="loc"
+              placeholder="Estante / Zona"
               value={formData.loc}
               onChange={handleChange}
             />
@@ -93,9 +93,9 @@ const CreateProductModal = ({ open, setOpen, onSave }) => {
 
         <div className="flex flex-col gap-2">
           <Label>Tipo de Producto</Label>
-          <Select 
-            defaultValue={formData.type} 
-            onValueChange={(val) => setFormData({...formData, type: val})}
+          <Select
+            defaultValue={formData.type}
+            onValueChange={(val) => setFormData({ ...formData, type: val })}
           >
             <SelectTrigger>
               <SelectValue placeholder="Seleccione tipo" />

@@ -19,9 +19,10 @@ const GeneralInventoryTable = ({
   const handleDelete  = (product) => handleOpenModal('delete', product);
   const handleHistory = (product) => handleOpenModal('history', product);
 
- const columnsWithActions = useMemo(() =>
-    columns(handleDelete, handleEdit, handleHistory),  // (delete, edit, history)
-  [handleEdit, handleDelete, handleHistory]);
+const columnsWithActions = useMemo(() => 
+  columns(handleEdit, handleHistory, handleDelete),  // ✅ ORDEN CORRECTO
+  [handleEdit, handleDelete, handleHistory]
+);
 
   return (
     <div className="w-full space-y-4">
