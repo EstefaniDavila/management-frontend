@@ -1,12 +1,30 @@
-import { WrenchIcon, SettingsIcon } from "lucide-react"
+import { WrenchIcon, SettingsIcon, CalendarDays, House  } from "lucide-react"
 
 export const techLinks = [
   {
-    title: "Maintenance Management",
-    href: "/maintenance",
+    title: "Home",
+    href: "/",
+    icon: House ,
+    area: "Production & Operations",
+  },
+  {
+    title: "Mi Agenda",
+    href: "/schedule",
+    icon: CalendarDays,
+    area: "Production & Operations",
+  },
+  {
+    title: "Ordenes de Trabajo",
+    href: "/work-orders",
     icon: WrenchIcon,
     area: "Production & Operations",
   },
+  // {
+  //   title: "Diagnosticos",
+  //   href: "/diagnosis",
+  //   icon: WrenchIcon,
+  //   area: "Production & Operations",
+  // },
   {
     title: "Settings",
     href: "/settings",

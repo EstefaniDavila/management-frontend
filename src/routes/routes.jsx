@@ -9,6 +9,8 @@ import customerRoutes  from './routes-areas/CustomerRoutes'         // Cliente -
 import advisorRoutes   from './routes-areas/AdvisorRoutes'          // Asesor Comercial - ventas y clientes
 import techRoutes      from './routes-areas/TechRoutes'             // Técnico - mantenimientos y alquileres
 import warehouseRoutes from './routes-areas/WarehouseRoutes'        // Almacenero - inventario y proveedores
+import managerRoutes   from './routes-areas/ManagerRoutes'          // Jefe de Área - su área + dashboard
+import operationRoutes from './routes-areas/OperationRoutes'        // Operación - Jefe de area
 import areaManagerRoutes from './routes-areas/areaManagerRoutes'          // Jefe de Área - su área + dashboard
 
 import Login from '../app/login/Log-in'
@@ -24,6 +26,7 @@ const roleRouter = {
   SalesAdvisor: advisorRoutes,     // Asesor Comercial - Marketing & Sales
   Technician:   techRoutes,        // Técnico - Production & Operations
   WarehouseOp:  warehouseRoutes,   // Operador de Almacén - Logistics & Warehouse
+  Operation:    operationRoutes,   // Operación - su área + reportes
   Manager:      areaManagerRoutes,     // Jefe de Área - su departamento + reportes
 }
 

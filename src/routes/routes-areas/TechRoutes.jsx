@@ -6,40 +6,46 @@ const techRoutes = [
     path: "/",
     element: <PrivateRoute />,
     children: [
-    //   {
-    //     path: "/",
-    //     lazy: async () => {
-    //       const AppShell = await import('../components/app-shell')
-    //       return { Component: AppShell.default }
-    //     },
-    //     children: [
-    //       {
-    //         path: "sales-management",
-    //         lazy: async () => ({
-    //           Component: (await import('../app/sales/SalesManagement')).default,
-    //         }),
-    //       },
-    //       {
-    //         path: "customer-management",
-    //         lazy: async () => ({
-    //           Component: (await import('../app/customers/CustomerManagement')).default,
-    //         }),
-    //       },
-    //       {
-    //         path: "settings",
-    //         lazy: async () => ({
-    //           Component: (await import('../app/settings/Settings')).default,
-    //         }),
-    //       },
-    //       {
-    //         // Cualquier ruta no listada → unauthorized
-    //         path: "*",
-    //         lazy: async () => ({
-    //           Component: (await import('../pages/general/errors/unauthorized')).default,
-    //         }),
-    //       },
-    //     ],
-    //   },
+      {
+        path: "/",
+        lazy: async () => {
+          const AppShell = await import('../../components/app-shell')
+          return { Component: AppShell.default }
+        },
+        children: [
+          {
+            path: "work-orders",
+            lazy: async () => ({
+              Component: (await import('../../pages/panels/technician/operations/work-order/WorkOrder')).default,
+            }),
+          },
+          {
+            path: "work-orders/:id",
+            lazy: async () => ({
+              Component: (await import('../../pages/panels/technician/operations/work-order/WorkOrderDetail')).default,
+            }),
+          },
+          {
+            path: "schedule",
+            lazy: async () => ({
+              Component: (await import('../../pages/panels/technician/operations/calendar/Schedule')).default,
+            }),
+          },
+          {
+            path: "settings",
+            lazy: async () => ({
+              Component: (await import('../../pages/general/settings/index')).default,
+            }),
+          },
+          {
+            // Cualquier ruta no listada → unauthorized
+            path: "*",
+            lazy: async () => ({
+              Component: (await import('../../pages/general/errors/not-found-error')).default,
+            }),
+          },
+        ],
+      },
     ],
   },
 ]

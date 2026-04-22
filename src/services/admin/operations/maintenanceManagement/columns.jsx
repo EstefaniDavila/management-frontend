@@ -13,7 +13,7 @@ const typeColorVariants = {
   visible: 'bg-blue-200 text-blue-800'
 }
 
-const columns = (handleDelete, handleUpdate) => [
+const columns = (handleCreate) => [
   {
     accessorKey: 'code',
     header: 'Código',
@@ -79,7 +79,7 @@ const columns = (handleDelete, handleUpdate) => [
                 <GiNotebook size={20}/>
               </span>
             }
-            onClick={()=> handleUpdate(row?.original, 'edit')}
+            onClick={()=> handleCreate()}
           />
         )}
         {/* <GeneralTooltip

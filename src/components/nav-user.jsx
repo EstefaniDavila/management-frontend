@@ -19,11 +19,13 @@ import {
   useSidebar,
 } from "@/components/ui/sidebar"
 import { ChevronsUpDownIcon, SparklesIcon, BadgeCheckIcon, CreditCardIcon, BellIcon, LogOutIcon } from "lucide-react"
+import { useAuth } from "@/providers/UserContext"
 
 export function NavUser({
   user
 }) {
   const { isMobile } = useSidebar()
+  const { logoutUser } = useAuth();
 
   return (
     <SidebarMenu>
@@ -84,7 +86,7 @@ export function NavUser({
               </DropdownMenuItem>
             </DropdownMenuGroup>
             <DropdownMenuSeparator />
-            <DropdownMenuItem>
+            <DropdownMenuItem onClick={() => logoutUser()}>
               <LogOutIcon />
               Log out
             </DropdownMenuItem>

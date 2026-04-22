@@ -2,9 +2,9 @@ import React, {useState} from 'react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { TbPlus } from 'react-icons/tb';
-import TableMaintenanceManagement from '@/composables/admin/operations/maintenanceManagement/tables/GeneralMaintenanceManagement';
+import TableMaintenanceManagement from '@/composables/operation/operations/maintenanceManagement/tables/GeneralMaintenanceManagement';
 import ModalNewMaintenance from '@/composables/admin/operations/maintenance/modals/ModalNewMaintenance';
-import ModalUpdateCategory from '@/composables/admin/operations/categories/modals/ModalUpdateCategory';
+
 import { custom } from 'zod';
 
 const fakeMaintenances = {
@@ -130,14 +130,14 @@ const Maintenance = () => {
           fetchData={refetchCategories}
         />
       )}
-      {typeModal === 'edit' && (
+      {/* {typeModal === 'edit' && (
         <ModalUpdateCategory
           isOpen={isModalOpen}
           handleClose={handleCloseModal}
           category={category}
           fetchData={refetchCategories}
         />
-      )}
+      )} */}
     </>
   )
 }

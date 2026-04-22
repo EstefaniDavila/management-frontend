@@ -51,7 +51,7 @@ const adminRoutes = [
           {
             path: 'maintenance',
             lazy: async () => ({
-              Component: (await import('../../pages/panels/admin/operations/maintenance/Maintenance')).default,
+              Component: (await import('../../pages/panels/operation/operations/maintenanceManagement/MaintenanceManagement')).default,
             }),
           },
 
