@@ -9,7 +9,7 @@ export const techLinks = [
   },
   {
     title: "Mi Agenda",
-    href: "/calendar",
+    href: "/schedule",
     icon: CalendarDays,
     area: "Production & Operations",
   },
