@@ -17,13 +17,12 @@ const TableMaintenanceManagement = ({ handleOpenModal, data, fetchData, paginati
     // }
   }
 
-  const handleUpdate = (category) => {
-    setCategory(category)
-    setTypeModal('edit')
-    handleOpenModal('edit', category)
+  const handleCreate = () => {
+    setTypeModal('new')
+    handleOpenModal('new')
   }
 
-  const columnsWithActions = useMemo(() => columns(handleDelete, handleUpdate))
+  const columnsWithActions = useMemo(() => columns(handleCreate))
 
   return (
     <DataTable

@@ -4,6 +4,7 @@ import { advisorLinks } from "./customSideLinks/advisorLinks"
 import { techLinks } from "./customSideLinks/techLinks"
 import { warehouseLinks } from "./customSideLinks/warehouseLinks"
 import { customerLinks } from "./customSideLinks/customer"
+import { operationLinks } from "./customSideLinks/operationLinks"
 
 const roleLinks = {
   Admin:            adminLinks,
@@ -12,6 +13,7 @@ const roleLinks = {
   Technician:       techLinks,
   WarehouseOp:      warehouseLinks, // Almacenero
   Customer:         customerLinks,
+  Operation:        operationLinks,       // Jefe de Operaciones
 }
 
 export const getSidelinks = () => {
