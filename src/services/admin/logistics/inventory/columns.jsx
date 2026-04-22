@@ -1,9 +1,7 @@
 import React from 'react';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { Pencil, Move, History, Trash2 } from 'lucide-react';
-import DeleteProductModal from '@/composables/admin/logistics/inventory/modals/DeleteProductModal';
-import UpdateProductModal from '@/composables/admin/logistics/inventory/modals/UpdateProductModal';
+import { Pencil, History, Trash2 } from 'lucide-react';
 
 const getStatusBadge = (status) => {
   switch (status) {
@@ -18,7 +16,7 @@ const getStatusBadge = (status) => {
   }
 };
 
-const columns = (handleEdit, handleMove, handleHistory, handleDelete) => [
+const columns = (handleEdit, handleHistory, handleDelete) => [
   {
     accessorKey: 'id',
     header: 'CÓDIGO',
@@ -50,44 +48,42 @@ const columns = (handleEdit, handleMove, handleHistory, handleDelete) => [
     enableColumnFilter: true,
   },
   {
-    accessorKey: 'acciones', 
     header: () => <div className="text-center">ACCIONES</div>,
+    id: 'actions',
     cell: ({ row }) => (
-      <div className="flex items-center justify-center gap-2">
-       <UpdateProductModal
-          product={row.original}
-          onSave={handleEdit}
-          triggerText=""
-          triggerClassName=""
-        >
-          <Button 
-            variant="ghost" 
-            size="icon" 
-            className="h-8 w-8 text-orange-500 hover:text-orange-600 hover:bg-orange-50 dark:hover:bg-orange-950/50" 
-            title="Editar"
-          >
-            <Pencil className="h-4 w-4" />
-          </Button>
-        </UpdateProductModal>
 
-        <Button 
-          variant="ghost" 
-          size="icon" 
-          className="h-8 w-8 text-blue-500 hover:bg-blue-50 dark:hover:bg-blue-950/50" 
+      <div className="flex items-center justify-center gap-2">
+        <Button
+          variant="ghost"
+          size="icon"
+          className="h-8 w-8 text-orange-500 hover:text-orange-600 hover:bg-orange-50"
+          title="Editar"
+          onClick={() => handleEdit(row.original)}
+        >
+          <Pencil className="h-4 w-4" />
+        </Button>
+
+        <Button
+          variant="ghost"
+          size="icon"
+          className="h-8 w-8 text-blue-500 hover:bg-blue-50"
           title="Historial"
           onClick={() => handleHistory(row.original)}
         >
           <History className="h-4 w-4" />
         </Button>
-        
-        <DeleteProductModal 
-          product={row.original} 
-          onDelete={handleDelete}
-        />
+
+        <Button
+          variant="ghost"
+          size="icon"
+          className="h-8 w-8 text-red-500 hover:bg-red-50"
+          title="Eliminar"
+          onClick={() => handleDelete(row.original)}
+        >
+          <Trash2 className="h-4 w-4" />
+        </Button>
       </div>
     ),
-    size: 150, 
-    minSize: 150,
   }
 ];
 

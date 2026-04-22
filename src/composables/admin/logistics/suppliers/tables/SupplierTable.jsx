@@ -2,7 +2,7 @@ import React, { useMemo } from 'react';
 import DataTable from '@/components/custom/data_table';
 import columns from '@/services/admin/logistics/suppliers/columns';
 
-const GeneralProveedoresTable = ({
+const SupplierTable = ({
     data,
     fetchData,
     pagination,
@@ -12,18 +12,20 @@ const GeneralProveedoresTable = ({
     setSearch,
     searchFields,
     setSearchFields,
-    onEditProveedor,
-    onDeleteProveedor,
-    onViewDetails,
-    onCreateOrder,
+    handleOpenModal,
 }) => {
 
+    const handleEdit = (proveedor) => handleOpenModal('edit', proveedor);
+    const handleDelete = (proveedor) => handleOpenModal('delete', proveedor);
+    const handleViewDetails = (proveedor) => handleOpenModal('details', proveedor);
+    const handleCreateOrder = (proveedor) => handleOpenModal('order', proveedor);
+
     const columnsWithActions = useMemo(() => columns(
-        onEditProveedor,
-        onDeleteProveedor,
-        onViewDetails,
-        onCreateOrder
-    ), [onEditProveedor, onDeleteProveedor, onViewDetails, onCreateOrder]);
+        handleEdit,
+        handleDelete,
+        handleViewDetails,
+        handleCreateOrder
+    ), [handleOpenModal]);
 
     return (
         <div className="w-full space-y-4">
@@ -44,4 +46,4 @@ const GeneralProveedoresTable = ({
     );
 };
 
-export default GeneralProveedoresTable;
+export default SupplierTable;

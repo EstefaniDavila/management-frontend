@@ -1,6 +1,7 @@
 import React from 'react'
 import GeneralError from '../../pages/general/errors/general-error'
 import PrivateRoute from '../../utils/PrivateRoutes'
+import { SalesProvider } from '@/providers/SalesContext'
 
 const adminRoutes = [
   {
@@ -22,6 +23,7 @@ const adminRoutes = [
               Component: (await import('../../app/dashboard/dashboard')).default,
             }),
           },
+          { path: 'area-control', lazy: async () => ({ Component: (await import('../../pages/panels/admin/general-management/AreaControl')).default }) },
 
           // ── Logistics & Warehouse ──
           {
@@ -37,6 +39,14 @@ const adminRoutes = [
             }),
           },
 
+          {
+            path: 'dispatch',
+            lazy: async () => ({
+              Component: (await import('../../pages/panels/admin/logistics/dispatch/Dispatch')).default,
+            }),
+          },
+
+
           // ── Production & Operations ──
           {
             path: 'maintenance',
@@ -44,13 +54,13 @@ const adminRoutes = [
               Component: (await import('../../pages/panels/operation/operations/maintenanceManagement/MaintenanceManagement')).default,
             }),
           },
-          
 
-          // ── Marketing & Sales (por hacer) ──
-          { path: 'quotations',    lazy: async () => ({ Component: (await import('../../pages/panels/admin/marketing/Quotations')).default }) },
-          { path: 'customers',  lazy: async () => ({ Component: (await import('../../pages/panels/admin/marketing/Customers')).default }) },
-          // { path: 'customers',     lazy: async () => ({ Component: (await import('../../pages/panels/admin/marketing/Customers')).default }) },
-     
+          // ── Marketing & Sales ──
+          { path: 'quotations',       lazy: async () => ({ Component: (await import('../../pages/panels/admin/marketing/Quotations')).default }) },
+          { path: 'customers',        lazy: async () => ({ Component: (await import('../../pages/panels/admin/marketing/Customers')).default }) },
+          { path: 'customer-history', lazy: async () => ({ Component: (await import('../../pages/panels/admin/marketing/CustomerHistory')).default }) },
+          { path: 'sales-orders',     lazy: async () => ({ Component: (await import('../../pages/panels/admin/marketing/SalesOrders')).default }) },
+
           // ── Settings ──
           {
             path: 'settings',
@@ -58,36 +68,11 @@ const adminRoutes = [
               Component: (await import('../../pages/general/settings')).default,
             }),
             children: [
-              {
-                index: true,
-                lazy: async () => ({
-                  Component: (await import('../../pages/general/settings/profile')).default,
-                }),
-              },
-              {
-                path: 'account',
-                lazy: async () => ({
-                  Component: (await import('../../pages/general/settings/account')).default,
-                }),
-              },
-              {
-                path: 'appearance',
-                lazy: async () => ({
-                  Component: (await import('../../pages/general/settings/appearance')).default,
-                }),
-              },
-              {
-                path: 'notifications',
-                lazy: async () => ({
-                  Component: (await import('../../pages/general/settings/notifications')).default,
-                }),
-              },
-              {
-                path: 'display',
-                lazy: async () => ({
-                  Component: (await import('../../pages/general/settings/display')).default,
-                }),
-              },
+              { index: true,          lazy: async () => ({ Component: (await import('../../pages/general/settings/profile')).default }) },
+              { path: 'account',      lazy: async () => ({ Component: (await import('../../pages/general/settings/account')).default }) },
+              { path: 'appearance',   lazy: async () => ({ Component: (await import('../../pages/general/settings/appearance')).default }) },
+              { path: 'notifications',lazy: async () => ({ Component: (await import('../../pages/panels/admin/marketing/CustomerHistory')).default }) },
+              { path: 'display',      lazy: async () => ({ Component: (await import('../../pages/general/settings/display')).default }) },
             ],
           },
 

@@ -7,7 +7,9 @@ import {
   BarChart3Icon,
   BuildingIcon,
   SettingsIcon,
-  FileTextIcon
+  FileTextIcon,
+  PackageCheck,
+  ClockIcon,
 } from "lucide-react"
 
 export const adminLinks = [
@@ -25,23 +27,30 @@ export const adminLinks = [
     icon: BuildingIcon,
     area: "General Management",
   },
+
   // ── Marketing & Sales ──
+  {
+    title: "Clientes",
+    href: "/customers",
+    icon: UsersIcon,
+    area: "Marketing & Sales",
+  },
+  {
+    title: "Historial de Clientes",
+    href: "/customer-history",
+    icon: ClockIcon,
+    area: "Marketing & Sales",
+  },
   {
     title: "Cotizaciones",
     href: "/quotations",
-    icon: FileTextIcon,        
+    icon: FileTextIcon,
     area: "Marketing & Sales",
   },
   {
     title: "Órdenes de Venta",
     href: "/sales-orders",
-    icon: ShoppingCartIcon,    
-    area: "Marketing & Sales",
-  },
-  {
-    title: "Clientes",
-    href: "/customers",
-    icon: UsersIcon,
+    icon: ShoppingCartIcon,
     area: "Marketing & Sales",
   },
 
@@ -59,6 +68,13 @@ export const adminLinks = [
     area: "Logistics & Warehouse",
   },
 
+  {
+    title: "Despacho",
+    href: "/dispatch",
+    icon: PackageCheck,
+    area: "Logistics & Warehouse",
+  },
+
   // ── Production & Operations ──
   {
     title: "Mantenimiento",
@@ -72,8 +88,6 @@ export const adminLinks = [
     icon: PackageIcon,
     area: "Production & Operations",
   },
-
-  
 
   // ── Settings ──
   {
