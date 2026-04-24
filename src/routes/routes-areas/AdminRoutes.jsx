@@ -46,6 +46,13 @@ const adminRoutes = [
             }),
           },
 
+          {
+            path: 'ordersSuppliers',
+            lazy: async () => ({
+              Component: (await import('../../pages/panels/admin/logistics/ordersSuppliers/OrdersSuppliers')).default,
+            }),
+          },
+
 
           // ── Production & Operations ──
           {
