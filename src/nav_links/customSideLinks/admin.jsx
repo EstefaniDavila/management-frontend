@@ -10,6 +10,7 @@ import {
   FileTextIcon,
   PackageCheck,
   ClockIcon,
+  ShoppingBagIcon,
 } from "lucide-react"
 
 export const adminLinks = [
@@ -74,6 +75,14 @@ export const adminLinks = [
     icon: PackageCheck,
     area: "Logistics & Warehouse",
   },
+
+  {
+    title: "Pedido a Proveedores",
+    href: "/ordersSuppliers",
+    icon: ShoppingBagIcon,
+    area: "Logistics & Warehouse",
+  },
+
 
   // ── Production & Operations ──
   {
