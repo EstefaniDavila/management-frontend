@@ -26,6 +26,12 @@ const operationRoutes = [
             }),
           },
           {
+            path: "area-requests",
+            lazy: async () => ({
+              Component: (await import('../../pages/panels/shared/AreaRequestsPage')).default,
+            }),
+          },
+          {
             path: "settings",
             lazy: async () => ({
               Component: (await import('../../pages/general/settings/index')).default,

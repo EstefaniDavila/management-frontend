@@ -10,6 +10,7 @@ import {
   FileTextIcon,
   PackageCheck,
   ClockIcon,
+  MessageSquareIcon,
 } from "lucide-react"
 
 export const adminLinks = [
@@ -25,6 +26,12 @@ export const adminLinks = [
     title: "Area Control",
     href: "/area-control",
     icon: BuildingIcon,
+    area: "General Management",
+  },
+  {
+    title: "Solicitudes",
+    href: "/area-requests",
+    icon: MessageSquareIcon,
     area: "General Management",
   },
 

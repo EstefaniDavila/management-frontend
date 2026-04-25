@@ -24,6 +24,7 @@ const adminRoutes = [
             }),
           },
           { path: 'area-control', lazy: async () => ({ Component: (await import('../../pages/panels/admin/general-management/AreaControl')).default }) },
+          { path: 'area-requests', lazy: async () => ({ Component: (await import('../../pages/panels/shared/AreaRequestsPage')).default }) },
 
           // ── Logistics & Warehouse ──
           {

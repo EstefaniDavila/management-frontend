@@ -1,6 +1,12 @@
-import { PackageIcon, TruckIcon, SettingsIcon } from "lucide-react"
+import { PackageIcon, TruckIcon, SettingsIcon, MessageSquareIcon } from "lucide-react"
 
 export const warehouseLinks = [
+  {
+    title: "Solicitudes",
+    href: "/area-requests",
+    icon: MessageSquareIcon,
+    area: "Logistics & Warehouse",
+  },
   {
     title: "Inventory",
     href: "/inventory",

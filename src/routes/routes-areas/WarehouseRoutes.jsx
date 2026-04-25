@@ -39,6 +39,21 @@ const warehouseRoutes = [
     //       },
     //     ],
     //   },
+      {
+        path: "/",
+        lazy: async () => {
+          const AppShell = await import('../../components/app-shell')
+          return { Component: AppShell.default }
+        },
+        children: [
+          {
+            path: "area-requests",
+            lazy: async () => ({
+              Component: (await import('../../pages/panels/shared/AreaRequestsPage')).default,
+            }),
+          },
+        ],
+      },
     ],
   },
 ]
