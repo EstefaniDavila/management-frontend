@@ -141,6 +141,7 @@ const ViewOrderDetailModal = ({ open, setOpen, order, supplier }) => {
                     <Button
                         variant="outline"
                         className="w-full sm:w-auto gap-2"
+                        onClick={() => alert("Impresión iniciada...")}
                     >
                         <Printer className="h-4 w-4" />
                         Imprimir
@@ -148,6 +149,9 @@ const ViewOrderDetailModal = ({ open, setOpen, order, supplier }) => {
                     <Button
                         variant="default"
                         className="w-full sm:w-auto gap-2"
+                        onClick={() => {
+                            alert(`Generando PDF para la orden ${order.oc}...\n¡Descarga completada!`);
+                        }}
                     >
                         <Download className="h-4 w-4" />
                         Descargar PDF

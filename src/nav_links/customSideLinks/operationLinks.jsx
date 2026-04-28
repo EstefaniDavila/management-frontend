@@ -19,6 +19,12 @@ export const operationLinks = [
     icon: CalendarDays,
     area: "Production & Operations",
   },
+  {
+    title: "Renta de Equipos",
+    href: "/equipment-rental",
+    icon: WrenchIcon,
+    area: "Production & Operations",
+  },
   // {
   //   title: "Ordenes de Trabajo",
   //   href: "/work-orders",

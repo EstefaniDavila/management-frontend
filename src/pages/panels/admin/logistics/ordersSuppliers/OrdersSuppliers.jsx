@@ -10,8 +10,9 @@ import {
 
 import OrdersSuppliersTable from '@/composables/admin/logistics/ordersSuppliers/Table/OrdersSuppliersTable';
 import ViewOrderDetailModal from '@/composables/admin/logistics/suppliers/modals/SupplierOrderModal/ViewOrderDetailModal/ViewOrderDetailModal';
-
-
+import CreateOrderModal from '@/composables/admin/logistics/ordersSuppliers/modals/CreateOrderModal';
+import UpdateOrderModal from '@/composables/admin/logistics/ordersSuppliers/modals/UpdateOrderModal';
+import DeleteOrderModal from '@/composables/admin/logistics/ordersSuppliers/modals/DeleteOrderModal';
 const fakePurchaseOrders = {
   rows: [
     { 
@@ -257,12 +258,22 @@ const PurchaseOrderHistory = () => {
         />
       )}
 
-      {typeModal === 'details' && (
+      {typeModal === 'details' && selectedOrder && (
         <ViewOrderDetailModal
           open={isModalOpen}
           setOpen={handleCloseModal}
-          order={selectedOrder}
-          
+          order={{
+            oc: selectedOrder.orderId,
+            estado: selectedOrder.status === 'ENTREGADO' ? 'Completado' : selectedOrder.status,
+            fecha: selectedOrder.fechaPedido,
+            monto: selectedOrder.montoTotal,
+            metodo: 'Transferencia'
+          }}
+          supplier={{
+            nombre: selectedOrder.proveedor,
+            direccion: 'Av. Principal S/N (Registrada en BD)',
+            contacto: 'Representante de Ventas'
+          }}
         />
       )}
 

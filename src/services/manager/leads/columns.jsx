@@ -56,6 +56,21 @@ const columns = (handleView, handleAssign) => [
     enableColumnFilter: false,
   },
   {
+    accessorKey: 'priority',
+    header: 'Prioridad',
+    cell: info => {
+      const v = info.getValue() || 'CP'
+      const labels = { CN: 'CN (No Deseado)', CP: 'CP (Potencial)', CR: 'CR (Reciclado)' }
+      const colors = { CN: 'bg-red-100 text-red-800', CP: 'bg-yellow-100 text-yellow-800', CR: 'bg-blue-100 text-blue-800' }
+      return (
+        <Badge className={`px-2 py-0.5 text-[10px] ${colors[v]}`}>
+          {labels[v]}
+        </Badge>
+      )
+    },
+    enableColumnFilter: false,
+  },
+  {
     accessorKey: 'status',
     header: 'Estado',
     cell: info => {

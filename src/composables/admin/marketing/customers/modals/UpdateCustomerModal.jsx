@@ -107,6 +107,18 @@ const UpdateCustomerModal = ({ isOpen, handleClose, customer, onUpdate }) => {
           </div>
 
           <div className="col-span-2 flex flex-col gap-1">
+            <label className="text-sm font-medium">Prioridad Comercial</label>
+            <Select value={formData.priority} onValueChange={val => handleSelectChange('priority', val, setFormData, onChangeExtra)}>
+              <SelectTrigger><SelectValue placeholder="Seleccione prioridad" /></SelectTrigger>
+              <SelectContent>
+                <SelectItem value="CN">CN - No Deseado</SelectItem>
+                <SelectItem value="CP">CP - Potencial</SelectItem>
+                <SelectItem value="CR">CR - Reciclado</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+
+          <div className="col-span-2 flex flex-col gap-1">
             <label className="text-sm font-medium">Dirección</label>
             <Input name="address" value={formData.address || ''} onChange={e => handleChange(e, setFormData, onChangeExtra)} />
           </div>

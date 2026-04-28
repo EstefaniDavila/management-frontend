@@ -98,12 +98,12 @@ export const adminLinks = [
     icon: WrenchIcon,
     area: "Production & Operations",
   },
-  {
-    title: "Renta de Equipos",
-    href: "/rentals",
-    icon: PackageIcon,
-    area: "Production & Operations",
-  },
+  // {
+  //   title: "Renta de Equipos",
+  //   href: "/rentals",
+  //   icon: PackageIcon,
+  //   area: "Production & Operations",
+  // },
 
   // ── Settings ──
   {
