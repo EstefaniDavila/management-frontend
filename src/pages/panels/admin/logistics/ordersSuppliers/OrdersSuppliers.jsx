@@ -10,7 +10,7 @@ import {
 
 import OrdersSuppliersTable from '@/composables/admin/logistics/ordersSuppliers/Table/OrdersSuppliersTable';
 import CreateNewOrderModal from '@/composables/admin/logistics/ordersSuppliers/modals/CreateNewOrderModal';
-import ViewOrderDetailModal from '@/composables/admin/logistics/suppliers/modals/SupplierOrderModal/ViewOrderDetailModal/ViewOrderDetailModal';
+import ViewOrderDetailModal from '@/composables/admin/logistics/ordersSuppliers/modals/ViewOrderdetailsModal';
 
 
 const fakePurchaseOrders = {

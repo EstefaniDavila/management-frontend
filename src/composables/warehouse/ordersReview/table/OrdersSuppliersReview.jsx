@@ -1,6 +1,7 @@
-import React, { useMemo } from 'react';
+import React, { useMemo, useCallback } from 'react';
 import DataTable from '@/components/custom/data_table';
 import columns from '@/services/warehouse/ordersReview/column';
+
 const OrdersSuppliersReviewTable = ({
     data,
     fetchData,
@@ -12,13 +13,18 @@ const OrdersSuppliersReviewTable = ({
     searchFields,
     setSearchFields,
     handleOpenModal,
+    onConfirmOrder,
 }) => {
 
-    const handleDetails = (order) => handleOpenModal('details', order);
-
+    const handleDetails = useCallback((order) => {
+        handleOpenModal('details', order);
+    }, [handleOpenModal]);
+    const handleConfirmReception = useCallback((order, isConforme) => {
+        onConfirmOrder(order, isConforme, '');
+    }, [onConfirmOrder]);
     const columnsWithActions = useMemo(() =>
-        columns(handleDetails),
-        [handleDetails]
+        columns(handleDetails, handleConfirmReception),
+        [handleDetails, handleConfirmReception]
     );
 
     return (
@@ -33,7 +39,7 @@ const OrdersSuppliersReviewTable = ({
                 search={search}
                 setSearch={setSearch}
                 searchFields={searchFields}
-                setSearchFields={setSearchFields}
+                setSearchFields={searchFields}
             />
         </div>
     );

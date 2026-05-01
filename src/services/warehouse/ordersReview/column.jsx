@@ -1,7 +1,7 @@
 import React from 'react';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { Eye } from 'lucide-react';
+import { Eye, CheckCircle, XCircle } from 'lucide-react';
 
 const getOrderStatusBadge = (status) => {
     switch (status) {
@@ -18,8 +18,8 @@ const getOrderStatusBadge = (status) => {
     }
 };
 
-// MODIFICADO: Solo recibe handleDetails, quitamos edit y delete
-const columns = (handleDetails) => [
+// MODIFICADO: Recibe handleDetails y handleConfirmReception
+const columns = (handleDetails, handleConfirmReception) => [
     {
         accessorKey: 'orderId',
         header: 'Nº PEDIDO',
@@ -40,7 +40,7 @@ const columns = (handleDetails) => [
     },
     {
         accessorKey: 'fechaEntrega',
-        header: 'FECHA ENTREGA',
+        header: 'FECHA DE RECEPCIÓN',
         cell: info => info.getValue() ? new Date(info.getValue()).toLocaleDateString('es-ES') : 'Pendiente',
         enableColumnFilter: true,
     },
@@ -51,16 +51,24 @@ const columns = (handleDetails) => [
         enableColumnFilter: true,
     },
     {
-        accessorKey: 'montoTotal',
-        header: 'MONTO TOTAL',
-        cell: info => `$${info.getValue().toLocaleString('es-CL')}`,
-        enableColumnFilter: true,
-    },
-    {
         accessorKey: 'status',
         header: 'ESTADO',
         cell: info => getOrderStatusBadge(info.getValue()),
         enableColumnFilter: true,
+    },
+    {
+        accessorKey: 'conforme',
+        header: 'RECEPCIÓN',
+        cell: ({ row }) => {
+            const conforme = row.original.conforme;
+            if (conforme === true) {
+                return <Badge className="bg-green-100 text-green-800">✓ Conforme</Badge>;
+            }
+            if (conforme === false) {
+                return <Badge variant="destructive">✗ No conforme</Badge>;
+            }
+            return <Badge variant="outline">⏳ Pendiente</Badge>;
+        },
     },
     {
         header: () => <div className="text-center">ACCIONES</div>,
@@ -71,12 +79,35 @@ const columns = (handleDetails) => [
                     variant="ghost"
                     size="icon"
                     className="h-8 w-8 text-blue-500 hover:text-blue-600 hover:bg-blue-50"
-                    title="Ver Detalles"
+                    title="Ver Detalles del Pedido"
                     onClick={() => handleDetails(row.original)}
                 >
                     <Eye className="h-4 w-4" />
                 </Button>
-                {/* QUITADOS: botones de Editar y Eliminar */}
+
+                {/* Solo mostrar botones de confirmación si el pedido está ENTREGADO y aún no se ha confirmado */}
+                {row.original.status === "ENTREGADO" && row.original.conforme === undefined && (
+                    <>
+                        <Button
+                            variant="ghost"
+                            size="icon"
+                            className="h-8 w-8 text-green-500 hover:text-green-600 hover:bg-green-50"
+                            title="Confirmar Recepción Conforme"
+                            onClick={() => handleConfirmReception(row.original, true)}
+                        >
+                            <CheckCircle className="h-4 w-4" />
+                        </Button>
+                        <Button
+                            variant="ghost"
+                            size="icon"
+                            className="h-8 w-8 text-red-500 hover:text-red-600 hover:bg-red-50"
+                            title="Marcar como No Conforme"
+                            onClick={() => handleConfirmReception(row.original, false)}
+                        >
+                            <XCircle className="h-4 w-4" />
+                        </Button>
+                    </>
+                )}
             </div>
         ),
     }

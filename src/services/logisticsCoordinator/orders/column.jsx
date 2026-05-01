@@ -39,7 +39,7 @@ const columns = (handleEdit, handleDetails, handleDelete) => [
   },
   {
     accessorKey: 'fechaEntrega',
-    header: 'FECHA ENTREGA',
+    header: 'FECHA DE RECPCIÓN',
     cell: info => info.getValue() ? new Date(info.getValue()).toLocaleDateString('es-ES') : 'Pendiente',
     enableColumnFilter: true,
   },

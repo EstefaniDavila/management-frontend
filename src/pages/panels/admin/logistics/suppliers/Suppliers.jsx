@@ -150,37 +150,35 @@ const Suppliers = () => {
   return (
     <div className="p-6 w-full min-h-screen bg-background">
       <div className="max-w-[1600px] mx-auto">
-        <div className="flex flex-col gap-6">
-
-          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+        <div className="flex flex-col">
+          <div className="flex flex-col sm:flex-row items-end justify-between mb-2">
             <h1 className="text-xl md:text-2xl font-bold tracking-tight">
               GESTIÓN DE PROVEEDORES
             </h1>
+
             <Button
               variant="default"
-              className="w-full sm:w-auto gap-2 shadow-sm"
+              className="h-7 px-2 text-xs gap-1 shadow-sm sm:w-auto w-full"
               onClick={() => handleOpenModal('new')}
             >
               <Plus className="h-4 w-4" /> NUEVO PROVEEDOR
+
             </Button>
           </div>
-
           <div className="w-full bg-card rounded-xl border shadow-sm overflow-hidden">
-            <div className="overflow-x-auto w-full">
-              <div className="inline-block min-w-full align-middle p-4">
-                <SupplierTable
-                  data={proveedores}
-                  fetchData={refetchData}
-                  pagination={pagination}
-                  setPagination={setPagination}
-                  totalPages={totalPages}
-                  search={search}
-                  setSearch={setSearch}
-                  searchFields={searchFields}
-                  setSearchFields={setSearchFields}
-                  handleOpenModal={handleOpenModal}
-                />
-              </div>
+            <div className="p-4">
+              <SupplierTable
+                data={proveedores}
+                fetchData={refetchData}
+                pagination={pagination}
+                setPagination={setPagination}
+                totalPages={totalPages}
+                search={search}
+                setSearch={setSearch}
+                searchFields={searchFields}
+                setSearchFields={setSearchFields}
+                handleOpenModal={handleOpenModal}
+              />
             </div>
           </div>
 
