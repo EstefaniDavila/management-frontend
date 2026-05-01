@@ -1,6 +1,6 @@
 import React, { createContext, useEffect, useState, useContext, useRef, useMemo } from 'react'
 import axios from "axios"
-import {jwtDecode} from 'jwt-decode'
+import { jwtDecode } from 'jwt-decode'
 import { ToastAction } from "@/components/ui/toast"
 import { useToast } from "@/components/ui/use-toast"
 
@@ -14,13 +14,13 @@ export const UserProvider = ({ children }) => {
 
   const [authTokens, setAuthTokens] = useState(() => localStorage.getItem('authTokens') ? JSON.parse(localStorage.getItem('authTokens')) : null)
   //const [user, setUser] = useState(() => localStorage.getItem('authTokens') ? jwtDecode(localStorage.getItem('authTokens')) : null)
-  const [user, setUser] = useState(() => 
-    localStorage.getItem('user') 
-      ? JSON.parse(localStorage.getItem('user')) 
+  const [user, setUser] = useState(() =>
+    localStorage.getItem('user')
+      ? JSON.parse(localStorage.getItem('user'))
       : null
   )
   const authTokensRef = useRef(authTokens)
-  const userRef = useRef(user) 
+  const userRef = useRef(user)
 
   // const loginUser = async (credentials) => {
   //   try {
@@ -150,7 +150,7 @@ export const UserProvider = ({ children }) => {
             name: "Technician",
             email: "technician@email.com",
             role: "Technician"
-            },
+          },
           message: "Login successful"
         };
 
@@ -164,7 +164,7 @@ export const UserProvider = ({ children }) => {
         localStorage.setItem("user", JSON.stringify(fakeData.user));
 
         window.location.href = "/";
-      }if (
+      } if (
         (document_number === "advisor" || document_number === "advisor@email.com") &&
         password === "123456"
       ) {
@@ -205,7 +205,7 @@ export const UserProvider = ({ children }) => {
             name: "Operation",
             email: "operation@email.com",
             role: "Operation"
-            },
+          },
           message: "Login successful"
         };
 
@@ -218,7 +218,7 @@ export const UserProvider = ({ children }) => {
         localStorage.setItem("user", JSON.stringify(fakeData.user));
 
         window.location.href = "/";
-      } 
+      }
       if (
         (document_number === "manager" || document_number === "manager@email.com") &&
         password === "123456"
@@ -244,6 +244,59 @@ export const UserProvider = ({ children }) => {
         localStorage.setItem("user", JSON.stringify(fakeData.user));
         window.location.href = "/";
       }
+
+      if (
+        (document_number === "warehouse" || document_number === "warehouse@email.com") &&
+        password === "123456"
+      ) {
+        const fakeData = {
+          access_token: "fake-jwt-token",
+          refresh_token: "fake-refresh-token",
+          expire_at: new Date().getTime() + 1000 * 60 * 60, // 1 hora
+          user: {
+            id: 4,
+            name: "Warehouse",
+            email: "warehouse@email.com",
+            role: "WarehouseOp"
+          },
+          message: "Login successful"
+        };
+
+        setAuthTokens(fakeData);
+        authTokensRef.current = fakeData;
+        setUser(fakeData.user);
+        userRef.current = fakeData.user;
+        localStorage.setItem("authTokens", JSON.stringify(fakeData));
+        localStorage.setItem("user", JSON.stringify(fakeData.user));
+        window.location.href = "/";
+      }
+
+      if (
+        (document_number === "logistic" || document_number === "logistic@email.com") &&
+        password === "123456"
+      ) {
+        const fakeData = {
+          access_token: "fake-jwt-token",
+          refresh_token: "fake-refresh-token",
+          expire_at: new Date().getTime() + 1000 * 60 * 60, // 1 hora
+          user: {
+            id: 5,
+            name: "Logistic",
+            email: "logistic@email.com",
+            role: "CoordinatorLogistic"
+          },
+          message: "Login successful"
+        };
+
+        setAuthTokens(fakeData);
+        authTokensRef.current = fakeData;
+        setUser(fakeData.user);
+        userRef.current = fakeData.user;
+        localStorage.setItem("authTokens", JSON.stringify(fakeData));
+        localStorage.setItem("user", JSON.stringify(fakeData.user));
+        window.location.href = "/";
+      }
+
       else {
         alert("Credenciales incorrectas");
       }
@@ -251,6 +304,7 @@ export const UserProvider = ({ children }) => {
     } catch (error) {
       console.error("Error en loginUser:", error.message);
     }
+    
   };
 
   const logoutUser = async () => {
@@ -334,7 +388,7 @@ export const UserProvider = ({ children }) => {
     } catch (error) {
       console.error('Error en updateToken:', error.response ? error.response.data : error.message)
       logoutUser()
-    } 
+    }
   }
 
   useEffect(() => {
@@ -398,8 +452,8 @@ export const UserProvider = ({ children }) => {
     authTokens: authTokensRef?.current,
     loginUser,
     logoutUser,
-    setAuthTokens, 
-    setUser, 
+    setAuthTokens,
+    setUser,
   }), [authTokensRef])
 
   return (

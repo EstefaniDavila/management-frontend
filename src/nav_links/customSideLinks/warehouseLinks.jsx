@@ -1,4 +1,4 @@
-import { PackageIcon, TruckIcon, SettingsIcon } from "lucide-react"
+import { PackageIcon, TruckIcon, SettingsIcon,PackageCheck } from "lucide-react"
 
 export const warehouseLinks = [
   {
@@ -8,9 +8,9 @@ export const warehouseLinks = [
     area: "Logistics & Warehouse",
   },
   {
-    title: "Suppliers",
-    href: "/suppliers",
-    icon: TruckIcon,
+    title: "Orders Review",
+    href: "/ordersReview",
+    icon: PackageCheck,
     area: "Logistics & Warehouse",
   },
   {

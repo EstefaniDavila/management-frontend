@@ -9,55 +9,56 @@ import {
 } from "@/components/ui/dropdown-menu";
 
 import OrdersSuppliersTable from '@/composables/admin/logistics/ordersSuppliers/Table/OrdersSuppliersTable';
+import CreateNewOrderModal from '@/composables/admin/logistics/ordersSuppliers/modals/CreateNewOrderModal';
 import ViewOrderDetailModal from '@/composables/admin/logistics/suppliers/modals/SupplierOrderModal/ViewOrderDetailModal/ViewOrderDetailModal';
 
 
 const fakePurchaseOrders = {
   rows: [
-    { 
-      orderId: "PO-2024-001", 
-      proveedor: "Maquinarias S.A.", 
-      fechaPedido: "2024-01-15", 
-      fechaEntrega: "2024-01-22", 
-      totalProductos: 15, 
-      montoTotal: 12500000, 
-      status: "ENTREGADO" 
+    {
+      orderId: "PO-2024-001",
+      proveedor: "Maquinarias S.A.",
+      fechaPedido: "2024-01-15",
+      fechaEntrega: "2024-01-22",
+      totalProductos: 15,
+      montoTotal: 12500000,
+      status: "ENTREGADO"
     },
-    { 
-      orderId: "PO-2024-002", 
-      proveedor: "Repuestos Industriales Ltda.", 
-      fechaPedido: "2024-01-20", 
-      fechaEntrega: null, 
-      totalProductos: 45, 
-      montoTotal: 3450000, 
-      status: "PENDIENTE" 
+    {
+      orderId: "PO-2024-002",
+      proveedor: "Repuestos Industriales Ltda.",
+      fechaPedido: "2024-01-20",
+      fechaEntrega: null,
+      totalProductos: 45,
+      montoTotal: 3450000,
+      status: "PENDIENTE"
     },
-    { 
-      orderId: "PO-2024-003", 
-      proveedor: "Equipos Pesados SpA", 
-      fechaPedido: "2024-01-25", 
-      fechaEntrega: "2024-02-01", 
-      totalProductos: 8, 
-      montoTotal: 8900000, 
-      status: "EN_TRANSITO" 
+    {
+      orderId: "PO-2024-003",
+      proveedor: "Equipos Pesados SpA",
+      fechaPedido: "2024-01-25",
+      fechaEntrega: "2024-02-01",
+      totalProductos: 8,
+      montoTotal: 8900000,
+      status: "EN_TRANSITO"
     },
-    { 
-      orderId: "PO-2024-004", 
-      proveedor: "Insumos Mineros", 
-      fechaPedido: "2024-01-28", 
-      fechaEntrega: null, 
-      totalProductos: 120, 
-      montoTotal: 6700000, 
-      status: "CANCELADO" 
+    {
+      orderId: "PO-2024-004",
+      proveedor: "Insumos Mineros",
+      fechaPedido: "2024-01-28",
+      fechaEntrega: null,
+      totalProductos: 120,
+      montoTotal: 6700000,
+      status: "CANCELADO"
     },
-    { 
-      orderId: "PO-2024-005", 
-      proveedor: "Logística Express", 
-      fechaPedido: "2024-02-01", 
-      fechaEntrega: "2024-02-08", 
-      totalProductos: 32, 
-      montoTotal: 2100000, 
-      status: "ENTREGADO" 
+    {
+      orderId: "PO-2024-005",
+      proveedor: "Logística Express",
+      fechaPedido: "2024-02-01",
+      fechaEntrega: "2024-02-08",
+      totalProductos: 32,
+      montoTotal: 2100000,
+      status: "ENTREGADO"
     },
   ],
   rowCount: 47
@@ -74,6 +75,14 @@ const PurchaseOrderHistory = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedOrder, setSelectedOrder] = useState(null);
 
+  const [suppliers, setSuppliers] = useState([
+    { id: 1, nombre: "Maquinarias S.A." },
+    { id: 2, nombre: "Repuestos Industriales Ltda." },
+    { id: 3, nombre: "Equipos Pesados SpA" },
+    { id: 4, nombre: "Insumos Mineros" },
+    { id: 5, nombre: "Logística Express" },
+  ]);
+
   const refetchData = () => console.log("Refetching orders data...");
 
   const handleOpenModal = (type, order = null) => {
@@ -88,23 +97,23 @@ const PurchaseOrderHistory = () => {
     setIsModalOpen(false);
   };
 
-  const handleSaveOrder = async (newOrder) => {
+  const handleSaveOrder = async (pedidoData) => {
     try {
-      console.log("Guardando pedido:", newOrder);
+      console.log("Guardando pedido:", pedidoData);
 
       const orderToAdd = {
-        orderId: newOrder.orderId,
-        proveedor: newOrder.proveedor,
-        fechaPedido: newOrder.fechaPedido,
-        fechaEntrega: newOrder.fechaEntrega || null,
-        totalProductos: parseInt(newOrder.totalProductos),
-        montoTotal: parseFloat(newOrder.montoTotal),
-        status: newOrder.status
+        orderId: pedidoData.orderId,
+        proveedor: pedidoData.proveedor,
+        fechaPedido: pedidoData.fechaPedido,
+        fechaEntrega: pedidoData.fechaEntrega,
+        totalProductos: pedidoData.totalProductos,
+        montoTotal: pedidoData.montoTotal,
+        status: pedidoData.status
       };
 
       setOrders(prev => [orderToAdd, ...prev]);
       handleCloseModal();
-      alert("Pedido creado exitosamente");
+      alert(`Pedido ${pedidoData.orderId} creado exitosamente para ${pedidoData.proveedor}`);
 
     } catch (error) {
       console.error("Error al guardar:", error);
@@ -232,10 +241,11 @@ const PurchaseOrderHistory = () => {
       </div>
 
       {typeModal === 'create' && (
-        <CreateOrderModal
+        <CreateNewOrderModal
           open={isModalOpen}
           setOpen={handleCloseModal}
           onSave={handleSaveOrder}
+          suppliers={suppliers}
         />
       )}
 
@@ -262,7 +272,7 @@ const PurchaseOrderHistory = () => {
           open={isModalOpen}
           setOpen={handleCloseModal}
           order={selectedOrder}
-          
+
         />
       )}
 

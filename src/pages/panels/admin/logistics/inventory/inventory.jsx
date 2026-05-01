@@ -16,11 +16,11 @@ import DeleteProductModal from '@/composables/admin/logistics/inventory/modals/D
 
 const fakeInventory = {
   rows: [
-    { id: "1R-0750", desc: "Filtro aceite", stock: 47, loc: "Estante A", status: "OK", type: "repuesto" },
-    { id: "153-5710", desc: "Batería 12V", stock: 8, loc: "Estante B", status: "Bajo", type: "repuesto" },
-    { id: "CAT-C15", desc: "Retroexcavadora JCB 3CX", stock: 2, loc: "Zona 1", status: "OK", type: "maquinaria" },
-    { id: "9X-2012", desc: "Kit junta motor", stock: 0, loc: "Estante C", status: "AGOT", type: "repuesto" },
-    { id: "7E-7777", desc: "Volquete Volvo FMX", stock: 15, loc: "Estante A", status: "OK", type: "maquinaria" },
+    { id: "1R-0750", desc: "Filtro aceite", stock: 47, stockmin: 5, loc: "Estante A", state: "ACTIVO", status: "OK", type: "repuesto", base_price: "$15.00" },
+    { id: "153-5710", desc: "Batería 12V", stock: 8, stockmin: 15, loc: "Estante B", state: "ACTIVO", status: "Bajo", type: "repuesto", base_price: "$120.00" },
+    { id: "CAT-C15", desc: "Retroexcavadora JCB 3CX", stock: 3, stockmin: 10, loc: "Zona 1", state: "INACTIVO", status: "OK", type: "maquinaria", base_price: "$25,000.00" },
+    { id: "9X-2012", desc: "Kit junta motor", stock: 0, stockmin: 6, loc: "Estante C", state: "ACTIVO", status: "AGOT", type: "repuesto", base_price: "$45.00" },
+    { id: "7E-7777", desc: "Volquete Volvo FMX", stock: 15, stockmin: 8, loc: "Estante A", state: "ACTIVO", status: "OK", type: "maquinaria", base_price: "$95,000.00" },
   ],
   rowCount: 47
 };
