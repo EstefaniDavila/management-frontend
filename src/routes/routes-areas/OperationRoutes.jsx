@@ -14,6 +14,12 @@ const operationRoutes = [
         },
         children: [
           {
+            index: true,
+            lazy: async () => ({
+              Component: (await import('../../pages/panels/operation/OperationDashboard')).default,
+            }),
+          },
+          {
             path: "work-orders",
             lazy: async () => ({
               Component: (await import('../../pages/panels/technician/operations/work-order/WorkOrder')).default,
@@ -23,6 +29,18 @@ const operationRoutes = [
             path: "maintenance-management",
             lazy: async () => ({
               Component: (await import('../../pages/panels/operation/operations/maintenanceManagement/MaintenanceManagement')).default,
+            }),
+          },
+          {
+            path: "equipment-rental",
+            lazy: async () => ({
+              Component: (await import('../../pages/panels/operation/operations/equipmentRental/EquipmentRental')).default,
+            }),
+          },
+          {
+            path: "area-requests",
+            lazy: async () => ({
+              Component: (await import('../../pages/panels/shared/AreaRequestsPage')).default,
             }),
           },
           {

@@ -115,6 +115,32 @@ const AreaControl = () => {
       status: 'Pendiente',
       alert_ref: selectedAlert?.id || null
     }, ...prev])
+    
+    // Conectar con Solicitudes entre Áreas
+    const storedReqs = JSON.parse(localStorage.getItem('area_requests_data') || '[]')
+    
+    // Algunos items iniciales predeterminados si localStorage estaba vacío, para evitar pérdida
+    const defaults = [
+      { id: 'REQ-001', from: 'Comercial', to: 'Operaciones', type: 'Completar Cotización', status: 'Pendiente', date: '2024-10-12', detail: 'Faltan datos del cliente para alquiler' },
+      { id: 'REQ-002', from: 'Operaciones', to: 'Logística', type: 'Revisión Técnica', status: 'En Progreso', date: '2024-10-14', detail: 'Revisar repuestos para mantenimiento' },
+      { id: 'REQ-003', from: 'Admin', to: 'Comercial', type: 'Actualización Datos', status: 'Completado', date: '2024-10-15', detail: 'Actualizar pipeline' },
+    ];
+    
+    const baseReqs = storedReqs.length > 0 ? storedReqs : defaults;
+    
+    const newReq = {
+      id: `REQ-${Math.floor(Math.random() * 9000) + 1000}`,
+      from: 'Admin',
+      to: newAction.area.split(' ')[0], // Ejemplo: "Logística & Almacén" -> "Logística"
+      type: 'Acción Correctiva',
+      status: 'Pendiente',
+      date: newAction.date,
+      detail: newAction.action,
+    }
+    
+    localStorage.setItem('area_requests_data', JSON.stringify([newReq, ...baseReqs]))
+    window.dispatchEvent(new Event('requests_updated'))
+    
     setSelectedAlert(null)
   }
 

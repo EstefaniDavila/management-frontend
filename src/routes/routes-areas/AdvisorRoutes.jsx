@@ -26,6 +26,12 @@ const advisorRoutes = [
             }),
           },
           {
+            path: 'area-requests',
+            lazy: async () => ({
+              Component: (await import('../../pages/panels/shared/AreaRequestsPage')).default,
+            }),
+          },
+          {
             path: 'advisor/leads',
             lazy: async () => ({
               Component: (await import('../../pages/panels/advisor/LeadRequests')).default,

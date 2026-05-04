@@ -14,6 +14,12 @@ const techRoutes = [
         },
         children: [
           {
+            index: true,
+            lazy: async () => ({
+              Component: (await import('../../pages/panels/technician/TechnicianDashboard')).default,
+            }),
+          },
+          {
             path: "work-orders",
             lazy: async () => ({
               Component: (await import('../../pages/panels/technician/operations/work-order/WorkOrder')).default,
@@ -29,6 +35,12 @@ const techRoutes = [
             path: "schedule",
             lazy: async () => ({
               Component: (await import('../../pages/panels/technician/operations/calendar/Schedule')).default,
+            }),
+          },
+          {
+            path: "area-requests",
+            lazy: async () => ({
+              Component: (await import('../../pages/panels/shared/AreaRequestsPage')).default,
             }),
           },
           {

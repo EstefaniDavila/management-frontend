@@ -30,7 +30,7 @@ const AreaManagerDashboard = () => {
   return (
     <div className="flex flex-col gap-6">
       <div>
-        <h1 className="text-base font-semibold">Dashboard del Equipo Comercial</h1>
+        <h1 className="text-base font-semibold text-muted-foreground">Dashboard del Equipo Comercial</h1>
         <p className="text-xs text-muted-foreground">Métricas generales y desempeño por asesor</p>
       </div>
 

@@ -6,6 +6,7 @@ import CreateNewSupplierModal from '@/composables/admin/logistics/suppliers/moda
 import UpdateSupplierModal from '@/composables/admin/logistics/suppliers/modals/UpdateSupplierModal';
 import DeleteSupplierModal from '@/composables/admin/logistics/suppliers/modals/DeleteSupplierModal';
 import SupplierOrderModal from '@/composables/admin/logistics/suppliers/modals/SupplierOrderModal/SupplierOrderModal';
+import PlaceaNewOrderModal from '@/composables/admin/logistics/suppliers/modals/PlaceaNewOrderModal';
 
 const fakeProveedores = [
   {
@@ -65,6 +66,14 @@ const fakeProveedores = [
   }
 ];
 
+const suppliersMock = [
+  { id: 1, nombre: "Maquinarias S.A." },
+  { id: 2, nombre: "Repuestos Industriales Ltda." },
+  { id: 3, nombre: "Equipos Pesados SpA" },
+  { id: 4, nombre: "Insumos Mineros" },
+  { id: 5, nombre: "Logística Express" },
+];
+
 const Suppliers = () => {
   const [proveedores, setProveedores] = useState(fakeProveedores);
   const [pagination, setPagination] = useState({ pageIndex: 0, pageSize: 10 });
@@ -113,6 +122,29 @@ const Suppliers = () => {
         : p
     ));
     handleCloseModal();
+  };
+
+
+  const handleSaveOrder = async (pedidoData) => {
+    try {
+      console.log("Pedido creado:", pedidoData);
+      alert(`Pedido ${pedidoData.orderId} creado exitosamente para ${pedidoData.proveedor}`);
+      handleCloseModal();
+    } catch (error) {
+      console.error("Error al crear pedido:", error);
+      alert("Error al crear el pedido");
+    }
+  };
+
+  const handleDeleteConfirm = async (proveedorId) => {
+    try {
+      setProveedores(prev => prev.filter(p => p.id !== proveedorId));
+      handleCloseModal();
+      alert("Proveedor eliminado exitosamente");
+    } catch (error) {
+      console.error("Error al eliminar:", error);
+      alert("Error al eliminar el proveedor");
+    }
   };
 
   return (
@@ -188,7 +220,14 @@ const Suppliers = () => {
           supplier={selectedProveedor}
         />
       )}
-      {/* {typeModal === 'order' && <OrderSupplierModal ... />} */}
+      {typeModal === 'create' && (
+        <PlaceaNewOrderModal
+          open={isModalOpen}
+          setOpen={handleCloseModal}
+          onSave={handleSaveOrder}
+          suppliers={suppliersMock}
+        />
+      )}
     </div>
   );
 };

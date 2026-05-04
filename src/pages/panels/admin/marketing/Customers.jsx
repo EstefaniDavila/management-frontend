@@ -8,10 +8,10 @@ import ViewCustomerModal from '@/composables/admin/marketing/customers/modals/Vi
 
 const fakeCustomers = {
   rows: [
-    { id: 1, code: 'CUST-001', business_name: 'Constructora Lima SAC', document_type: 'RUC', document_number: '20601234567', contact_name: 'María Torres',   phone: '987654321', email: 'contacto@constructora.com', type: 'construccion', address: 'Av. Industrial 123, Lima',        status: 'active'   },
-    { id: 2, code: 'CUST-002', business_name: 'Minera Andina',          document_type: 'RUC', document_number: '20555666777', contact_name: 'Carlos Rojas',   phone: '912345678', email: 'ventas@mineraandina.com',   type: 'mineria',     address: 'Carretera Central Km 45, Junín', status: 'active'   },
-    { id: 3, code: 'CUST-003', business_name: 'Transportes del Sur',    document_type: 'RUC', document_number: '20345678912', contact_name: 'Ana Flores',     phone: '998877665', email: 'info@transportesdelsur.com', type: 'transporte',  address: 'Panamericana Sur Km 120, Ica',   status: 'inactive' },
-    { id: 4, code: 'CUST-004', business_name: 'Energía Perú SAC',       document_type: 'RUC', document_number: '20789123456', contact_name: 'Luis Fernández', phone: '965432187', email: 'lperu@energia.com',         type: 'energia',     address: 'Av. República 456, Lima',        status: 'active'   },
+    { id: 1, code: 'CUST-001', business_name: 'Constructora Lima SAC', document_type: 'RUC', document_number: '20601234567', contact_name: 'María Torres',   phone: '987654321', email: 'contacto@constructora.com', type: 'construccion', address: 'Av. Industrial 123, Lima',        status: 'active', priority: 'CP', tracking: []   },
+    { id: 2, code: 'CUST-002', business_name: 'Minera Andina',          document_type: 'RUC', document_number: '20555666777', contact_name: 'Carlos Rojas',   phone: '912345678', email: 'ventas@mineraandina.com',   type: 'mineria',     address: 'Carretera Central Km 45, Junín', status: 'active', priority: 'CR', tracking: []   },
+    { id: 3, code: 'CUST-003', business_name: 'Transportes del Sur',    document_type: 'RUC', document_number: '20345678912', contact_name: 'Ana Flores',     phone: '998877665', email: 'info@transportesdelsur.com', type: 'transporte',  address: 'Panamericana Sur Km 120, Ica',   status: 'inactive', priority: 'CN', tracking: [] },
+    { id: 4, code: 'CUST-004', business_name: 'Energía Perú SAC',       document_type: 'RUC', document_number: '20789123456', contact_name: 'Luis Fernández', phone: '965432187', email: 'lperu@energia.com',         type: 'energia',     address: 'Av. República 456, Lima',        status: 'active', priority: 'CP', tracking: []   },
   ],
 }
 
