@@ -16,7 +16,7 @@ const CreateProductModal = ({ open, setOpen, onSave, currentUserId }) => { // Ne
   const [tipoProducto, setTipoProducto] = useState('repuesto')
   const [modelos, setModelos] = useState([]) // Debes cargar desde tu API
   const [categorias, setCategorias] = useState([]) // Debes cargar desde tu API
-  
+
   const [formData, setFormData] = useState({
     // Campos para tabla productos
     tipo: 'repuesto',
@@ -26,7 +26,7 @@ const CreateProductModal = ({ open, setOpen, onSave, currentUserId }) => { // Ne
     precio_base: 0,
     creado_por: currentUserId, // ID del usuario logueado
     activo: true,
-    
+
     // Campos para tabla vehiculos
     vehiculo: {
       modelo_id: '',
@@ -37,7 +37,7 @@ const CreateProductModal = ({ open, setOpen, onSave, currentUserId }) => { // Ne
       precio_hora: 0,
       precio_dia: 0
     },
-    
+
     // Campos para tabla repuestos
     repuesto: {
       categoria_id: '',
@@ -56,7 +56,7 @@ const CreateProductModal = ({ open, setOpen, onSave, currentUserId }) => { // Ne
       // Aquí deberías hacer fetch a tu API
       // fetch('/api/modelos_vehiculo').then(res => res.json()).then(setModelos)
       // fetch('/api/categorias_repuesto').then(res => res.json()).then(setCategorias)
-      
+
       // Datos de ejemplo de tu BD
       setModelos([
         { id: 1, nombre: 'CAT 320' },
@@ -64,7 +64,7 @@ const CreateProductModal = ({ open, setOpen, onSave, currentUserId }) => { // Ne
         { id: 3, nombre: 'CAT 950M' },
         // ... más modelos
       ])
-      
+
       setCategorias([
         { id: 1, nombre: 'Componentes Críticos' },
         { id: 2, nombre: 'Tren de Rodaje' },
@@ -101,12 +101,12 @@ const CreateProductModal = ({ open, setOpen, onSave, currentUserId }) => { // Ne
       alert("El código es obligatorio")
       return
     }
-    
+
     if (!formData.nombre) {
       alert("El nombre es obligatorio")
       return
     }
-    
+
     if (formData.precio_base <= 0) {
       alert("El precio base debe ser mayor a 0")
       return
@@ -224,7 +224,7 @@ const CreateProductModal = ({ open, setOpen, onSave, currentUserId }) => { // Ne
       callBack={handleActionSave}
     >
       <div className="grid gap-4 py-5 max-h-[60vh] overflow-y-auto px-2">
-        
+
         {/* Selector de tipo de producto */}
         <div className="flex flex-col gap-2">
           <Label>Tipo de Producto *</Label>
@@ -245,7 +245,7 @@ const CreateProductModal = ({ open, setOpen, onSave, currentUserId }) => { // Ne
         {/* Campos comunes */}
         <div className="border-t pt-4 mt-2">
           <h3 className="font-medium mb-3">Información General</h3>
-          
+
           <div className="grid grid-cols-2 gap-4">
             <div className="flex flex-col gap-2">
               <Label htmlFor="codigo">Código *</Label>
@@ -257,7 +257,7 @@ const CreateProductModal = ({ open, setOpen, onSave, currentUserId }) => { // Ne
                 onChange={handleCommonChange}
               />
             </div>
-            
+
             <div className="flex flex-col gap-2">
               <Label htmlFor="precio_base">Precio Base *</Label>
               <Input
@@ -300,7 +300,7 @@ const CreateProductModal = ({ open, setOpen, onSave, currentUserId }) => { // Ne
         {tipoProducto === 'vehiculo' && (
           <div className="border-t pt-4 mt-2">
             <h3 className="font-medium mb-3">Información del Vehículo</h3>
-            
+
             <div className="flex flex-col gap-2">
               <Label htmlFor="modelo_id">Modelo *</Label>
               <Select
@@ -334,7 +334,7 @@ const CreateProductModal = ({ open, setOpen, onSave, currentUserId }) => { // Ne
                   onChange={handleVehiculoChange}
                 />
               </div>
-              
+
               <div className="flex flex-col gap-2">
                 <Label htmlFor="anio_fabricacion">Año Fabricación *</Label>
                 <Input
@@ -361,7 +361,7 @@ const CreateProductModal = ({ open, setOpen, onSave, currentUserId }) => { // Ne
                   onChange={handleVehiculoChange}
                 />
               </div>
-              
+
               <div className="flex flex-col gap-2">
                 <Label htmlFor="estado">Estado</Label>
                 <Select
@@ -397,7 +397,7 @@ const CreateProductModal = ({ open, setOpen, onSave, currentUserId }) => { // Ne
                   onChange={handleVehiculoChange}
                 />
               </div>
-              
+
               <div className="flex flex-col gap-2">
                 <Label htmlFor="precio_dia">Precio por Día</Label>
                 <Input
@@ -418,7 +418,7 @@ const CreateProductModal = ({ open, setOpen, onSave, currentUserId }) => { // Ne
         {tipoProducto === 'repuesto' && (
           <div className="border-t pt-4 mt-2">
             <h3 className="font-medium mb-3">Información del Repuesto</h3>
-            
+
             <div className="flex flex-col gap-2">
               <Label htmlFor="categoria_id">Categoría *</Label>
               <Select
@@ -452,7 +452,7 @@ const CreateProductModal = ({ open, setOpen, onSave, currentUserId }) => { // Ne
                   onChange={handleRepuestoChange}
                 />
               </div>
-              
+
               <div className="flex flex-col gap-2">
                 <Label htmlFor="marca_fabricante">Marca / Fabricante</Label>
                 <Input
@@ -477,7 +477,7 @@ const CreateProductModal = ({ open, setOpen, onSave, currentUserId }) => { // Ne
                   onChange={handleRepuestoChange}
                 />
               </div>
-              
+
               <div className="flex flex-col gap-2">
                 <Label htmlFor="stock_minimo">Stock Mínimo</Label>
                 <Input
