@@ -4,10 +4,17 @@ import {
   ClockIcon,
   LayoutDashboardIcon,
   SettingsIcon,
+  MessageSquareIcon,
 } from "lucide-react"
 
 export const advisorLinks = [
 
+  {
+    title: "Solicitudes",
+    href: "/area-requests",
+    icon: MessageSquareIcon,
+    area: "Marketing & Sales",
+  },
   {
     title: "Dashboard",
     href: "/advisor",

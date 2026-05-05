@@ -143,7 +143,7 @@ const columns = [
   },
   {
     accessorKey: "header",
-    header: "Header",
+    header: "Tarea / Documento",
     cell: ({ row }) => {
       return <TableCellViewer item={row.original} />;
     },
@@ -151,7 +151,7 @@ const columns = [
   },
   {
     accessorKey: "type",
-    header: "Section Type",
+    header: "Área",
     cell: ({ row }) => (
       <div className="w-32">
         <Badge variant="outline" className="px-1.5 text-muted-foreground">
@@ -162,10 +162,10 @@ const columns = [
   },
   {
     accessorKey: "status",
-    header: "Status",
+    header: "Estado",
     cell: ({ row }) => (
       <Badge variant="outline" className="px-1.5 text-muted-foreground">
-        {row.original.status === "Done" ? (
+        {row.original.status === "Completado" ? (
           <CircleCheckIcon className="fill-green-500 dark:fill-green-400" />
         ) : (
           <LoaderIcon />
@@ -176,19 +176,19 @@ const columns = [
   },
   {
     accessorKey: "target",
-    header: () => <div className="w-full text-right">Target</div>,
+    header: () => <div className="w-full text-right">Meta</div>,
     cell: ({ row }) => (
       <form
         onSubmit={(e) => {
           e.preventDefault()
           toast.promise(new Promise((resolve) => setTimeout(resolve, 1000)), {
-            loading: `Saving ${row.original.header}`,
-            success: "Done",
+            loading: `Guardando ${row.original.header}`,
+            success: "Hecho",
             error: "Error",
           })
         }}>
         <Label htmlFor={`${row.original.id}-target`} className="sr-only">
-          Target
+          Meta
         </Label>
         <Input
           className="h-8 w-16 border-transparent bg-transparent text-right shadow-none hover:bg-input/30 focus-visible:border focus-visible:bg-background dark:bg-transparent dark:hover:bg-input/30 dark:focus-visible:bg-input/30"
@@ -199,19 +199,19 @@ const columns = [
   },
   {
     accessorKey: "limit",
-    header: () => <div className="w-full text-right">Limit</div>,
+    header: () => <div className="w-full text-right">Límite</div>,
     cell: ({ row }) => (
       <form
         onSubmit={(e) => {
           e.preventDefault()
           toast.promise(new Promise((resolve) => setTimeout(resolve, 1000)), {
-            loading: `Saving ${row.original.header}`,
-            success: "Done",
+            loading: `Guardando ${row.original.header}`,
+            success: "Hecho",
             error: "Error",
           })
         }}>
         <Label htmlFor={`${row.original.id}-limit`} className="sr-only">
-          Limit
+          Límite
         </Label>
         <Input
           className="h-8 w-16 border-transparent bg-transparent text-right shadow-none hover:bg-input/30 focus-visible:border focus-visible:bg-background dark:bg-transparent dark:hover:bg-input/30 dark:focus-visible:bg-input/30"
@@ -222,9 +222,9 @@ const columns = [
   },
   {
     accessorKey: "reviewer",
-    header: "Reviewer",
+    header: "Revisor",
     cell: ({ row }) => {
-      const isAssigned = row.original.reviewer !== "Assign reviewer"
+      const isAssigned = row.original.reviewer !== "Sin Asignar"
 
       if (isAssigned) {
         return row.original.reviewer
@@ -233,14 +233,14 @@ const columns = [
       return (
         <>
           <Label htmlFor={`${row.original.id}-reviewer`} className="sr-only">
-            Reviewer
+            Revisor
           </Label>
           <Select>
             <SelectTrigger
               className="w-38 **:data-[slot=select-value]:block **:data-[slot=select-value]:truncate"
               size="sm"
               id={`${row.original.id}-reviewer`}>
-              <SelectValue placeholder="Assign reviewer" />
+              <SelectValue placeholder="Asignar revisor" />
             </SelectTrigger>
             <SelectContent align="end">
               <SelectGroup>
@@ -319,6 +319,17 @@ export function DataTable({
     pageIndex: 0,
     pageSize: 10,
   })
+  
+  const [activeTab, setActiveTab] = React.useState("all")
+
+  React.useEffect(() => {
+    if (activeTab === "all") {
+      setColumnFilters([])
+    } else {
+      setColumnFilters([{ id: "status", value: activeTab }])
+    }
+  }, [activeTab])
+
   const sortableId = React.useId()
   const sensors = useSensors(
     useSensor(MouseSensor, {}),
@@ -365,41 +376,41 @@ export function DataTable({
   }
 
   return (
-    <Tabs defaultValue="outline" className="w-full flex-col justify-start gap-6">
+    <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full flex-col justify-start gap-6">
       <div className="flex items-center justify-between px-4 lg:px-6">
         <Label htmlFor="view-selector" className="sr-only">
-          View
+          Vista
         </Label>
-        <Select defaultValue="outline">
+        <Select value={activeTab} onValueChange={setActiveTab}>
           <SelectTrigger className="flex w-fit @4xl/main:hidden" size="sm" id="view-selector">
-            <SelectValue placeholder="Select a view" />
+            <SelectValue placeholder="Seleccione una vista" />
           </SelectTrigger>
           <SelectContent>
             <SelectGroup>
-              <SelectItem value="outline">Outline</SelectItem>
-              <SelectItem value="past-performance">Past Performance</SelectItem>
-              <SelectItem value="key-personnel">Key Personnel</SelectItem>
-              <SelectItem value="focus-documents">Focus Documents</SelectItem>
+              <SelectItem value="all">Todas</SelectItem>
+              <SelectItem value="Completado">Completadas</SelectItem>
+              <SelectItem value="En Proceso">En Proceso</SelectItem>
+              <SelectItem value="Pendiente">Pendientes</SelectItem>
             </SelectGroup>
           </SelectContent>
         </Select>
         <TabsList
           className="hidden **:data-[slot=badge]:size-5 **:data-[slot=badge]:rounded-full **:data-[slot=badge]:bg-muted-foreground/30 **:data-[slot=badge]:px-1 @4xl/main:flex">
-          <TabsTrigger value="outline">Outline</TabsTrigger>
-          <TabsTrigger value="past-performance">
-            Past Performance <Badge variant="secondary">3</Badge>
+          <TabsTrigger value="all">Todas</TabsTrigger>
+          <TabsTrigger value="Completado">
+            Completadas <Badge variant="secondary">{data.filter(d => d.status === 'Completado').length}</Badge>
           </TabsTrigger>
-          <TabsTrigger value="key-personnel">
-            Key Personnel <Badge variant="secondary">2</Badge>
+          <TabsTrigger value="En Proceso">
+            En Proceso <Badge variant="secondary">{data.filter(d => d.status === 'En Proceso').length}</Badge>
           </TabsTrigger>
-          <TabsTrigger value="focus-documents">Focus Documents</TabsTrigger>
+          <TabsTrigger value="Pendiente">Pendientes</TabsTrigger>
         </TabsList>
         <div className="flex items-center gap-2">
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <Button variant="outline" size="sm">
                 <Columns3Icon data-icon="inline-start" />
-                Columns
+                Columnas
                 <ChevronDownIcon data-icon="inline-end" />
               </Button>
             </DropdownMenuTrigger>
@@ -426,13 +437,11 @@ export function DataTable({
           </DropdownMenu>
           <Button variant="outline" size="sm">
             <PlusIcon />
-            <span className="hidden lg:inline">Add Section</span>
+            <span className="hidden lg:inline">Añadir Tarea</span>
           </Button>
         </div>
       </div>
-      <TabsContent
-        value="outline"
-        className="relative flex flex-col gap-4 overflow-auto px-4 lg:px-6">
+      <div className="relative flex flex-col gap-4 overflow-auto px-4 lg:px-6">
         <div className="overflow-hidden rounded-lg border">
           <DndContext
             collisionDetection={closestCenter}
@@ -466,7 +475,7 @@ export function DataTable({
                 ) : (
                   <TableRow>
                     <TableCell colSpan={columns.length} className="h-24 text-center">
-                      No results.
+                      Sin resultados.
                     </TableCell>
                   </TableRow>
                 )}
@@ -476,8 +485,8 @@ export function DataTable({
         </div>
         <div className="flex items-center justify-between px-4">
           <div className="hidden flex-1 text-sm text-muted-foreground lg:flex">
-            {table.getFilteredSelectedRowModel().rows.length} of{" "}
-            {table.getFilteredRowModel().rows.length} row(s) selected.
+            {table.getFilteredSelectedRowModel().rows.length} de{" "}
+            {table.getFilteredRowModel().rows.length} fila(s) seleccionadas.
           </div>
           <div className="flex w-full items-center gap-8 lg:w-fit">
             <div className="hidden items-center gap-2 lg:flex">
@@ -513,7 +522,7 @@ export function DataTable({
                 className="hidden h-8 w-8 p-0 lg:flex"
                 onClick={() => table.setPageIndex(0)}
                 disabled={!table.getCanPreviousPage()}>
-                <span className="sr-only">Go to first page</span>
+                <span className="sr-only">Ir a primera página</span>
                 <ChevronsLeftIcon />
               </Button>
               <Button
@@ -522,7 +531,7 @@ export function DataTable({
                 size="icon"
                 onClick={() => table.previousPage()}
                 disabled={!table.getCanPreviousPage()}>
-                <span className="sr-only">Go to previous page</span>
+                <span className="sr-only">Ir a anterior</span>
                 <ChevronLeftIcon />
               </Button>
               <Button
@@ -531,7 +540,7 @@ export function DataTable({
                 size="icon"
                 onClick={() => table.nextPage()}
                 disabled={!table.getCanNextPage()}>
-                <span className="sr-only">Go to next page</span>
+                <span className="sr-only">Ir a siguiente</span>
                 <ChevronRightIcon />
               </Button>
               <Button
@@ -540,22 +549,13 @@ export function DataTable({
                 size="icon"
                 onClick={() => table.setPageIndex(table.getPageCount() - 1)}
                 disabled={!table.getCanNextPage()}>
-                <span className="sr-only">Go to last page</span>
+                <span className="sr-only">Ir a última página</span>
                 <ChevronsRightIcon />
               </Button>
             </div>
           </div>
         </div>
-      </TabsContent>
-      <TabsContent value="past-performance" className="flex flex-col px-4 lg:px-6">
-        <div className="aspect-video w-full flex-1 rounded-lg border border-dashed"></div>
-      </TabsContent>
-      <TabsContent value="key-personnel" className="flex flex-col px-4 lg:px-6">
-        <div className="aspect-video w-full flex-1 rounded-lg border border-dashed"></div>
-      </TabsContent>
-      <TabsContent value="focus-documents" className="flex flex-col px-4 lg:px-6">
-        <div className="aspect-video w-full flex-1 rounded-lg border border-dashed"></div>
-      </TabsContent>
+      </div>
     </Tabs>
   );
 }

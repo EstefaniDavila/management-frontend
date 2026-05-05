@@ -267,7 +267,7 @@ const PurchaseOrderHistory = () => {
         />
       )}
 
-      {typeModal === 'details' && (
+      {typeModal === 'details' && selectedOrder && (
         <ViewOrderDetailModal
           open={isModalOpen}
           setOpen={handleCloseModal}

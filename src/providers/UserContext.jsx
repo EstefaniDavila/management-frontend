@@ -77,235 +77,56 @@ export const UserProvider = ({ children }) => {
 
   const loginUser = async (credentials) => {
     try {
-      const { document_number, password } = credentials;
+      const response = await axios.post(
+        `${backend_host}/api/v1/general/users/sign_in`,
+        {
+          authentication: {
+            document_number: credentials.document_number,
+            password: credentials.password,
+          }
+        },
+        {
+          headers: { 'Content-Type': 'application/json' },
+        }
+      )
 
-      //Validación fake
-      if (
-        (document_number === "admin" || document_number === "admin@email.com") &&
-        password === "123456"
-      ) {
-        const fakeData = {
-          access_token: "fake-jwt-token",
-          refresh_token: "fake-refresh-token",
-          expire_at: new Date().getTime() + 1000 * 60 * 60, // 1 hora
-          user: {
-            id: 1,
-            name: "Admin",
-            email: "admin@email.com",
-            role: "Admin"
-          },
-          message: "Login successful"
-        };
+      if (response.status === 200) {
+        const data = response.data;
+        const accessToken = data.access_token;
+        const refreshToken = data.refresh_token;
+        const expireAt = data.expire_at;
+        const user = data.user;
+        const message = data.message;
 
-        setAuthTokens(fakeData);
-        authTokensRef.current = fakeData;
+        if (accessToken && refreshToken && expireAt && user) {
+          const tokens = {
+            access_token: accessToken,
+            refresh_token: refreshToken,
+            expire_at: expireAt,
+            message: message,
+            user: user
+          }
 
-        setUser(fakeData.user);
-        userRef.current = fakeData.user;
+          setAuthTokens(tokens)
+          authTokensRef.current = tokens
+          setUser(jwtDecode(accessToken))
+          userRef.current = jwtDecode(accessToken)
 
-        localStorage.setItem("authTokens", JSON.stringify(fakeData));
-        localStorage.setItem("user", JSON.stringify(fakeData.user));
+          localStorage.setItem('authTokens', JSON.stringify(tokens))
+          localStorage.setItem('user', JSON.stringify(user))
+          window.location.href = '/profesores'
 
-        window.location.href = "/";
-
+        } else {
+          console.error('Tokens are missing in the response data')
+        }
+      } else {
+        alert('Something went wrong | incorrect credentials')
       }
-      if (
-        (document_number === "customer" || document_number === "customer@email.com") &&
-        password === "123456"
-      ) {
-        const fakeData = {
-          access_token: "fake-jwt-token",
-          refresh_token: "fake-refresh-token",
-          expire_at: new Date().getTime() + 1000 * 60 * 60, // 1 hora
-          user: {
-            id: 1,
-            name: "Customer",
-            email: "customer@email.com",
-            role: "Customer"
-          },
-          message: "Login successful"
-        };
-
-        setAuthTokens(fakeData);
-        authTokensRef.current = fakeData;
-
-        setUser(fakeData.user);
-        userRef.current = fakeData.user;
-
-        localStorage.setItem("authTokens", JSON.stringify(fakeData));
-        localStorage.setItem("user", JSON.stringify(fakeData.user));
-
-        window.location.href = "/";
-      }
-      if (
-        (document_number === "technician" || document_number === "technician@email.com") &&
-        password === "123456"
-      ) {
-        const fakeData = {
-          access_token: "fake-jwt-token",
-          refresh_token: "fake-refresh-token",
-          expire_at: new Date().getTime() + 1000 * 60 * 60, // 1 hora
-          user: {
-            id: 1,
-            name: "Technician",
-            email: "technician@email.com",
-            role: "Technician"
-          },
-          message: "Login successful"
-        };
-
-        setAuthTokens(fakeData);
-        authTokensRef.current = fakeData;
-
-        setUser(fakeData.user);
-        userRef.current = fakeData.user;
-
-        localStorage.setItem("authTokens", JSON.stringify(fakeData));
-        localStorage.setItem("user", JSON.stringify(fakeData.user));
-
-        window.location.href = "/";
-      } if (
-        (document_number === "advisor" || document_number === "advisor@email.com") &&
-        password === "123456"
-      ) {
-        const fakeData = {
-          access_token: "fake-jwt-token",
-          refresh_token: "fake-refresh-token",
-          expire_at: new Date().getTime() + 1000 * 60 * 60,
-          user: {
-            id: 2,
-            name: "Asesor Comercial",
-            email: "advisor@email.com",
-            role: "SalesAdvisor"
-          },
-          message: "Login successful"
-        };
-
-        setAuthTokens(fakeData);
-        authTokensRef.current = fakeData;
-
-        setUser(fakeData.user);
-        userRef.current = fakeData.user;
-
-        localStorage.setItem("authTokens", JSON.stringify(fakeData));
-        localStorage.setItem("user", JSON.stringify(fakeData.user));
-
-        window.location.href = "/";
-      }
-      if (
-        (document_number === "operation" || document_number === "operation@email.com") &&
-        password === "123456"
-      ) {
-        const fakeData = {
-          access_token: "fake-jwt-token",
-          refresh_token: "fake-refresh-token",
-          expire_at: new Date().getTime() + 1000 * 60 * 60, // 1 hora
-          user: {
-            id: 1,
-            name: "Operation",
-            email: "operation@email.com",
-            role: "Operation"
-          },
-          message: "Login successful"
-        };
-
-        setAuthTokens(fakeData);
-        authTokensRef.current = fakeData;
-        setUser(fakeData.user);
-        userRef.current = fakeData.user;
-
-        localStorage.setItem("authTokens", JSON.stringify(fakeData));
-        localStorage.setItem("user", JSON.stringify(fakeData.user));
-
-        window.location.href = "/";
-      }
-      if (
-        (document_number === "manager" || document_number === "manager@email.com") &&
-        password === "123456"
-      ) {
-        const fakeData = {
-          access_token: "fake-jwt-token",
-          refresh_token: "fake-refresh-token",
-          expire_at: new Date().getTime() + 1000 * 60 * 60,
-          user: {
-            id: 3,
-            name: "Jefe Comercial",
-            email: "manager@email.com",
-            role: "Manager"
-          },
-          message: "Login successful"
-        };
-
-        setAuthTokens(fakeData);
-        authTokensRef.current = fakeData;
-        setUser(fakeData.user);
-        userRef.current = fakeData.user;
-        localStorage.setItem("authTokens", JSON.stringify(fakeData));
-        localStorage.setItem("user", JSON.stringify(fakeData.user));
-        window.location.href = "/";
-      }
-
-      if (
-        (document_number === "warehouse" || document_number === "warehouse@email.com") &&
-        password === "123456"
-      ) {
-        const fakeData = {
-          access_token: "fake-jwt-token",
-          refresh_token: "fake-refresh-token",
-          expire_at: new Date().getTime() + 1000 * 60 * 60, // 1 hora
-          user: {
-            id: 4,
-            name: "Warehouse",
-            email: "warehouse@email.com",
-            role: "WarehouseOp"
-          },
-          message: "Login successful"
-        };
-
-        setAuthTokens(fakeData);
-        authTokensRef.current = fakeData;
-        setUser(fakeData.user);
-        userRef.current = fakeData.user;
-        localStorage.setItem("authTokens", JSON.stringify(fakeData));
-        localStorage.setItem("user", JSON.stringify(fakeData.user));
-        window.location.href = "/";
-      }
-
-      if (
-        (document_number === "logistic" || document_number === "logistic@email.com") &&
-        password === "123456"
-      ) {
-        const fakeData = {
-          access_token: "fake-jwt-token",
-          refresh_token: "fake-refresh-token",
-          expire_at: new Date().getTime() + 1000 * 60 * 60, // 1 hora
-          user: {
-            id: 5,
-            name: "Logistic",
-            email: "logistic@email.com",
-            role: "CoordinatorLogistic"
-          },
-          message: "Login successful"
-        };
-
-        setAuthTokens(fakeData);
-        authTokensRef.current = fakeData;
-        setUser(fakeData.user);
-        userRef.current = fakeData.user;
-        localStorage.setItem("authTokens", JSON.stringify(fakeData));
-        localStorage.setItem("user", JSON.stringify(fakeData.user));
-        window.location.href = "/";
-      }
-
-      else {
-        alert("Credenciales incorrectas");
-      }
-
     } catch (error) {
-      console.error("Error en loginUser:", error.message);
+      console.error('Error en loginUser:', error.response ? error.response.data : error.message)
+      alert('Something went wrong | Please try again later')
     }
-    
-  };
+  }
 
   const logoutUser = async () => {
     toast({

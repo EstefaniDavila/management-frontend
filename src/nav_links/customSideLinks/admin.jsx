@@ -10,6 +10,7 @@ import {
   FileTextIcon,
   PackageCheck,
   ClockIcon,
+  MessageSquareIcon,
   ShoppingBagIcon,
 } from "lucide-react"
 
@@ -26,6 +27,12 @@ export const adminLinks = [
     title: "Area Control",
     href: "/area-control",
     icon: BuildingIcon,
+    area: "General Management",
+  },
+  {
+    title: "Solicitudes",
+    href: "/area-requests",
+    icon: MessageSquareIcon,
     area: "General Management",
   },
 
@@ -91,12 +98,12 @@ export const adminLinks = [
     icon: WrenchIcon,
     area: "Production & Operations",
   },
-  {
-    title: "Renta de Equipos",
-    href: "/rentals",
-    icon: PackageIcon,
-    area: "Production & Operations",
-  },
+  // {
+  //   title: "Renta de Equipos",
+  //   href: "/rentals",
+  //   icon: PackageIcon,
+  //   area: "Production & Operations",
+  // },
 
   // ── Settings ──
   {

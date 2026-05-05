@@ -1,6 +1,12 @@
-import { WrenchIcon, SettingsIcon, CalendarDays, House  } from "lucide-react"
+import { WrenchIcon, SettingsIcon, CalendarDays, House, MessageSquareIcon } from "lucide-react"
 
 export const operationLinks = [
+  {
+    title: "Solicitudes",
+    href: "/area-requests",
+    icon: MessageSquareIcon,
+    area: "Production & Operations",
+  },
   {
     title: "Home",
     href: "/",
@@ -11,6 +17,12 @@ export const operationLinks = [
     title: "Mantenimientos",
     href: "/maintenance-management",
     icon: CalendarDays,
+    area: "Production & Operations",
+  },
+  {
+    title: "Renta de Equipos",
+    href: "/equipment-rental",
+    icon: WrenchIcon,
     area: "Production & Operations",
   },
   // {

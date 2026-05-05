@@ -17,6 +17,7 @@ const areaManagerRoutes = [
           {  path: '/manager',  lazy: async () => ({ Component: (await import('../../pages/panels/manager/AreaManagerDashboard')).default }) },
           { path: '/manager/team-leads',  lazy: async () => ({ Component: (await import('../../pages/panels/manager/TeamLeads')).default }) },
           { path: '/manager/team-quotations', lazy: async () => ({ Component: (await import('../../pages/panels/manager/TeamQuotations')).default }) },
+          { path: 'area-requests', lazy: async () => ({ Component: (await import('../../pages/panels/shared/AreaRequestsPage')).default }) },
         ],
       },
     ],

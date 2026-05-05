@@ -20,7 +20,7 @@ const roleLinks = {
 
 export const getSidelinks = () => {
   const user = JSON.parse(localStorage.getItem("user"))
-  return roleLinks[user?.role] || []
+  return roleLinks[user?.roleable_type] || []
 }
 export const sidelinks = getSidelinks()
 export default sidelinks

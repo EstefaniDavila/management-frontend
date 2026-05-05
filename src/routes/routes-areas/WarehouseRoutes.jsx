@@ -1,5 +1,6 @@
 import GeneralError from '../../pages/general/errors/general-error'
 import PrivateRoute from '../../utils/PrivateRoutes'
+
 const warehouseRoutes = [
   {
     path: "/",
@@ -24,7 +25,6 @@ const warehouseRoutes = [
               Component: (await import('../../pages/panels/warehouse/WarehouseInventory')).default,
             }),
           },
-
           {
             path: "ordersReview",
             lazy: async () => ({
@@ -37,7 +37,12 @@ const warehouseRoutes = [
               Component: (await import('../../pages/general/settings')).default,
             }),
           },
-
+          {
+            path: "area-requests",
+            lazy: async () => ({
+              Component: (await import('../../pages/panels/shared/AreaRequestsPage')).default,
+            }),
+          },
         ],
       },
     ],
