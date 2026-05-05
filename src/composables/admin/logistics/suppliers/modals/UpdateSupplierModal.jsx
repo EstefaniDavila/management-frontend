@@ -27,17 +27,20 @@ const UpdateSupplierModal = ({ open, setOpen, onSave, supplierToEdit }) => {
 
   useEffect(() => {
     if (supplierToEdit && open) {
+      // Priorizamos los datos crudos originales del backend (_original) si existen
+      const raw = supplierToEdit._original || supplierToEdit;
+
       setFormData({
-        code: supplierToEdit.code || supplierToEdit.codigo || '',
-        business_name: supplierToEdit.business_name || supplierToEdit.nombre || '',
-        document_number: supplierToEdit.document_number || supplierToEdit.ruc || '',
-        document_type: supplierToEdit.document_type || 'RUC',
-        contact_name: supplierToEdit.contact_name || '',
-        phone: supplierToEdit.phone || supplierToEdit.telefono || '',
-        email: supplierToEdit.email || '',
-        address: supplierToEdit.address || '',
-        city: supplierToEdit.city || '',
-        status: supplierToEdit.status || supplierToEdit.estado || 'active'
+        code: raw.code || raw.codigo || '',
+        business_name: raw.business_name || raw.nombre || '',
+        document_number: raw.document_number || raw.ruc || '',
+        document_type: raw.document_type || 'RUC',
+        contact_name: raw.contact_name || raw.contacto || '',
+        phone: raw.phone || raw.telefono || '',
+        email: raw.email || '',
+        address: raw.address || raw.direccion || '',
+        city: raw.city || '',
+        status: raw.status === 'Activo' ? 'active' : (raw.status === 'Inactivo' ? 'inactive' : (raw.status || 'active'))
       });
     }
   }, [supplierToEdit, open]);

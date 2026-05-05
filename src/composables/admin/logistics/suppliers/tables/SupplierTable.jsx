@@ -13,10 +13,11 @@ const SupplierTable = ({
     searchFields,
     setSearchFields,
     handleOpenModal,
+    handleDeleteConfirm
 }) => {
 
     const handleEdit = (proveedor) => handleOpenModal('edit', proveedor);
-    const handleDelete = (proveedor) => handleOpenModal('delete', proveedor);
+    const handleDelete = (proveedor) => handleDeleteConfirm ? handleDeleteConfirm(proveedor.id) : handleOpenModal('delete', proveedor);
     const handleViewDetails = (proveedor) => handleOpenModal('details', proveedor);
     const handleCreateOrder = (proveedor) => handleOpenModal('create', proveedor);
 

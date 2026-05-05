@@ -1,70 +1,12 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Plus } from 'lucide-react';
 import SupplierTable from '@/composables/admin/logistics/suppliers/tables/SupplierTable';
 import CreateNewSupplierModal from '@/composables/admin/logistics/suppliers/modals/CreateNewSupplierModal';
 import UpdateSupplierModal from '@/composables/admin/logistics/suppliers/modals/UpdateSupplierModal';
-import DeleteSupplierModal from '@/composables/admin/logistics/suppliers/modals/DeleteSupplierModal';
 import SupplierOrderModal from '@/composables/admin/logistics/suppliers/modals/SupplierOrderModal/SupplierOrderModal';
 import PlaceaNewOrderModal from '@/composables/admin/logistics/suppliers/modals/PlaceaNewOrderModal';
-
-const fakeProveedores = [
-  {
-    id: 1,
-    codigo: "PROV-001",
-    nombre: "Caterpillar Inc.",
-    ruc: "20123456789",
-    telefono: "987654321",
-    email: "ventas@caterpillar.com",
-    direccion: "Av. Industrial 123, Lima",
-    contacto: "Juan Pérez",
-    status: "Activo"
-  },
-  {
-    id: 2,
-    codigo: "PROV-002",
-    nombre: "Komatsu Perú",
-    ruc: "20567891234",
-    telefono: "976543210",
-    email: "komatsu@komatsu.pe",
-    direccion: "Carretera Central Km 12, Ate",
-    contacto: "María López",
-    status: "Activo"
-  },
-  {
-    id: 3,
-    codigo: "PROV-003",
-    nombre: "Volvo Parts SAC",
-    ruc: "20345678912",
-    telefono: "998877665",
-    email: "ventas@volvoparts.com",
-    direccion: "Av. Universitaria 456, Callao",
-    contacto: "Carlos Ramírez",
-    status: "Inactivo"
-  },
-  {
-    id: 4,
-    codigo: "PROV-004",
-    nombre: "Repuestos Diesel EIRL",
-    ruc: "20789123456",
-    telefono: "965432187",
-    email: "rdiesel@diesel.com",
-    direccion: "Av. Argentina 789, Lima",
-    contacto: "Ana Torres",
-    status: "Activo"
-  },
-  {
-    id: 5,
-    codigo: "PROV-005",
-    nombre: "Maquinarias del Sur",
-    ruc: "20456789123",
-    telefono: "954321876",
-    email: "mdelsur@maquinarias.com",
-    direccion: "Panamericana Sur Km 45, Ica",
-    contacto: "Luis Fernández",
-    status: "Activo"
-  }
-];
+import useCrud from '@/hooks/useCrud';
 
 const suppliersMock = [
   { id: 1, nombre: "Maquinarias S.A." },
@@ -75,15 +17,49 @@ const suppliersMock = [
 ];
 
 const Suppliers = () => {
-  const [proveedores, setProveedores] = useState(fakeProveedores);
+  const [proveedores, setProveedores] = useState([]);
   const [pagination, setPagination] = useState({ pageIndex: 0, pageSize: 10 });
   const [search, setSearch] = useState("");
   const [searchFields, setSearchFields] = useState(["nombre", "ruc", "codigo"]);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [typeModal, setTypeModal] = useState("");
   const [selectedProveedor, setSelectedProveedor] = useState(null);
+  const [isLoading, setIsLoading] = useState(true);
 
-  const refetchData = () => console.log("Refetching proveedores...");
+  const { insertModel, getModel, updateModel, deleteModel } = useCrud('/api/v1/admin/suppliers');
+
+  const fetchProveedores = async () => {
+    try {
+      setIsLoading(true);
+      const data = await getModel();
+      const formattedData = data.map(item => ({
+        id: item.id,
+        codigo: item.code,
+        nombre: item.business_name,
+        ruc: item.document_number,
+        telefono: item.phone,
+        email: item.email,
+        direccion: item.address,
+        contacto: item.contact_name,
+        status: item.status === 'active' ? 'Activo' : 'Inactivo',
+        _original: item
+      }));
+
+      setProveedores(formattedData);
+    } catch (error) {
+      console.error("Error al cargar proveedores:", error);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchProveedores();
+  }, []);
+
+  const refetchData = () => {
+    fetchProveedores();
+  };
 
   const totalPages = Math.ceil(proveedores.length / pagination.pageSize);
 
@@ -96,32 +72,37 @@ const Suppliers = () => {
   const handleCloseModal = () => {
     setIsModalOpen(false);
     setTypeModal('');
-    setSelectedProveedor(null);
   };
 
   const handleSaveProveedor = async (formData) => {
-    const newProveedor = {
-      id: Date.now(),
-      codigo: formData.codigo,
-      nombre: formData.nombre,
-      ruc: formData.ruc,
-      telefono: formData.telefono,
-      email: formData.email,
-      contacto: '',
-      direccion: '',
-      status: formData.estado === 'activo' ? 'Activo' : 'Inactivo'
-    };
-    setProveedores(prev => [newProveedor, ...prev]);
-    handleCloseModal();
+    try {
+      const payload = {
+        supplier: formData
+      };
+      await insertModel(payload);
+      alert("Proveedor creado exitosamente en el servidor.");
+      handleCloseModal();
+    } catch (error) {
+      console.error("Error al enviar el proveedor al servidor:", error);
+      alert("No se pudo crear el proveedor en el servidor. Revisa la consola para más detalles.");
+    }
   };
 
   const handleUpdateProveedor = async (formData) => {
-    setProveedores(prev => prev.map(p =>
-      p.id === selectedProveedor.id
-        ? { ...p, ...formData, status: formData.estado === 'activo' ? 'Activo' : 'Inactivo' }
-        : p
-    ));
-    handleCloseModal();
+    try {
+      const payload = {
+        supplier: formData
+      };
+      
+      await updateModel(payload, `/api/v1/admin/suppliers/${formData.id}`);
+      alert("Proveedor actualizado exitosamente en el servidor.");
+      
+      refetchData();
+      handleCloseModal();
+    } catch (error) {
+      console.error("Error al actualizar el proveedor:", error);
+      alert("No se pudo actualizar el proveedor en el servidor. Revisa la consola.");
+    }
   };
 
 
@@ -138,12 +119,12 @@ const Suppliers = () => {
 
   const handleDeleteConfirm = async (proveedorId) => {
     try {
-      setProveedores(prev => prev.filter(p => p.id !== proveedorId));
-      handleCloseModal();
-      alert("Proveedor eliminado exitosamente");
+      await deleteModel(`/api/v1/admin/suppliers/${proveedorId}`);
+      alert("Proveedor eliminado exitosamente en el servidor.");
+      
+      refetchData();
     } catch (error) {
       console.error("Error al eliminar:", error);
-      alert("Error al eliminar el proveedor");
     }
   };
 
@@ -178,6 +159,7 @@ const Suppliers = () => {
                 searchFields={searchFields}
                 setSearchFields={setSearchFields}
                 handleOpenModal={handleOpenModal}
+                handleDeleteConfirm={handleDeleteConfirm}
               />
             </div>
           </div>
@@ -198,17 +180,6 @@ const Suppliers = () => {
           setOpen={handleCloseModal}
           supplierToEdit={selectedProveedor}
           onSave={handleUpdateProveedor}
-        />
-      )}
-      {typeModal === 'delete' && (
-        <DeleteSupplierModal
-          open={isModalOpen}
-          setOpen={handleCloseModal}
-          title="Eliminar Proveedor"
-          itemName={selectedProveedor?.nombre}
-          onConfirm={() => {
-            handleDeleteConfirm(selectedProveedor.id);
-          }}
         />
       )}
       {typeModal === 'details' && (

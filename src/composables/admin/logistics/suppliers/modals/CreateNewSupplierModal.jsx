@@ -2,13 +2,6 @@ import React, { useState } from 'react'
 import Modal from '@/components/custom/modal'
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue
-} from "@/components/ui/select"
 import { Building2, Phone, Mail, Hash, User } from 'lucide-react'
 
 const CreateNewSupplierModal = ({ open, setOpen, onSave }) => {
@@ -55,7 +48,7 @@ const CreateNewSupplierModal = ({ open, setOpen, onSave }) => {
       size="md"
       callBack={handleActionSave}
     >
-      <div className="grid gap-4 py-5">
+      <div className="grid gap-4 py-5 max-h-[60vh] overflow-y-auto px-1">
 
         {/* Fila 1: Código y RUC */}
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">

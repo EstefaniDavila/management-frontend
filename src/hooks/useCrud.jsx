@@ -27,7 +27,7 @@ const useCrud = (endpoint) => {
       //icon: <LuAlertOctagon className="text-red-500 h-16 w-16 mx-auto mb-4" />,
     })
     if (confirmation) {
-      
+
       try {
         const response = await axios.delete(`${backend_host}${_endpoint}`)
         return response.data
@@ -67,7 +67,7 @@ const useCrud = (endpoint) => {
       }
     }
   }
- 
+
 
   const updateModel = async (_data, _endpoint = endpoint) => {
     const confirmation = await confirm({
@@ -75,7 +75,7 @@ const useCrud = (endpoint) => {
       body: "¿Estás seguro de que quieres actualizar este registro?",
       cancelButton: "Cancelar",
       actionButton: "Actualizar",
-     // icon: <LuAlertOctagon className="text-red-500 h-16 w-16 mx-auto mb-4" />,
+      // icon: <LuAlertOctagon className="text-red-500 h-16 w-16 mx-auto mb-4" />,
     })
     if (!confirmation) {
       throw new Error('Acción cancelada por el usuario');

@@ -49,7 +49,7 @@ const Modal = ({ open, setOpen, size, title, children, callBack, description }) 
                 <Button
                   type="button"
                   onClick={(e) => handleSubmit(e)}
-                  variant="success"
+                  variant="default"//Cambio de color
                 >
                   Guardar
                 </Button>
