@@ -39,7 +39,7 @@ const roleRouter = {
   ]
 
   // const routesForAuthenticatedOnly = roleRouter[user?.user?.roleable_type] || []
-  const routesForAuthenticatedOnly = roleRouter[user?.role] || []
+  const routesForAuthenticatedOnly = roleRouter[user?.roleable_type] || []
 
   const routesForNotAuthenticatedOnly = [
     {
