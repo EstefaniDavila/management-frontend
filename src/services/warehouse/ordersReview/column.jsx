@@ -18,7 +18,6 @@ const getOrderStatusBadge = (status) => {
     }
 };
 
-// MODIFICADO: Recibe handleDetails y handleConfirmReception
 const columns = (handleDetails, handleConfirmReception) => [
     {
         accessorKey: 'orderId',
@@ -85,7 +84,6 @@ const columns = (handleDetails, handleConfirmReception) => [
                     <Eye className="h-4 w-4" />
                 </Button>
 
-                {/* Solo mostrar botones de confirmación si el pedido está ENTREGADO y aún no se ha confirmado */}
                 {row.original.status === "ENTREGADO" && row.original.conforme === undefined && (
                     <>
                         <Button

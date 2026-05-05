@@ -3,6 +3,8 @@ import Modal from '@/components/custom/modal';
 import { Button } from '@/components/custom/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { Textarea } from '@/components/ui/textarea';
+import { Checkbox } from '@/components/ui/checkbox';
 import {
     Select,
     SelectContent,
@@ -22,21 +24,23 @@ import { Plus, Trash2 } from 'lucide-react';
 
 const CreateNewOrderModal = ({ open, setOpen, onSave, suppliers }) => {
     const [formData, setFormData] = useState({
-        proveedor: '',
-        fechaPedido: new Date().toISOString().split('T')[0],
-        fechaEntregaEstimada: '',
-        metodoPago: 'transferencia',
-        productos: [
-            { id: Date.now(), nombre: '', cantidad: 1, precioUnitario: 0, subtotal: 0 }
+        supplier_id: '',
+        requested_by_id: '1eb92bee-6e92-4f20-8862-d5b699b8c5d1',
+        expected_date: '',
+        status: 'pending',
+        notes: '',
+        purchase_order_items_attributes: [
+            { ui_id: Date.now(), product_id: '', product_nombre: '', quantity: 1, unit_cost: 0, subtotal: 0 }
         ]
     });
 
+    // Simulated UUIDs to match the JSON structure
     const productosMock = [
-        { id: 1, nombre: "Filtro de aceite", precio: 45000 },
-        { id: 2, nombre: "Batería 12V", precio: 120000 },
-        { id: 3, nombre: "Correa de distribución", precio: 35000 },
-        { id: 4, nombre: "Bujías (paquete x4)", precio: 25000 },
-        { id: 5, nombre: "Aceite de motor 5L", precio: 68000 },
+        { id: "7fac07eb-49c2-458e-94bf-1593e99a7a25", nombre: "Filtro de aceite", precio: 25.50 },
+        { id: "4f0610c9-2351-464c-8341-a3bde472531a", nombre: "Batería 12V", precio: 80.00 },
+        { id: "c18d9f12-3b4e-4e5a-8b6b-2d3e4f5a6b7c", nombre: "Correa de distribución", precio: 35.00 },
+        { id: "d29e0a23-4c5f-5f6b-9c7c-3e4f5a6b7c8d", nombre: "Bujías (paquete x4)", precio: 25.00 },
+        { id: "e30f1b34-5d6g-6g7c-0d8d-4f5a6b7c8d9e", nombre: "Aceite de motor 5L", precio: 68.00 },
     ];
 
     const handleInputChange = (field, value) => {
@@ -47,84 +51,96 @@ const CreateNewOrderModal = ({ open, setOpen, onSave, suppliers }) => {
     };
 
     const handleProductChange = (index, field, value) => {
-        const newProductos = [...formData.productos];
-        newProductos[index][field] = value;
+        const newItems = [...formData.purchase_order_items_attributes];
+        newItems[index][field] = value;
 
-        if (field === 'cantidad' || field === 'precioUnitario') {
-            const cantidad = field === 'cantidad' ? parseFloat(value) : newProductos[index].cantidad;
-            const precioUnitario = field === 'precioUnitario' ? parseFloat(value) : newProductos[index].precioUnitario;
-            newProductos[index].subtotal = (cantidad || 0) * (precioUnitario || 0);
+        if (field === 'quantity' || field === 'unit_cost') {
+            const quantity = field === 'quantity' ? parseFloat(value) : newItems[index].quantity;
+            const unit_cost = field === 'unit_cost' ? parseFloat(value) : newItems[index].unit_cost;
+            newItems[index].subtotal = (quantity || 0) * (unit_cost || 0);
         }
 
         setFormData(prev => ({
             ...prev,
-            productos: newProductos
+            purchase_order_items_attributes: newItems
         }));
     };
 
     const addProduct = () => {
         setFormData(prev => ({
             ...prev,
-            productos: [
-                ...prev.productos,
-                { id: Date.now(), nombre: '', cantidad: 1, precioUnitario: 0, subtotal: 0 }
+            purchase_order_items_attributes: [
+                ...prev.purchase_order_items_attributes,
+                { ui_id: Date.now(), product_id: '', product_nombre: '', quantity: 1, unit_cost: 0, subtotal: 0 }
             ]
         }));
     };
 
     const removeProduct = (index) => {
-        if (formData.productos.length === 1) return;
-        const newProductos = formData.productos.filter((_, i) => i !== index);
+        if (formData.purchase_order_items_attributes.length === 1) return;
+        const newItems = formData.purchase_order_items_attributes.filter((_, i) => i !== index);
         setFormData(prev => ({
             ...prev,
-            productos: newProductos
+            purchase_order_items_attributes: newItems
         }));
     };
 
-    const selectProduct = (index, productNombre, productPrecio) => {
-        const newProductos = [...formData.productos];
-        newProductos[index].nombre = productNombre;
-        newProductos[index].precioUnitario = productPrecio;
-        newProductos[index].subtotal = newProductos[index].cantidad * productPrecio;
+    const selectProduct = (index, product_id, product_nombre, unit_cost) => {
+        const newItems = [...formData.purchase_order_items_attributes];
+        newItems[index].product_id = product_id;
+        newItems[index].product_nombre = product_nombre;
+        newItems[index].unit_cost = unit_cost;
+        newItems[index].subtotal = newItems[index].quantity * unit_cost;
         setFormData(prev => ({
             ...prev,
-            productos: newProductos
+            purchase_order_items_attributes: newItems
         }));
     };
 
     const calcularTotal = () => {
-        return formData.productos.reduce((sum, prod) => sum + prod.subtotal, 0);
+        return formData.purchase_order_items_attributes.reduce((sum, item) => sum + item.subtotal, 0);
     };
 
     const handleSubmit = async () => {
-        if (!formData.proveedor) {
+        if (!formData.supplier_id) {
             alert('Por favor seleccione un proveedor');
             return;
         }
 
-        if (formData.productos.some(p => !p.nombre || p.cantidad < 1)) {
-            alert('Por favor complete todos los productos');
+        if (formData.purchase_order_items_attributes.some(p => !p.product_id || p.quantity < 1)) {
+            alert('Por favor complete todos los productos seleccionados');
             return;
         }
 
-        const pedidoData = {
-            orderId: `PO-${Date.now()}`,
-            proveedor: formData.proveedor,
-            fechaPedido: formData.fechaPedido,
-            fechaEntrega: formData.fechaEntregaEstimada || null,
-            totalProductos: formData.productos.reduce((sum, p) => sum + p.cantidad, 0),
-            montoTotal: calcularTotal(),
-            status: "PENDIENTE",
-            productos: formData.productos
+        // Clean up UI-only properties before sending payload
+        const cleanedItemsAttributes = formData.purchase_order_items_attributes.map(item => ({
+            product_id: item.product_id,
+            quantity: item.quantity,
+            unit_cost: parseFloat(item.unit_cost).toFixed(2)
+        }));
+
+        const payload = {
+            purchase_order: {
+                supplier_id: formData.supplier_id,
+                requested_by_id: formData.requested_by_id,
+                expected_date: formData.expected_date,
+                status: formData.status,
+                notes: formData.notes,
+                purchase_order_items_attributes: cleanedItemsAttributes
+            }
         };
 
-        await onSave(pedidoData);
+        await onSave(payload);
+
         setFormData({
-            proveedor: '',
-            fechaPedido: new Date().toISOString().split('T')[0],
-            fechaEntregaEstimada: '',
-            metodoPago: 'transferencia',
-            productos: [{ id: Date.now(), nombre: '', cantidad: 1, precioUnitario: 0, subtotal: 0 }]
+            supplier_id: '',
+            requested_by_id: '1eb92bee-6e92-4f20-8862-d5b699b8c5d1',
+            expected_date: '',
+            status: 'pending',
+            notes: '',
+            purchase_order_items_attributes: [
+                { ui_id: Date.now(), product_id: '', product_nombre: '', quantity: 1, unit_cost: 0, subtotal: 0 }
+            ]
         });
     };
 
@@ -138,18 +154,17 @@ const CreateNewOrderModal = ({ open, setOpen, onSave, suppliers }) => {
             callBack={handleSubmit}
         >
             <div className="flex flex-col gap-4 py-4 max-h-[60vh] overflow-y-auto px-1">
-
                 {/* Información del Pedido */}
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div className="space-y-2">
-                        <Label htmlFor="proveedor">Proveedor *</Label>
-                        <Select onValueChange={(value) => handleInputChange('proveedor', value)}>
+                        <Label htmlFor="supplier_id">Proveedor *</Label>
+                        <Select onValueChange={(value) => handleInputChange('supplier_id', value)}>
                             <SelectTrigger>
                                 <SelectValue placeholder="Seleccione un proveedor" />
                             </SelectTrigger>
                             <SelectContent>
                                 {suppliers?.map((supplier) => (
-                                    <SelectItem key={supplier.id} value={supplier.nombre}>
+                                    <SelectItem key={supplier.id} value={supplier.id.toString()}>
                                         {supplier.nombre}
                                     </SelectItem>
                                 ))}
@@ -158,38 +173,42 @@ const CreateNewOrderModal = ({ open, setOpen, onSave, suppliers }) => {
                     </div>
 
                     <div className="space-y-2">
-                        <Label>Método de Pago</Label>
-                        <Select
-                            value={formData.metodoPago}
-                            onValueChange={(value) => handleInputChange('metodoPago', value)}
-                        >
-                            <SelectTrigger>
-                                <SelectValue />
-                            </SelectTrigger>
-                            <SelectContent>
-                                <SelectItem value="transferencia">Transferencia Bancaria</SelectItem>
-                                <SelectItem value="cheque">Cheque</SelectItem>
-                                <SelectItem value="efectivo">Efectivo</SelectItem>
-                                <SelectItem value="credito">Crédito 30 días</SelectItem>
-                            </SelectContent>
-                        </Select>
-                    </div>
-
-                    <div className="space-y-2">
-                        <Label>Fecha de Pedido *</Label>
+                        <Label>Fecha Estimada de Entrega *</Label>
                         <Input
                             type="date"
-                            value={formData.fechaPedido}
-                            onChange={(e) => handleInputChange('fechaPedido', e.target.value)}
+                            value={formData.expected_date}
+                            onChange={(e) => handleInputChange('expected_date', e.target.value)}
                         />
                     </div>
 
                     <div className="space-y-2">
-                        <Label>Fecha Estimada de Entrega</Label>
-                        <Input
-                            type="date"
-                            value={formData.fechaEntregaEstimada}
-                            onChange={(e) => handleInputChange('fechaEntregaEstimada', e.target.value)}
+                        <Label>Estado</Label>
+                        <div className="flex items-center gap-4">
+                            <Select
+                                value={formData.status === 'delivered' ? 'pending' : formData.status}
+                                onValueChange={(value) => handleInputChange('status', value)}
+                                disabled={formData.status === 'delivered'}
+                            >
+                                <SelectTrigger className="w-[180px]">
+                                    <SelectValue />
+                                </SelectTrigger>
+                                <SelectContent>
+                                    <SelectItem value="pending">Pendiente</SelectItem>
+                                    <SelectItem value="in_transit">En tránsito</SelectItem>
+                                    <SelectItem value="cancelled">Cancelado</SelectItem>
+                                </SelectContent>
+                            </Select>
+                        </div>
+                    </div>
+
+                    <div className="space-y-2 md:col-span-2">
+                        <Label>Notas</Label>
+                        <Textarea
+                            placeholder="Ingrese notas para el pedido (Ej: Pedido mensual de reposición)"
+                            value={formData.notes}
+                            onChange={(e) => handleInputChange('notes', e.target.value)}
+                            className="resize-none"
+                            rows={3}
                         />
                     </div>
                 </div>
@@ -223,14 +242,15 @@ const CreateNewOrderModal = ({ open, setOpen, onSave, suppliers }) => {
                                     </TableRow>
                                 </TableHeader>
                                 <TableBody>
-                                    {formData.productos.map((producto, index) => (
-                                        <TableRow key={producto.id}>
+                                    {formData.purchase_order_items_attributes.map((item, index) => (
+                                        <TableRow key={item.ui_id}>
                                             <TableCell>
                                                 <Select
+                                                    value={item.product_id}
                                                     onValueChange={(value) => {
-                                                        const selected = productosMock.find(p => p.nombre === value);
+                                                        const selected = productosMock.find(p => p.id === value);
                                                         if (selected) {
-                                                            selectProduct(index, selected.nombre, selected.precio);
+                                                            selectProduct(index, selected.id, selected.nombre, selected.precio);
                                                         }
                                                     }}
                                                 >
@@ -239,28 +259,19 @@ const CreateNewOrderModal = ({ open, setOpen, onSave, suppliers }) => {
                                                     </SelectTrigger>
                                                     <SelectContent>
                                                         {productosMock.map((prod) => (
-                                                            <SelectItem key={prod.id} value={prod.nombre}>
-                                                                {prod.nombre} - ${prod.precio.toLocaleString()}
+                                                            <SelectItem key={prod.id} value={prod.id}>
+                                                                {prod.nombre} - ${prod.precio.toFixed(2)}
                                                             </SelectItem>
                                                         ))}
                                                     </SelectContent>
                                                 </Select>
-                                                {producto.nombre && (
-                                                    <Input
-                                                        type="text"
-                                                        value={producto.nombre}
-                                                        onChange={(e) => handleProductChange(index, 'nombre', e.target.value)}
-                                                        className="mt-1 text-xs"
-                                                        placeholder="Nombre producto"
-                                                    />
-                                                )}
                                             </TableCell>
                                             <TableCell>
                                                 <Input
                                                     type="number"
                                                     min="1"
-                                                    value={producto.cantidad}
-                                                    onChange={(e) => handleProductChange(index, 'cantidad', parseInt(e.target.value) || 0)}
+                                                    value={item.quantity}
+                                                    onChange={(e) => handleProductChange(index, 'quantity', parseInt(e.target.value) || 0)}
                                                     className="h-8 text-center"
                                                 />
                                             </TableCell>
@@ -268,14 +279,14 @@ const CreateNewOrderModal = ({ open, setOpen, onSave, suppliers }) => {
                                                 <Input
                                                     type="number"
                                                     min="0"
-                                                    step="1000"
-                                                    value={producto.precioUnitario}
-                                                    onChange={(e) => handleProductChange(index, 'precioUnitario', parseFloat(e.target.value) || 0)}
+                                                    step="0.01"
+                                                    value={item.unit_cost}
+                                                    onChange={(e) => handleProductChange(index, 'unit_cost', parseFloat(e.target.value) || 0)}
                                                     className="h-8 text-right"
                                                 />
                                             </TableCell>
                                             <TableCell className="text-right font-medium">
-                                                ${producto.subtotal.toLocaleString()}
+                                                ${item.subtotal.toFixed(2)}
                                             </TableCell>
                                             <TableCell className="text-center">
                                                 <Button
@@ -284,7 +295,7 @@ const CreateNewOrderModal = ({ open, setOpen, onSave, suppliers }) => {
                                                     size="icon"
                                                     className="h-8 w-8 text-red-500"
                                                     onClick={() => removeProduct(index)}
-                                                    disabled={formData.productos.length === 1}
+                                                    disabled={formData.purchase_order_items_attributes.length === 1}
                                                 >
                                                     <Trash2 className="h-4 w-4" />
                                                 </Button>
@@ -301,7 +312,7 @@ const CreateNewOrderModal = ({ open, setOpen, onSave, suppliers }) => {
                         <div className="text-right">
                             <p className="text-sm text-muted-foreground">Total del Pedido</p>
                             <p className="text-2xl font-bold text-emerald-600">
-                                ${calcularTotal().toLocaleString()}
+                                ${calcularTotal().toFixed(2)}
                             </p>
                         </div>
                     </div>

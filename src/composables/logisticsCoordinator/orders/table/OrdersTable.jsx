@@ -13,6 +13,7 @@ const OrdersTable = ({
   searchFields,
   setSearchFields,
   handleOpenModal,
+  handleMarkDelivered,
 }) => {
 
   const handleEdit = (order) => handleOpenModal('edit', order);
@@ -20,8 +21,8 @@ const OrdersTable = ({
   const handleDetails = (order) => handleOpenModal('details', order);
 
   const columnsWithActions = useMemo(() =>
-    columns(handleEdit, handleDetails, handleDelete),
-    [handleEdit, handleDelete, handleDetails]
+    columns(handleEdit, handleDetails, handleDelete, handleMarkDelivered),
+    [handleEdit, handleDelete, handleDetails, handleMarkDelivered]
   );
 
   return (

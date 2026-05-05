@@ -102,19 +102,39 @@ const LogisticOrders = () => {
     try {
       console.log("Guardando pedido:", pedidoData);
 
-      const orderToAdd = {
-        orderId: pedidoData.orderId,
-        proveedor: pedidoData.proveedor,
-        fechaPedido: pedidoData.fechaPedido,
-        fechaEntrega: pedidoData.fechaEntrega,
-        totalProductos: pedidoData.totalProductos,
-        montoTotal: pedidoData.montoTotal,
-        status: pedidoData.status
-      };
+      // Handle both legacy payload and new JSON structure payload
+      let orderToAdd;
+      if (pedidoData.purchase_order) {
+        const { purchase_order } = pedidoData;
+        const supplier = suppliers.find(s => s.id.toString() === purchase_order.supplier_id);
+        
+        const totalProductos = purchase_order.purchase_order_items_attributes.reduce((acc, item) => acc + item.quantity, 0);
+        const montoTotal = purchase_order.purchase_order_items_attributes.reduce((acc, item) => acc + (item.quantity * parseFloat(item.unit_cost)), 0);
+
+        orderToAdd = {
+          orderId: `PO-${new Date().getFullYear()}-${Math.floor(Math.random() * 1000).toString().padStart(3, '0')}`,
+          proveedor: supplier ? supplier.nombre : "Proveedor Desconocido",
+          fechaPedido: new Date().toISOString().split('T')[0],
+          fechaEntrega: purchase_order.expected_date || null,
+          totalProductos: totalProductos,
+          montoTotal: montoTotal,
+          status: purchase_order.status.toUpperCase() === 'DRAFT' ? 'PENDIENTE' : purchase_order.status.toUpperCase()
+        };
+      } else {
+        orderToAdd = {
+          orderId: pedidoData.orderId,
+          proveedor: pedidoData.proveedor,
+          fechaPedido: pedidoData.fechaPedido,
+          fechaEntrega: pedidoData.fechaEntrega,
+          totalProductos: pedidoData.totalProductos,
+          montoTotal: pedidoData.montoTotal,
+          status: pedidoData.status
+        };
+      }
 
       setOrders(prev => [orderToAdd, ...prev]);
       handleCloseModal();
-      alert(`Pedido ${pedidoData.orderId} creado exitosamente para ${pedidoData.proveedor}`);
+      alert(`Pedido ${orderToAdd.orderId} creado exitosamente para ${orderToAdd.proveedor}`);
 
     } catch (error) {
       console.error("Error al guardar:", error);
@@ -157,6 +177,16 @@ const LogisticOrders = () => {
     } catch (error) {
       console.error("Error al anular:", error);
       alert("Error al anular el pedido");
+    }
+  };
+
+  const handleMarkDelivered = (order) => {
+    try {
+      setOrders(prev => prev.map(o => o.orderId === order.orderId ? { ...o, status: "ENTREGADO" } : o));
+      alert(`El pedido ${order.orderId} ha sido marcado como Entregado.`);
+    } catch (error) {
+      console.error("Error al actualizar estado:", error);
+      alert("Error al actualizar el estado del pedido");
     }
   };
 
@@ -234,6 +264,7 @@ const LogisticOrders = () => {
               searchFields={searchFields}
               setSearchFields={setSearchFields}
               handleOpenModal={handleOpenModal}
+              handleMarkDelivered={handleMarkDelivered}
             />
           </div>
         </div>

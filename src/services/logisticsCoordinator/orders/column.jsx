@@ -1,7 +1,7 @@
 import React from 'react';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { Eye, FileText, Trash2 } from 'lucide-react';
+import { Eye, FileText, Trash2, Check } from 'lucide-react';
 
 const getOrderStatusBadge = (status) => {
   switch (status) {
@@ -18,7 +18,7 @@ const getOrderStatusBadge = (status) => {
   }
 };
 
-const columns = (handleEdit, handleDetails, handleDelete) => [
+const columns = (handleEdit, handleDetails, handleDelete, handleMarkDelivered) => [
   {
     accessorKey: 'orderId',
     header: 'Nº PEDIDO',
@@ -80,6 +80,15 @@ const columns = (handleEdit, handleDetails, handleDelete) => [
           <FileText className="h-4 w-4" />
         </Button>
 
+        <Button
+          variant="ghost"
+          size="icon"
+          className="h-8 w-8 text-green-500 hover:text-green-600 hover:bg-green-50"
+          title="Marcar como Entregado"
+          onClick={() => handleMarkDelivered(row.original)}
+        >
+          <Check className="h-4 w-4" />
+        </Button>
         <Button
           variant="ghost"
           size="icon"
