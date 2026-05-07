@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Filter } from 'lucide-react';
 import {
@@ -13,20 +13,10 @@ import CreateProductModal from '@/composables/admin/logistics/inventory/modals/C
 import UpdateProductModal from '@/composables/admin/logistics/inventory/modals/UpdateProductModal';
 import HistoryProductModal from '@/composables/admin/logistics/inventory/modals/HistoryProduct/HistoryProductModal';
 import DeleteProductModal from '@/composables/admin/logistics/inventory/modals/DeleteProductModal';
-
-const fakeInventory = {
-  rows: [
-    { id: "1R-0750", desc: "Filtro aceite", stock: 47, loc: "Estante A", status: "OK", type: "repuesto" },
-    { id: "153-5710", desc: "Batería 12V", stock: 8, loc: "Estante B", status: "Bajo", type: "repuesto" },
-    { id: "CAT-C15", desc: "Retroexcavadora JCB 3CX", stock: 2, loc: "Zona 1", status: "OK", type: "maquinaria" },
-    { id: "9X-2012", desc: "Kit junta motor", stock: 0, loc: "Estante C", status: "AGOT", type: "repuesto" },
-    { id: "7E-7777", desc: "Volquete Volvo FMX", stock: 15, loc: "Estante A", status: "OK", type: "maquinaria" },
-  ],
-  rowCount: 47
-};
+import useCrud from '@/hooks/useCrud';
 
 const Inventory = () => {
-  const [products, setProducts] = useState(fakeInventory.rows);
+  const [products, setProducts] = useState([]);
   const [pagination, setPagination] = useState({ pageIndex: 0, pageSize: 10 });
   const [search, setSearch] = useState("");
   const [searchFields, setSearchFields] = useState(["id", "desc"]);
@@ -35,8 +25,64 @@ const Inventory = () => {
   const [typeModal, setTypeModal] = useState("");
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedProduct, setSelectedProduct] = useState(null);
+  const [isLoading, setIsLoading] = useState(true);
 
-  const refetchData = () => console.log("Refetching data...");
+  const { getModel } = useCrud('/api/v1/admin/products');
+
+  const fetchProducts = async () => {
+    try {
+      setIsLoading(true);
+      const response = await getModel();
+
+      const productsArray = response.data || (Array.isArray(response) ? response : []);
+
+      const formattedData = productsArray.map(item => {
+        let currentStock = 0;
+        let minStock = 5;
+        let location = "No asignado";
+
+        // Si es vehículo
+        if (item.product_type === "vehicle" && item.vehicle) {
+          currentStock = item.vehicle.status === "available" ? 1 : 0;
+          minStock = 1;
+          location = item.vehicle.location || "No asignado";
+        }
+        // Si es repuesto
+        else if (item.product_type === "spare_part" && item.spare_part) {
+          currentStock = item.spare_part.stock || 0;
+          minStock = item.spare_part.min_stock || 5;
+          location = item.spare_part.manufacturer_brand || "No asignado";
+        }
+
+        return {
+          id: item.code,
+          desc: item.name,
+          stock: currentStock,
+          stockmin: minStock,
+          loc: location,
+          state: item.active ? "ACTIVO" : "INACTIVO",
+          status: currentStock === 0 ? "AGOT" : currentStock < minStock ? "Bajo" : "OK",
+          type: item.product_type === "spare_part" ? "Repuesto" : "Maquinaria",
+          base_price: `$${parseFloat(item.base_price || 0).toFixed(2)}`,
+          _original: item
+        };
+      });
+
+      setProducts(formattedData);
+    } catch (error) {
+      console.error("Error al cargar productos:", error);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchProducts();
+  }, []);
+
+  const refetchData = () => {
+    fetchProducts();
+  };
 
   const handleOpenModal = (type, product = null) => {
     setTypeModal(type);

@@ -1,6 +1,6 @@
 import React, { createContext, useEffect, useState, useContext, useRef, useMemo } from 'react'
 import axios from "axios"
-import {jwtDecode} from 'jwt-decode'
+import { jwtDecode } from 'jwt-decode'
 import { ToastAction } from "@/components/ui/toast"
 import { useToast } from "@/components/ui/use-toast"
 
@@ -14,13 +14,13 @@ export const UserProvider = ({ children }) => {
 
   const [authTokens, setAuthTokens] = useState(() => localStorage.getItem('authTokens') ? JSON.parse(localStorage.getItem('authTokens')) : null)
   //const [user, setUser] = useState(() => localStorage.getItem('authTokens') ? jwtDecode(localStorage.getItem('authTokens')) : null)
-  const [user, setUser] = useState(() => 
-    localStorage.getItem('user') 
-      ? JSON.parse(localStorage.getItem('user')) 
+  const [user, setUser] = useState(() =>
+    localStorage.getItem('user')
+      ? JSON.parse(localStorage.getItem('user'))
       : null
   )
   const authTokensRef = useRef(authTokens)
-  const userRef = useRef(user) 
+  const userRef = useRef(user)
 
   // const loginUser = async (credentials) => {
   //   try {
@@ -209,7 +209,7 @@ export const UserProvider = ({ children }) => {
     } catch (error) {
       console.error('Error en updateToken:', error.response ? error.response.data : error.message)
       logoutUser()
-    } 
+    }
   }
 
   useEffect(() => {
@@ -273,8 +273,8 @@ export const UserProvider = ({ children }) => {
     authTokens: authTokensRef?.current,
     loginUser,
     logoutUser,
-    setAuthTokens, 
-    setUser, 
+    setAuthTokens,
+    setUser,
   }), [authTokensRef])
 
   return (

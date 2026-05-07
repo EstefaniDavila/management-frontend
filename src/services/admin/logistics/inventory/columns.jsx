@@ -30,9 +30,21 @@ const columns = (handleEdit, handleHistory, handleDelete) => [
     enableColumnFilter: true,
   },
   {
+    accessorKey: 'type',
+    header: 'Tipo',
+    cell: info => info.getValue(),
+    enableColumnFilter: true,
+  },
+  {
     accessorKey: 'stock',
     header: 'STOCK',
     cell: info => `${info.getValue()} unid`,
+    enableColumnFilter: true,
+  },
+  {
+    accessorKey: 'stockmin',
+    header: 'Min',
+    cell: info => info.getValue(),
     enableColumnFilter: true,
   },
   {
@@ -43,7 +55,19 @@ const columns = (handleEdit, handleHistory, handleDelete) => [
   },
   {
     accessorKey: 'status',
+    header: 'ESTADO INV',
+    cell: info => getStatusBadge(info.getValue()),
+    enableColumnFilter: true,
+  },
+  {
+    accessorKey: 'state',
     header: 'ESTADO',
+    cell: info => getStatusBadge(info.getValue()),
+    enableColumnFilter: true,
+  },
+  {
+    accessorKey: 'base_price',
+    header: 'Precio Base',
     cell: info => getStatusBadge(info.getValue()),
     enableColumnFilter: true,
   },

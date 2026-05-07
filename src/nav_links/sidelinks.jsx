@@ -5,6 +5,7 @@ import { techLinks } from "./customSideLinks/techLinks"
 import { warehouseLinks } from "./customSideLinks/warehouseLinks"
 import { customerLinks } from "./customSideLinks/customer"
 import { operationLinks } from "./customSideLinks/operationLinks"
+import { logisticCoordinatorLinks } from "./customSideLinks/logisticsCoordinator"
 
 const roleLinks = {
   Admin:            adminLinks,

@@ -9,63 +9,21 @@ import {
 } from "@/components/ui/dropdown-menu";
 
 import OrdersSuppliersTable from '@/composables/admin/logistics/ordersSuppliers/Table/OrdersSuppliersTable';
-import ViewOrderDetailModal from '@/composables/admin/logistics/suppliers/modals/SupplierOrderModal/ViewOrderDetailModal/ViewOrderDetailModal';
-import CreateOrderModal from '@/composables/admin/logistics/ordersSuppliers/modals/CreateOrderModal';
+import CreateNewOrderModal from '@/composables/admin/logistics/ordersSuppliers/modals/CreateNewOrderModal';
+import ViewOrderDetailModal from '@/composables/admin/logistics/ordersSuppliers/modals/ViewOrderdetailsModal';
+import useCrud from '@/hooks/useCrud';
+import useEntityMutation from '@/hooks/useEntityMutation';
 import UpdateOrderModal from '@/composables/admin/logistics/ordersSuppliers/modals/UpdateOrderModal';
 import DeleteOrderModal from '@/composables/admin/logistics/ordersSuppliers/modals/DeleteOrderModal';
-const fakePurchaseOrders = {
-  rows: [
-    { 
-      orderId: "PO-2024-001", 
-      proveedor: "Maquinarias S.A.", 
-      fechaPedido: "2024-01-15", 
-      fechaEntrega: "2024-01-22", 
-      totalProductos: 15, 
-      montoTotal: 12500000, 
-      status: "ENTREGADO" 
-    },
-    { 
-      orderId: "PO-2024-002", 
-      proveedor: "Repuestos Industriales Ltda.", 
-      fechaPedido: "2024-01-20", 
-      fechaEntrega: null, 
-      totalProductos: 45, 
-      montoTotal: 3450000, 
-      status: "PENDIENTE" 
-    },
-    { 
-      orderId: "PO-2024-003", 
-      proveedor: "Equipos Pesados SpA", 
-      fechaPedido: "2024-01-25", 
-      fechaEntrega: "2024-02-01", 
-      totalProductos: 8, 
-      montoTotal: 8900000, 
-      status: "EN_TRANSITO" 
-    },
-    { 
-      orderId: "PO-2024-004", 
-      proveedor: "Insumos Mineros", 
-      fechaPedido: "2024-01-28", 
-      fechaEntrega: null, 
-      totalProductos: 120, 
-      montoTotal: 6700000, 
-      status: "CANCELADO" 
-    },
-    { 
-      orderId: "PO-2024-005", 
-      proveedor: "Logística Express", 
-      fechaPedido: "2024-02-01", 
-      fechaEntrega: "2024-02-08", 
-      totalProductos: 32, 
-      montoTotal: 2100000, 
-      status: "ENTREGADO" 
-    },
-  ],
-  rowCount: 47
-};
 
 const PurchaseOrderHistory = () => {
-  const [orders, setOrders] = useState(fakePurchaseOrders.rows);
+  const { getModel: getOrders } = useCrud('/api/v1/admin/purchase_orders');
+  const { getModel: getSuppliers } = useCrud('/api/v1/admin/suppliers');
+  const orderMutation = useEntityMutation({ entityName: 'purchase_order' });
+
+  const [orders, setOrders] = useState([]);
+  const [suppliers, setSuppliers] = useState([]);
+  const [isLoading, setIsLoading] = useState(true);
   const [pagination, setPagination] = useState({ pageIndex: 0, pageSize: 10 });
   const [search, setSearch] = useState("");
   const [searchFields, setSearchFields] = useState(["orderId", "proveedor"]);
@@ -75,7 +33,55 @@ const PurchaseOrderHistory = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedOrder, setSelectedOrder] = useState(null);
 
-  const refetchData = () => console.log("Refetching orders data...");
+  const fetchInitialData = async () => {
+    try {
+      setIsLoading(true);
+      const [ordersData, suppliersData] = await Promise.all([
+        getOrders(),
+        getSuppliers()
+      ]);
+
+      const formattedOrders = ordersData.map(order => {
+        const supplier = suppliersData.find(s => s.id === order.supplier_id);
+        const statusMap = {
+          'draft': 'PENDIENTE',
+          'completed': 'ENTREGADO',
+          'cancelled': 'CANCELADO',
+          'in_transit': 'EN_TRANSITO'
+        };
+
+        return {
+          id: order.id,
+          orderId: order.code,
+          proveedor: supplier ? supplier.business_name : 'Desconocido',
+          supplier_id: order.supplier_id,
+          fechaPedido: order.created_at,
+          fechaEntrega: order.received_at,
+          totalProductos: order.items_count || 0,
+          montoTotal: parseFloat(order.total) || 0,
+          status: statusMap[order.status] || order.status,
+          _original: order
+        };
+      });
+
+      setOrders(formattedOrders);
+      setSuppliers(suppliersData.map(s => ({
+        id: s.id,
+        nombre: s.business_name,
+        _original: s
+      })));
+    } catch (error) {
+      console.error("Error cargando los datos:", error);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  React.useEffect(() => {
+    fetchInitialData();
+  }, []);
+
+  const refetchData = () => fetchInitialData();
 
   const handleOpenModal = (type, order = null) => {
     setTypeModal(type);
@@ -89,66 +95,49 @@ const PurchaseOrderHistory = () => {
     setIsModalOpen(false);
   };
 
-  const handleSaveOrder = async (newOrder) => {
-    try {
-      console.log("Guardando pedido:", newOrder);
-
-      const orderToAdd = {
-        orderId: newOrder.orderId,
-        proveedor: newOrder.proveedor,
-        fechaPedido: newOrder.fechaPedido,
-        fechaEntrega: newOrder.fechaEntrega || null,
-        totalProductos: parseInt(newOrder.totalProductos),
-        montoTotal: parseFloat(newOrder.montoTotal),
-        status: newOrder.status
-      };
-
-      setOrders(prev => [orderToAdd, ...prev]);
-      handleCloseModal();
-      alert("Pedido creado exitosamente");
-
-    } catch (error) {
-      console.error("Error al guardar:", error);
-      alert("Error al crear el pedido");
-    }
+  const handleSaveOrder = (pedidoData) => {
+    orderMutation.mutate(
+      { action: 'create', entity: pedidoData, endpoint: '/api/v1/admin/purchase_orders' },
+      {
+        onSuccess: () => {
+          refetchData();
+          handleCloseModal();
+        }
+      }
+    );
   };
 
-  const handleUpdateOrder = async (updatedData) => {
-    try {
-      console.log("Datos actualizados:", updatedData);
-
-      const updatedOrder = {
-        orderId: updatedData.orderId,
-        proveedor: updatedData.proveedor,
-        fechaPedido: updatedData.fechaPedido,
-        fechaEntrega: updatedData.fechaEntrega || null,
-        totalProductos: parseInt(updatedData.totalProductos),
-        montoTotal: parseFloat(updatedData.montoTotal),
-        status: updatedData.status
-      };
-
-      setOrders(prev =>
-        prev.map(o => o.orderId === selectedOrder.orderId ? updatedOrder : o)
-      );
-
-      handleCloseModal();
-      alert("Pedido actualizado exitosamente");
-    } catch (error) {
-      console.error("Error al actualizar:", error);
-      alert("Error al actualizar el pedido");
-    }
+  const handleUpdateOrder = (updatedData) => {
+    orderMutation.mutate(
+      {
+        action: 'update',
+        entity: updatedData,
+        endpoint: `/api/v1/admin/purchase_orders/${updatedData.get ? updatedData.get('id') : updatedData.id}`,
+        id: updatedData.get ? updatedData.get('id') : updatedData.id
+      },
+      {
+        onSuccess: () => {
+          refetchData();
+          handleCloseModal();
+        }
+      }
+    );
   };
 
-  const handleDeleteOrder = async (order) => {
-    try {
-      console.log("Anulando pedido:", order);
-      setOrders(prev => prev.filter(o => o.orderId !== order.orderId));
-      handleCloseModal();
-      alert("Pedido anulado exitosamente");
-    } catch (error) {
-      console.error("Error al anular:", error);
-      alert("Error al anular el pedido");
-    }
+  const handleDeleteOrder = (order) => {
+    orderMutation.mutate(
+      {
+        action: 'delete',
+        endpoint: `/api/v1/admin/purchase_orders/${order.id}`,
+        id: order.id
+      },
+      {
+        onSuccess: () => {
+          refetchData();
+          handleCloseModal();
+        }
+      }
+    );
   };
 
   const proveedoresUnicos = [...new Set(orders.map(o => o.proveedor))];
@@ -233,10 +222,11 @@ const PurchaseOrderHistory = () => {
       </div>
 
       {typeModal === 'create' && (
-        <CreateOrderModal
+        <CreateNewOrderModal
           open={isModalOpen}
           setOpen={handleCloseModal}
           onSave={handleSaveOrder}
+          suppliers={suppliers}
         />
       )}
 
@@ -262,18 +252,8 @@ const PurchaseOrderHistory = () => {
         <ViewOrderDetailModal
           open={isModalOpen}
           setOpen={handleCloseModal}
-          order={{
-            oc: selectedOrder.orderId,
-            estado: selectedOrder.status === 'ENTREGADO' ? 'Completado' : selectedOrder.status,
-            fecha: selectedOrder.fechaPedido,
-            monto: selectedOrder.montoTotal,
-            metodo: 'Transferencia'
-          }}
-          supplier={{
-            nombre: selectedOrder.proveedor,
-            direccion: 'Av. Principal S/N (Registrada en BD)',
-            contacto: 'Representante de Ventas'
-          }}
+          order={selectedOrder}
+
         />
       )}
 
