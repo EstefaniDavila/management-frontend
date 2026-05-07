@@ -19,6 +19,7 @@ import ResetPassword from '../app/login/ResetPassword'
 import { useAuth } from '../providers/UserContext'
 const Routes = () => {
   const {  user, authTokens } = useAuth('')
+  console.log("User in Routes.jsx:", user)
 
 const roleRouter = {
   Admin:        adminRoutes,       // Administrador - acceso total
@@ -26,8 +27,13 @@ const roleRouter = {
   SalesAdvisor: advisorRoutes,     // Asesor Comercial - Marketing & Sales
   Technician:   techRoutes,        // Técnico - Production & Operations
   WarehouseOp:  warehouseRoutes,   // Operador de Almacén - Logistics & Warehouse
-  Operation:    operationRoutes,   // Operación - su área + reportes
-  Manager:      areaManagerRoutes,     // Jefe de Área - su departamento + reportes
+  // Operation:    operationRoutes,   // Operación - su área + reportes
+  // Manager:      areaManagerRoutes,     // Jefe de Área - su departamento + reportes
+}
+
+const managerRouter = {
+  operations: operationRoutes,
+  sales: areaManagerRoutes,
 }
 
   const routesForPublic = [
@@ -38,8 +44,17 @@ const roleRouter = {
     // { path: "*", Component: NotFoundError },
   ]
 
-  // const routesForAuthenticatedOnly = roleRouter[user?.user?.roleable_type] || []
-  const routesForAuthenticatedOnly = roleRouter[user?.roleable_type] || []
+  let routesForAuthenticatedOnly = []
+
+  if (!user) {
+    routesForAuthenticatedOnly = []
+  } else if (user.roleable_type === "Manager") {
+    routesForAuthenticatedOnly =
+      managerRouter[user.roleable.area]
+  } else {
+    routesForAuthenticatedOnly =
+      roleRouter[user.roleable_type] || []
+  }
 
   const routesForNotAuthenticatedOnly = [
     {

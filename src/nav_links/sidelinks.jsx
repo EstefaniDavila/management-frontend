@@ -8,17 +8,29 @@ import { operationLinks } from "./customSideLinks/operationLinks"
 
 const roleLinks = {
   Admin:            adminLinks,
-  Manager:          areaManagerLinks,   // Jefe de área
+  // Manager:          areaManagerLinks,   // Jefe de área
   SalesAdvisor:     advisorLinks,   // Asesor comercial
   Technician:       techLinks,
   WarehouseOp:      warehouseLinks, // Almacenero
   Customer:         customerLinks,
-  Operation:        operationLinks,       // Jefe de Operaciones
+  // Operation:        operationLinks,       // Jefe de Operaciones
+}
+
+const managerLinks = {
+  operations: operationLinks,
+  sales: areaManagerLinks
 }
 
 export const getSidelinks = () => {
   const user = JSON.parse(localStorage.getItem("user"))
-  return roleLinks[user?.roleable_type] || []
+
+  if (!user) return []
+
+  if (user.roleable_type === "Manager") {
+    return managerLinks[user.roleable.area]
+  }
+
+  return roleLinks[user.roleable_type] || []
 }
 export const sidelinks = getSidelinks()
 export default sidelinks
