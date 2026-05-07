@@ -119,16 +119,18 @@ const CreateNewOrderModal = ({ open, setOpen, onSave, suppliers }) => {
             unit_cost: parseFloat(item.unit_cost).toFixed(2)
         }));
 
-        const payload = {
-            purchase_order: {
-                supplier_id: formData.supplier_id,
-                requested_by_id: formData.requested_by_id,
-                expected_date: formData.expected_date,
-                status: formData.status,
-                notes: formData.notes,
-                purchase_order_items_attributes: cleanedItemsAttributes
-            }
-        };
+        const payload = new FormData();
+        payload.append('supplier_id', formData.supplier_id);
+        if (formData.requested_by_id) payload.append('requested_by_id', formData.requested_by_id);
+        if (formData.expected_date) payload.append('expected_date', formData.expected_date);
+        if (formData.status) payload.append('status', formData.status);
+        if (formData.notes) payload.append('notes', formData.notes);
+
+        cleanedItemsAttributes.forEach((item, index) => {
+            payload.append(`purchase_order_items_attributes][${index}][product_id`, item.product_id);
+            payload.append(`purchase_order_items_attributes][${index}][quantity`, item.quantity);
+            payload.append(`purchase_order_items_attributes][${index}][unit_cost`, item.unit_cost);
+        });
 
         await onSave(payload);
 

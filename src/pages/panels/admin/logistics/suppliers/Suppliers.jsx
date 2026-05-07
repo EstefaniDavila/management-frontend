@@ -7,6 +7,7 @@ import UpdateSupplierModal from '@/composables/admin/logistics/suppliers/modals/
 import SupplierOrderModal from '@/composables/admin/logistics/suppliers/modals/SupplierOrderModal/SupplierOrderModal';
 import PlaceaNewOrderModal from '@/composables/admin/logistics/suppliers/modals/PlaceaNewOrderModal';
 import useCrud from '@/hooks/useCrud';
+import useEntityMutation from '@/hooks/useEntityMutation';
 
 const suppliersMock = [
   { id: 1, nombre: "Maquinarias S.A." },
@@ -26,7 +27,8 @@ const Suppliers = () => {
   const [selectedProveedor, setSelectedProveedor] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
 
-  const { insertModel, getModel, updateModel, deleteModel } = useCrud('/api/v1/admin/suppliers');
+  const { getModel } = useCrud('/api/v1/admin/suppliers');
+  const supplierMutation = useEntityMutation({ entityName: 'supplier' });
 
   const fetchProveedores = async () => {
     try {
@@ -74,37 +76,29 @@ const Suppliers = () => {
     setTypeModal('');
   };
 
-  const handleSaveProveedor = async (formData) => {
-    try {
-      const payload = {
-        supplier: formData
-      };
-      await insertModel(payload);
-      alert("Proveedor creado exitosamente en el servidor.");
-      handleCloseModal();
-    } catch (error) {
-      console.error("Error al enviar el proveedor al servidor:", error);
-      alert("No se pudo crear el proveedor en el servidor. Revisa la consola para más detalles.");
-    }
+  const handleSaveProveedor = (formData) => {
+    supplierMutation.mutate(
+      { action: 'create', entity: formData, endpoint: '/api/v1/admin/suppliers' },
+      {
+        onSuccess: () => {
+          refetchData();
+          handleCloseModal();
+        }
+      }
+    );
   };
 
-  const handleUpdateProveedor = async (formData) => {
-    try {
-      const payload = {
-        supplier: formData
-      };
-      
-      await updateModel(payload, `/api/v1/admin/suppliers/${formData.id}`);
-      alert("Proveedor actualizado exitosamente en el servidor.");
-      
-      refetchData();
-      handleCloseModal();
-    } catch (error) {
-      console.error("Error al actualizar el proveedor:", error);
-      alert("No se pudo actualizar el proveedor en el servidor. Revisa la consola.");
-    }
+  const handleUpdateProveedor = (formData) => {
+    supplierMutation.mutate(
+      { action: 'update', entity: formData, endpoint: `/api/v1/admin/suppliers/${formData.id}`, id: formData.id },
+      {
+        onSuccess: () => {
+          refetchData();
+          handleCloseModal();
+        }
+      }
+    );
   };
-
 
   const handleSaveOrder = async (pedidoData) => {
     try {
@@ -117,15 +111,15 @@ const Suppliers = () => {
     }
   };
 
-  const handleDeleteConfirm = async (proveedorId) => {
-    try {
-      await deleteModel(`/api/v1/admin/suppliers/${proveedorId}`);
-      alert("Proveedor eliminado exitosamente en el servidor.");
-      
-      refetchData();
-    } catch (error) {
-      console.error("Error al eliminar:", error);
-    }
+  const handleDeleteConfirm = (proveedorId) => {
+    supplierMutation.mutate(
+      { action: 'delete', endpoint: `/api/v1/admin/suppliers/${proveedorId}`, id: proveedorId },
+      {
+        onSuccess: () => {
+          refetchData();
+        }
+      }
+    );
   };
 
   return (
