@@ -2,15 +2,15 @@ import { WrenchIcon, SettingsIcon, CalendarDays, House, MessageSquareIcon } from
 
 export const operationLinks = [
   {
-    title: "Solicitudes",
-    href: "/area-requests",
-    icon: MessageSquareIcon,
-    area: "Production & Operations",
-  },
-  {
     title: "Home",
     href: "/",
     icon: House ,
+    area: "Production & Operations",
+  },
+  {
+    title: "Solicitudes",
+    href: "/area-requests",
+    icon: MessageSquareIcon,
     area: "Production & Operations",
   },
   {

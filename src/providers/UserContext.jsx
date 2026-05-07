@@ -114,7 +114,7 @@ export const UserProvider = ({ children }) => {
 
           localStorage.setItem('authTokens', JSON.stringify(tokens))
           localStorage.setItem('user', JSON.stringify(user))
-          window.location.href = '/profesores'
+          window.location.href = '/'
 
         } else {
           console.error('Tokens are missing in the response data')
