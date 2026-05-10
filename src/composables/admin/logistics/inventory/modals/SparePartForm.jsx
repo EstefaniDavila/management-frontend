@@ -74,7 +74,7 @@ export const SparePartForm = ({ control, errors, sparePartCategories }) => {
                     </SelectTrigger>
                     <SelectContent>
                         {sparePartCategories.map((category) => (
-                            <SelectItem key={category.id} value={category.id}>
+                            <SelectItem key={category.id} value={category.id.toString()}>
                                 {category.name}
                             </SelectItem>
                         ))}

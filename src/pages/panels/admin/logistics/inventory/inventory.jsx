@@ -14,6 +14,8 @@ import UpdateProductModal from '@/composables/admin/logistics/inventory/modals/U
 import HistoryProductModal from '@/composables/admin/logistics/inventory/modals/HistoryProduct/HistoryProductModal';
 import DeleteProductModal from '@/composables/admin/logistics/inventory/modals/DeleteProductModal';
 import useCrud from '@/hooks/useCrud';
+import useEntityMutation from '@/hooks/useEntityMutation';
+import { useAuth } from '@/providers/UserContext';
 
 const Inventory = () => {
   const [products, setProducts] = useState([]);
@@ -28,6 +30,8 @@ const Inventory = () => {
   const [isLoading, setIsLoading] = useState(true);
 
   const { getModel } = useCrud('/api/v1/admin/products');
+  const productMutation = useEntityMutation({ entityName: 'product' });
+  const { user } = useAuth();
 
   const fetchProducts = async () => {
     try {
@@ -96,29 +100,20 @@ const Inventory = () => {
     setIsModalOpen(false);
   };
 
-  const handleSaveProduct = async (newProduct) => {
-    try {
-      console.log("Guardando producto:", newProduct);
-
-      const productToAdd = {
-        id: newProduct.codigo,
-        desc: newProduct.desc,
-        stock: parseInt(newProduct.stock),
-        loc: newProduct.loc,
-        type: newProduct.type,
-        status: "OK"
-      };
-
-      setProducts(prev => [productToAdd, ...prev]);
-
-      handleCloseModal();
-
-      alert("Producto creado exitosamente");
-
-    } catch (error) {
-      console.error("Error al guardar:", error);
-      alert("Error al crear el producto");
-    }
+  const handleSaveProduct = async (payload) => {
+    productMutation.mutate(
+      {
+        action: 'create',
+        entity: payload,
+        endpoint: '/api/v1/admin/products'
+      },
+      {
+        onSuccess: () => {
+          refetchData();
+          handleCloseModal();
+        }
+      }
+    );
   };
 
   const handleUpdateProduct = async (updatedData) => {
@@ -195,13 +190,13 @@ const Inventory = () => {
             <DropdownMenuTrigger asChild>
               <Button variant="outline" size="sm" className="gap-2">
                 <Filter className="h-3.5 w-3.5" />
-                Type: {filterType}
+                Tipo: {filterType}
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent>
-              <DropdownMenuItem onClick={() => setFilterType("todos")}>All</DropdownMenuItem>
-              <DropdownMenuItem onClick={() => setFilterType("maquinaria")}>Machinery</DropdownMenuItem>
-              <DropdownMenuItem onClick={() => setFilterType("repuesto")}>Parts</DropdownMenuItem>
+              <DropdownMenuItem onClick={() => setFilterType("todos")}>Todos</DropdownMenuItem>
+              <DropdownMenuItem onClick={() => setFilterType("Maquinaria")}>Maquinaria</DropdownMenuItem>
+              <DropdownMenuItem onClick={() => setFilterType("Repuesto")}>Respuestos</DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
 
@@ -239,6 +234,7 @@ const Inventory = () => {
           open={isModalOpen}
           setOpen={handleCloseModal}
           onSave={handleSaveProduct}
+          currentUserId={user?.id}
         />
       )}
 

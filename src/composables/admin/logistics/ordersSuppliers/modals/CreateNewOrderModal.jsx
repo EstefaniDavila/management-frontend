@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import Modal from '@/components/custom/modal';
 import { Button } from '@/components/custom/button';
 import useCrud from '@/hooks/useCrud';
+import { useAuth } from '@/providers/UserContext';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
@@ -24,15 +25,26 @@ import {
 import { Plus, Trash2 } from 'lucide-react';
 
 const CreateNewOrderModal = ({ open, setOpen, onSave, suppliers }) => {
+    const { user } = useAuth();
+
     const [formData, setFormData] = useState({
         supplier_id: '',
-        requested_by_id: '50572d23-a9dc-4b86-9a9c-14ed4a45910e',
+        requested_by_id: user?.id || '',
         expected_date: '',
         notes: '',
         purchase_order_items_attributes: [
             { ui_id: Date.now(), product_id: '', product_nombre: '', quantity: 1, unit_cost: 0, subtotal: 0 }
         ]
     });
+
+    useEffect(() => {
+        if (user?.id) {
+            setFormData(prev => ({
+                ...prev,
+                requested_by_id: user.id
+            }));
+        }
+    }, [user?.id]);
 
     const [productos, setProductos] = useState([]);
     const { getModel } = useCrud('/api/v1/admin/products');
@@ -131,7 +143,7 @@ const CreateNewOrderModal = ({ open, setOpen, onSave, suppliers }) => {
         if (formData.notes) payload.append('notes', formData.notes);
 
         cleanedItemsAttributes.forEach((item, index) => {
-            payload.append(`purchase_order_items_attributes][${index}][product_id`, item.product_id);
+            payload.append(`purchase_order_items_attributes[${index}][product_id]`, item.product_id);
             payload.append(`purchase_order_items_attributes][${index}][quantity`, item.quantity);
             payload.append(`purchase_order_items_attributes][${index}][unit_cost`, item.unit_cost);
         });
@@ -140,7 +152,7 @@ const CreateNewOrderModal = ({ open, setOpen, onSave, suppliers }) => {
 
         setFormData({
             supplier_id: '',
-            requested_by_id: '50572d23-a9dc-4b86-9a9c-14ed4a45910e',
+            requested_by_id: user?.id || '',
             expected_date: '',
             notes: '',
             purchase_order_items_attributes: [

@@ -77,7 +77,7 @@ export const VehicleForm = ({ control, errors, vehicleModels }) => {
                     </SelectTrigger>
                     <SelectContent>
                         {vehicleModels.map((model) => (
-                            <SelectItem key={model.id} value={model.id}>
+                            <SelectItem key={model.id} value={model.id.toString()}>
                                 {model.brand} {model.model}
                             </SelectItem>
                         ))}

@@ -10,6 +10,7 @@ import { VehicleForm } from './VehicleForm'
 import { SparePartForm } from './SparePartForm'
 import { Button } from "@/components/ui/button"
 import { Loader2 } from "lucide-react"
+import useCrud from '@/hooks/useCrud'
 
 // Esquemas de validación
 const commonSchema = z.object({
@@ -62,6 +63,9 @@ const CreateProductModal = ({ open, setOpen, onSave, currentUserId }) => {
   const [vehicleModels, setVehicleModels] = useState([])
   const [sparePartCategories, setSparePartCategories] = useState([])
 
+  const { getModel: getVehicleModels } = useCrud('/api/v1/admin/vehicle_models')
+  const { getModel: getSparePartCategories } = useCrud('/api/v1/admin/spare_part_categories')
+
   const {
     control,
     handleSubmit,
@@ -109,9 +113,8 @@ const CreateProductModal = ({ open, setOpen, onSave, currentUserId }) => {
 
   const loadVehicleModels = async () => {
     try {
-      const response = await fetch('/api/v1/admin/vehicle_models')
-      const data = await response.json()
-      setVehicleModels(data.data || [])
+      const response = await getVehicleModels()
+      setVehicleModels(response.data || (Array.isArray(response) ? response : []))
     } catch (error) {
       console.error('Error loading vehicle models:', error)
       toast.error('Error al cargar los modelos de vehículos')
@@ -120,9 +123,8 @@ const CreateProductModal = ({ open, setOpen, onSave, currentUserId }) => {
 
   const loadSparePartCategories = async () => {
     try {
-      const response = await fetch('/api/v1/admin/spare_part_categories')
-      const data = await response.json()
-      setSparePartCategories(data.data || [])
+      const response = await getSparePartCategories()
+      setSparePartCategories(response.data || (Array.isArray(response) ? response : []))
     } catch (error) {
       console.error('Error loading spare part categories:', error)
       toast.error('Error al cargar las categorías de repuestos')
@@ -133,53 +135,42 @@ const CreateProductModal = ({ open, setOpen, onSave, currentUserId }) => {
     setIsLoading(true)
 
     try {
-      const payload = {
-        product: {
-          product_type: productType,
-          code: data.common.code,
-          name: data.common.name,
-          description: data.common.description,
-          base_price: data.common.base_price,
-          active: data.common.active,
-          created_by_id: currentUserId,
-          updated_by_id: currentUserId,
-        }
+      const payload = new FormData()
+
+      payload.append('product_type', productType)
+      payload.append('code', data.common.code)
+      payload.append('name', data.common.name)
+      if (data.common.description) payload.append('description', data.common.description)
+      payload.append('base_price', data.common.base_price)
+      payload.append('active', data.common.active)
+      if (currentUserId) {
+        payload.append('created_by_id', currentUserId)
+        payload.append('updated_by_id', currentUserId)
       }
 
       if (productType === 'vehicle') {
-        payload.product.vehicle_attributes = {
-          vehicle_model_id: data.vehicle.vehicle_model_id,
-          serial: data.vehicle.serial,
-          manufacture_year: data.vehicle.manufacture_year,
-          hours_used: data.vehicle.hours_used,
-          status: data.vehicle.status,
-          price_per_hour: data.vehicle.price_per_hour,
-          price_per_day: data.vehicle.price_per_day,
-          location: data.vehicle.location,
-        }
+        Object.entries(data.vehicle).forEach(([key, value]) => {
+          if (value !== undefined && value !== '') {
+            payload.append(`vehicle_attributes[${key}]`, value)
+          }
+        })
       } else {
-        payload.product.spare_part_attributes = {
-          spare_part_category_id: data.spare_part.spare_part_category_id,
-          part_number: data.spare_part.part_number,
-          manufacturer_brand: data.spare_part.manufacturer_brand,
-          stock: data.spare_part.stock,
-          min_stock: data.spare_part.min_stock,
-          sale_unit: data.spare_part.sale_unit,
-          is_critical: data.spare_part.is_critical,
-        }
+        Object.entries(data.spare_part).forEach(([key, value]) => {
+          if (value !== undefined && value !== '') {
+            payload.append(`spare_part_attributes[${key}]`, value)
+          }
+        })
       }
 
       await onSave(payload)
-      toast.success('Producto creado exitosamente')
+      // toast and reset will be handled if onSave is successful (since useEntityMutation is async, wait, onSave does not return a Promise unless it's awaited, but useEntityMutation handles its own toasts).
+      // However, onSave returns immediately if it just calls mutate. We should probably let useEntityMutation handle the success toast, or handle it here if onSave is awaited. But useEntityMutation doesn't return a Promise from mutate, mutateAsync does.
+      // So we can just reset and close.
       reset()
       setOpen(false)
     } catch (error) {
       console.error('Error creating product:', error)
-      if (error.response?.data?.messages) {
-        error.response.data.messages.forEach(msg => toast.error(msg))
-      } else {
-        toast.error('Error al crear el producto')
-      }
+      toast.error('Error al preparar el producto')
     } finally {
       setIsLoading(false)
     }
