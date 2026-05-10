@@ -12,7 +12,6 @@ import { Button } from "@/components/ui/button"
 import { Loader2 } from "lucide-react"
 import useCrud from '@/hooks/useCrud'
 
-// Esquemas de validación
 const commonSchema = z.object({
   code: z.string().min(1, "El código es obligatorio"),
   name: z.string().min(1, "El nombre es obligatorio"),
@@ -61,9 +60,11 @@ const CreateProductModal = ({ open, setOpen, onSave, currentUserId }) => {
   const [productType, setProductType] = useState('spare_part')
   const [isLoading, setIsLoading] = useState(false)
   const [vehicleModels, setVehicleModels] = useState([])
+  const [vehicleTypes, setVehicleTypes] = useState([])
   const [sparePartCategories, setSparePartCategories] = useState([])
 
   const { getModel: getVehicleModels } = useCrud('/api/v1/admin/vehicle_models')
+  const { getModel: getVehicleTypes } = useCrud('/api/v1/admin/vehicle_types')
   const { getModel: getSparePartCategories } = useCrud('/api/v1/admin/spare_part_categories')
 
   const {
@@ -107,6 +108,7 @@ const CreateProductModal = ({ open, setOpen, onSave, currentUserId }) => {
   useEffect(() => {
     if (open) {
       loadVehicleModels()
+      loadVehicleTypes()
       loadSparePartCategories()
     }
   }, [open])
@@ -118,6 +120,16 @@ const CreateProductModal = ({ open, setOpen, onSave, currentUserId }) => {
     } catch (error) {
       console.error('Error loading vehicle models:', error)
       toast.error('Error al cargar los modelos de vehículos')
+    }
+  }
+
+  const loadVehicleTypes = async () => {
+    try {
+      const response = await getVehicleTypes()
+      setVehicleTypes(response.data || (Array.isArray(response) ? response : []))
+    } catch (error) {
+      console.error('Error loading vehicle types:', error)
+      toast.error('Error al cargar los tipos de vehículos')
     }
   }
 
@@ -163,9 +175,6 @@ const CreateProductModal = ({ open, setOpen, onSave, currentUserId }) => {
       }
 
       await onSave(payload)
-      // toast and reset will be handled if onSave is successful (since useEntityMutation is async, wait, onSave does not return a Promise unless it's awaited, but useEntityMutation handles its own toasts).
-      // However, onSave returns immediately if it just calls mutate. We should probably let useEntityMutation handle the success toast, or handle it here if onSave is awaited. But useEntityMutation doesn't return a Promise from mutate, mutateAsync does.
-      // So we can just reset and close.
       reset()
       setOpen(false)
     } catch (error) {
@@ -202,7 +211,6 @@ const CreateProductModal = ({ open, setOpen, onSave, currentUserId }) => {
     })
   }
 
-
   return (
     <Modal
       open={open}
@@ -228,6 +236,7 @@ const CreateProductModal = ({ open, setOpen, onSave, currentUserId }) => {
                   control={control}
                   errors={errors.vehicle}
                   vehicleModels={vehicleModels}
+                  vehicleTypes={vehicleTypes}
                 />
               </TabsContent>
 

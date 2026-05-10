@@ -1,4 +1,4 @@
-import React from 'react'
+import React, { useState, useEffect } from 'react'
 import { useController } from 'react-hook-form'
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
@@ -17,12 +17,18 @@ const statusOptions = [
     { value: 'inactive', label: 'Inactivo' }
 ]
 
-export const VehicleForm = ({ control, errors, vehicleModels }) => {
+export const VehicleForm = ({ control, errors, vehicleModels, vehicleTypes }) => {
+    const [selectedTypeId, setSelectedTypeId] = useState('all')
+
     const { field: modelField } = useController({
         name: 'vehicle.vehicle_model_id',
         control,
         rules: { required: true }
     })
+
+    useEffect(() => {
+        modelField.onChange('')
+    }, [selectedTypeId])
 
     const { field: serialField } = useController({
         name: 'vehicle.serial',
@@ -62,8 +68,41 @@ export const VehicleForm = ({ control, errors, vehicleModels }) => {
         control
     })
 
+    const filteredModels = selectedTypeId !== 'all'
+        ? vehicleModels.filter(m => m.vehicle_type_id === selectedTypeId)
+        : vehicleModels
+
+    const hasModels = filteredModels.length > 0
+
     return (
         <div className="space-y-4">
+            <div className="space-y-2">
+                <Label htmlFor="vehicle_type_filter">Tipo de Vehículo</Label>
+                <Select
+                    value={selectedTypeId}
+                    onValueChange={(val) => {
+                        setSelectedTypeId(val)
+                        modelField.onChange('')
+                    }}
+                >
+                    <SelectTrigger>
+                        <SelectValue placeholder="Filtrar por tipo..." />
+                    </SelectTrigger>
+                    <SelectContent>
+                        <SelectItem value="all">Todos los tipos</SelectItem>
+                        {vehicleTypes.map((type) => (
+                            <SelectItem key={type.id} value={type.id}>
+                                {type.name}
+                            </SelectItem>
+                        ))}
+                    </SelectContent>
+                </Select>
+                <p className="text-xs text-muted-foreground">
+                    Filtra modelos por tipo de vehículo
+                </p>
+            </div>
+
+            {/* Selector de modelo */}
             <div className="space-y-2">
                 <Label htmlFor="vehicle_model_id">
                     Modelo <span className="text-red-500">*</span>
@@ -71,14 +110,20 @@ export const VehicleForm = ({ control, errors, vehicleModels }) => {
                 <Select
                     value={modelField.value}
                     onValueChange={modelField.onChange}
+                    disabled={!hasModels && selectedTypeId !== 'all'}
                 >
                     <SelectTrigger className={errors?.vehicle_model_id ? "border-red-500" : ""}>
-                        <SelectValue placeholder="Seleccione un modelo" />
+                        <SelectValue placeholder={
+                            !hasModels && selectedTypeId !== 'all'
+                                ? "No hay modelos para este tipo"
+                                : "Seleccione un modelo"
+                        } />
                     </SelectTrigger>
                     <SelectContent>
-                        {vehicleModels.map((model) => (
+                        {filteredModels.map((model) => (
                             <SelectItem key={model.id} value={model.id.toString()}>
                                 {model.brand} {model.model}
+                                {model.year && ` (${model.year})`}
                             </SelectItem>
                         ))}
                     </SelectContent>
@@ -86,8 +131,14 @@ export const VehicleForm = ({ control, errors, vehicleModels }) => {
                 {errors?.vehicle_model_id && (
                     <p className="text-sm text-red-500">{errors.vehicle_model_id.message}</p>
                 )}
+                {!hasModels && selectedTypeId !== 'all' && (
+                    <p className="text-sm text-yellow-600">
+                        No hay modelos registrados para este tipo de vehículo
+                    </p>
+                )}
             </div>
 
+            {/* Resto de campos... */}
             <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-2">
                     <Label htmlFor="serial">
