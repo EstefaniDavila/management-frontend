@@ -2,11 +2,11 @@ import React, { useState } from 'react'
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { 
-  Truck, 
-  MapPin, 
-  Package, 
-  User, 
+import {
+  Truck,
+  MapPin,
+  Package,
+  User,
   ChevronRight,
   ClipboardList,
   History,
@@ -14,8 +14,9 @@ import {
   CheckCircle,
   XCircle
 } from 'lucide-react'
-import GenerateDispatchModal from '@/composables/admin/logistics/dispatch/modals/GenerateDispatchModal'
-import DispatchHistoryModal from '@/composables/admin/logistics/dispatch/modals/DispatchHistoryModal'
+
+import AGenerateDispatchModal from '@/composables/admin/logistics/disptachs/AGenerateDispatchModal'
+import ADispatchHistoryModal from '@/composables/admin/logistics/disptachs/ADispatchHistoryModal'
 
 const initialPendingDispatch = [
   { id: 101, cliente: "Inversiones Arequipa S.A.", direccion: "Av. Ejercito 456, Cayma", bultos: 4, peso: "45kg", prioridad: "Alta" },
@@ -24,38 +25,38 @@ const initialPendingDispatch = [
 ];
 
 const initialDispatchHistory = [
-  { 
-    id: 1, 
-    guia: "GUID-1702345678901", 
-    fecha: "2024-04-15 14:30", 
-    ordenId: 98, 
+  {
+    id: 1,
+    guia: "GUID-1702345678901",
+    fecha: "2024-04-15 14:30",
+    ordenId: 98,
     cliente: "Constructora Los Andes",
     direccion: "Av. La Marina 123, Lima",
-    vehiculo: "ABC-123", 
+    vehiculo: "ABC-123",
     conductor: "Juan Pérez",
     estado: "Entregado",
     observaciones: "Mercadería frágil"
   },
-  { 
-    id: 2, 
-    guia: "GUID-1702345678902", 
-    fecha: "2024-04-14 10:15", 
-    ordenId: 95, 
+  {
+    id: 2,
+    guia: "GUID-1702345678902",
+    fecha: "2024-04-14 10:15",
+    ordenId: 95,
     cliente: "Corporación del Sur",
     direccion: "Calle Los Claveles 456, Arequipa",
-    vehiculo: "XYZ-789", 
+    vehiculo: "XYZ-789",
     conductor: "Carlos López",
     estado: "En Tránsito",
     observaciones: "Llamar antes de llegar"
   },
-  { 
-    id: 3, 
-    guia: "GUID-1702345678903", 
-    fecha: "2024-04-13 09:00", 
-    ordenId: 92, 
+  {
+    id: 3,
+    guia: "GUID-1702345678903",
+    fecha: "2024-04-13 09:00",
+    ordenId: 92,
     cliente: "Industrias del Norte",
     direccion: "Panamericana Norte Km 20",
-    vehiculo: "MOTO-01", 
+    vehiculo: "MOTO-01",
     conductor: "María Rodríguez",
     estado: "Entregado",
     observaciones: "Entregar en puerta trasera"
@@ -124,9 +125,9 @@ const DispatchManagement = () => {
                 Ventas con servicio de delivery esperando asignación de transporte.
               </p>
             </div>
-            
-            <Button 
-              variant="outline" 
+
+            <Button
+              variant="outline"
               className="gap-2"
               onClick={() => setShowHistoryModal(true)}
             >
@@ -177,7 +178,7 @@ const DispatchManagement = () => {
                     {item.prioridad}
                   </Badge>
                 </CardHeader>
-                
+
                 <CardContent className="space-y-4">
                   <div className="space-y-2">
                     <div className="flex items-start gap-2">
@@ -200,8 +201,8 @@ const DispatchManagement = () => {
                     </div>
                   </div>
 
-                  <Button 
-                    className="w-full gap-2 group" 
+                  <Button
+                    className="w-full gap-2 group"
                     variant="default"
                     onClick={() => handleAssign(item)}
                   >
@@ -226,15 +227,15 @@ const DispatchManagement = () => {
       </div>
 
       {/* Modal de Generar Despacho */}
-      <GenerateDispatchModal
+      <AGenerateDispatchModal
         open={showDispatchModal}
         setOpen={setShowDispatchModal}
-        onConfirm={handleConfirmDispatch}
+        //onConfirm={handleConfirmDispatch}
         orderData={orderDataForModal}
       />
 
       {/* Modal de Historial */}
-      <DispatchHistoryModal
+      <ADispatchHistoryModal
         open={showHistoryModal}
         setOpen={setShowHistoryModal}
         history={dispatchHistory}
