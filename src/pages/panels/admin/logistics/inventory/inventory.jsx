@@ -36,39 +36,48 @@ const Inventory = () => {
   const fetchProducts = async () => {
     try {
       setIsLoading(true);
+
       const response = await getModel();
 
-      const productsArray = response.data || (Array.isArray(response) ? response : []);
+      const productsArray =
+        response.data || (Array.isArray(response) ? response : []);
 
-      const formattedData = productsArray.map(item => {
-        let currentStock = 0;
-        let minStock = 5;
-        let location = "No asignado";
-
-        // Si es vehículo
-        if (item.product_type === "vehicle" && item.vehicle) {
-          currentStock = item.vehicle.status === "available" ? 1 : 0;
-          minStock = 1;
-          location = item.vehicle.location || "No asignado";
-        }
-        // Si es repuesto
-        else if (item.product_type === "spare_part" && item.spare_part) {
-          currentStock = item.spare_part.stock || 0;
-          minStock = item.spare_part.min_stock || 5;
-          location = item.spare_part.manufacturer_brand || "No asignado";
-        }
+      const formattedData = productsArray.map((item) => {
+        const isVehicle = item.product_type === "vehicle";
+        const isSparePart = item.product_type === "spare_part";
 
         return {
           id: item.code,
           desc: item.name,
-          stock: currentStock,
-          stockmin: minStock,
-          loc: location,
+          type: isVehicle ? "Maquinaria" : "Repuesto",
+
+          inventoryValue: isVehicle
+            ? item.vehicle?.status || "unknown"
+            : item.spare_part?.stock || 0,
+
+          secondaryValue: isVehicle
+            ? item.vehicle?.hours_used || 0
+            : item.spare_part?.min_stock || 0,
+
+          locationValue: isVehicle
+            ? item.vehicle?.location || "No asignado"
+            : item.spare_part?.manufacturer_brand || "No asignado",
+
           state: item.active ? "ACTIVO" : "INACTIVO",
-          status: currentStock === 0 ? "AGOT" : currentStock < minStock ? "Bajo" : "OK",
-          type: item.product_type === "spare_part" ? "Repuesto" : "Maquinaria",
+
+          status:
+            isSparePart
+              ? (item.spare_part?.stock || 0) === 0
+                ? "AGOT"
+                : (item.spare_part?.stock || 0) <
+                  (item.spare_part?.min_stock || 0)
+                  ? "Bajo"
+                  : "OK"
+              : item.vehicle?.status || "available",
+
           base_price: `$${parseFloat(item.base_price || 0).toFixed(2)}`,
-          _original: item
+          product_type: item.product_type,
+          _original: item,
         };
       });
 
