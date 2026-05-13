@@ -125,42 +125,57 @@ const Inventory = () => {
     );
   };
 
-  const handleUpdateProduct = async (updatedData) => {
+  const handleUpdateProduct = async (productData) => {
     try {
-      console.log("Datos actualizados:", updatedData);
+      const productId = selectedProduct._original?.id || selectedProduct.id;
 
-      const updatedProduct = {
-        id: updatedData.codigo,
-        desc: updatedData.desc,
-        stock: parseInt(updatedData.stock),
-        loc: updatedData.loc,
-        type: updatedData.type,
-        status: updatedData.stock == 0 ? "AGOT" : updatedData.stock < 10 ? "Bajo" : "OK"
-      };
+      console.log("ID del producto a actualizar:", productId);
+      console.log("Datos a enviar:", productData);
 
-      setProducts(prev =>
-        prev.map(p => p.id === selectedProduct.id ? updatedProduct : p)
+      if (!productId) {
+        alert("Error: No se pudo identificar el producto");
+        return;
+      }
+
+      productMutation.mutate(
+        {
+          action: 'update',
+          id: productId,
+          entity: productData,
+          endpoint: `/api/v1/admin/products/${productId}`
+        },
+        {
+          onSuccess: (response) => {
+            console.log("Respuesta exitosa:", response);
+            fetchProducts();
+            handleCloseModal();
+          },
+          onError: (error) => {
+
+          }
+        }
       );
-
-      handleCloseModal();
-      alert("Producto actualizado exitosamente");
     } catch (error) {
-      console.error("Error al actualizar:", error);
+      console.error("Error:", error);
       alert("Error al actualizar el producto");
     }
   };
 
   const handleDeleteProduct = async (product) => {
-    try {
-      console.log("Eliminando producto:", product);
-
-      setProducts(prev => prev.filter(p => p.id !== product.id));
-      handleCloseModal();
-
-    } catch (error) {
-      console.error("Error al eliminar:", error);
-      alert("Error al eliminar el producto");
-    }
+    console.log("Eliminando producto:", product);
+    productMutation.mutate(
+      {
+        action: 'delete',
+        id: product._original.id,
+        endpoint: `/api/v1/admin/products/${product._original.id}`
+      },
+      {
+        onSuccess: () => {
+          refetchData();
+          handleCloseModal();
+        }
+      }
+    );
   };
 
   const filteredData = products.filter(item => {
@@ -232,6 +247,7 @@ const Inventory = () => {
               searchFields={searchFields}
               setSearchFields={setSearchFields}
               handleOpenModal={handleOpenModal}
+              handleDeleteProduct={handleDeleteProduct}
             />
           </div>
         </div>
@@ -254,14 +270,6 @@ const Inventory = () => {
           setOpen={handleCloseModal}
           productToEdit={selectedProduct}
           onSave={handleUpdateProduct}
-        />
-      )}
-      {typeModal === 'delete' && (
-        <DeleteProductModal
-          open={isModalOpen}
-          setOpen={handleCloseModal}
-          product={selectedProduct}
-          onConfirm={handleDeleteProduct}
         />
       )}
       {typeModal === 'history' && (

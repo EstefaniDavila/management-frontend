@@ -12,6 +12,13 @@ const getVehicleStatusBadge = (status) => {
         </Badge>
       );
 
+    case 'disabled':
+      return (
+        <Badge className="bg-red-500 hover:bg-red-600 text-white">
+          Inactivo
+        </Badge>
+      );
+
     case 'rented':
       return (
         <Badge className="bg-blue-500 hover:bg-blue-600 text-white">
@@ -77,7 +84,7 @@ const getStateBadge = (state) => {
 
     case 'INACTIVO':
       return (
-        <Badge variant="secondary">
+        <Badge className="bg-red-600 hover:bg-red-700 text-white font-medium">
           INACTIVO
         </Badge>
       );
@@ -108,7 +115,25 @@ const columns = (handleEdit, handleHistory, handleDelete) => [
   {
     accessorKey: 'type',
     header: 'TIPO',
-    cell: info => info.getValue(),
+
+    cell: ({ row }) => {
+      const type = row.original.type;
+
+      // MAQUINARIA
+      if (type === 'Maquinaria') {
+        return (
+          <Badge className="bg-yellow-500 hover:bg-yellow-600 text-black">
+            Maquinaria
+          </Badge>
+        );
+      }
+
+      return (
+        <Badge className="bg-white hover:bg-gray-100 text-gray-800 border border-gray-300 shadow-sm">
+          Repuesto
+        </Badge>
+      );
+    },
   },
 
   {
@@ -159,22 +184,6 @@ const columns = (handleEdit, handleHistory, handleDelete) => [
     accessorKey: 'locationValue',
     header: 'UBICACIÓN',
     cell: info => info.getValue(),
-  },
-
-  {
-    accessorKey: 'status',
-    header: 'ESTADO INV',
-    cell: ({ row }) => {
-      const productType = row.original.product_type;
-
-      // Solo repuestos usan estado de inventario
-      if (productType === 'spare_part') {
-        return getInventoryBadge(row.original.status);
-      }
-
-      // Vehículos reutilizan badge de status
-      return getVehicleStatusBadge(row.original.status);
-    },
   },
 
   {
