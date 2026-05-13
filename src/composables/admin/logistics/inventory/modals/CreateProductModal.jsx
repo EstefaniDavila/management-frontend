@@ -13,7 +13,6 @@ import { Loader2 } from "lucide-react"
 import useCrud from '@/hooks/useCrud'
 
 const commonSchema = z.object({
-  code: z.string().min(1, "El código es obligatorio"),
   name: z.string().min(1, "El nombre es obligatorio"),
   description: z.string().optional(),
   base_price: z.number().positive("El precio base debe ser mayor a 0"),
@@ -77,7 +76,6 @@ const CreateProductModal = ({ open, setOpen, onSave, currentUserId }) => {
     resolver: zodResolver(getProductSchema(productType)),
     defaultValues: {
       common: {
-        code: '',
         name: '',
         description: '',
         base_price: 0,
@@ -150,7 +148,9 @@ const CreateProductModal = ({ open, setOpen, onSave, currentUserId }) => {
       const payload = new FormData()
 
       payload.append('product_type', productType)
-      payload.append('code', data.common.code)
+      if (data.common.code && data.common.code.trim() !== '') {
+        payload.append('code', data.common.code)
+      }
       payload.append('name', data.common.name)
       if (data.common.description) payload.append('description', data.common.description)
       payload.append('base_price', data.common.base_price)

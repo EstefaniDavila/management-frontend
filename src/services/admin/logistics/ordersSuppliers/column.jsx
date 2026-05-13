@@ -44,9 +44,9 @@ const columns = (handleEdit, handleDetails, handleDelete, handleReceive, handleC
     enableColumnFilter: true,
   },
   {
-    accessorKey: 'totalProductos',
-    header: 'TOTAL PRODUCTOS',
-    cell: info => `${info.getValue()} unid`,
+    accessorKey: 'fechaAceptada',
+    header: 'FECHA ACEPTADA',
+    cell: info => info.getValue() ? new Date(info.getValue()).toLocaleDateString('es-ES') : 'Pendiente',
     enableColumnFilter: true,
   },
   {

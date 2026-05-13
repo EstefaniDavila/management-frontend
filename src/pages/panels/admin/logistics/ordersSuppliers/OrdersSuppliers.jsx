@@ -57,7 +57,7 @@ const PurchaseOrderHistory = () => {
           supplier_id: order.supplier_id,
           fechaPedido: order.created_at,
           fechaEntrega: order.expected_date,
-          totalProductos: order.items_count || 0,
+          fechaAceptada: order.received_at,
           montoTotal: parseFloat(order.total) || 0,
           status: statusMap[order.status] || order.status,
           _original: order

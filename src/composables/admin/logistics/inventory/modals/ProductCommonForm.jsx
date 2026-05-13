@@ -6,11 +6,6 @@ import { Textarea } from "@/components/ui/textarea"
 import { Checkbox } from "@/components/ui/checkbox"
 
 export const ProductCommonForm = ({ control, errors }) => {
-    const { field: codeField } = useController({
-        name: 'common.code',
-        control,
-        rules: { required: true }
-    })
 
     const { field: nameField } = useController({
         name: 'common.name',
@@ -38,17 +33,17 @@ export const ProductCommonForm = ({ control, errors }) => {
         <div className="space-y-4">
             <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-2">
-                    <Label htmlFor="code">
-                        Código <span className="text-red-500">*</span>
+                    <Label htmlFor="name">
+                        Nombre <span className="text-red-500">*</span>
                     </Label>
                     <Input
-                        id="code"
-                        placeholder="Ej: VEH-001 o REP-001"
-                        {...codeField}
-                        className={errors?.code ? "border-red-500" : ""}
+                        id="name"
+                        placeholder="Nombre del producto"
+                        {...nameField}
+                        className={errors?.name ? "border-red-500" : ""}
                     />
-                    {errors?.code && (
-                        <p className="text-sm text-red-500">{errors.code.message}</p>
+                    {errors?.name && (
+                        <p className="text-sm text-red-500">{errors.name.message}</p>
                     )}
                 </div>
 
@@ -69,21 +64,6 @@ export const ProductCommonForm = ({ control, errors }) => {
                         <p className="text-sm text-red-500">{errors.base_price.message}</p>
                     )}
                 </div>
-            </div>
-
-            <div className="space-y-2">
-                <Label htmlFor="name">
-                    Nombre <span className="text-red-500">*</span>
-                </Label>
-                <Input
-                    id="name"
-                    placeholder="Nombre del producto"
-                    {...nameField}
-                    className={errors?.name ? "border-red-500" : ""}
-                />
-                {errors?.name && (
-                    <p className="text-sm text-red-500">{errors.name.message}</p>
-                )}
             </div>
 
             <div className="space-y-2">
