@@ -26,7 +26,7 @@ const vehicleSchema = z.object({
     .min(1990, "El año debe ser mayor o igual a 1990")
     .max(new Date().getFullYear(), `El año no puede superar ${new Date().getFullYear()}`),
   hours_used: z.number().min(0, "Las horas no pueden ser negativas").default(0),
-  status: z.enum(['available', 'rented', 'maintenance', 'inactive']),
+  status: z.enum(['available', 'disabled', 'maintenance', 'sold', 'rented', 'logistic', 'inactive']),
   price_per_hour: z.number().min(0, "El precio por hora no puede ser negativo").optional(),
   price_per_day: z.number().min(0, "El precio por día no puede ser negativo").optional(),
   location: z.string().optional(),

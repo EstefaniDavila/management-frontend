@@ -14,6 +14,9 @@ const statusOptions = [
     { value: 'available', label: 'Disponible' },
     { value: 'rented', label: 'Alquilado' },
     { value: 'maintenance', label: 'Mantenimiento' },
+    { value: 'logistic', label: 'Logística' },
+    { value: 'disabled', label: 'Deshabilitado' },
+    { value: 'sold', label: 'Vendido' },
     { value: 'inactive', label: 'Inactivo' }
 ]
 
@@ -138,7 +141,6 @@ export const VehicleForm = ({ control, errors, vehicleModels, vehicleTypes }) =>
                 )}
             </div>
 
-            {/* Resto de campos... */}
             <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-2">
                     <Label htmlFor="serial">

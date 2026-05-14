@@ -10,7 +10,6 @@ import {
   User,
   Package,
   Search,
-  Eye,
   CheckCircle,
   Clock,
   XCircle
@@ -21,11 +20,10 @@ const ADispatchHistoryModal = ({ open, setOpen, history }) => {
   const [filterEstado, setFilterEstado] = useState('todos');
 
   const filteredHistory = history.filter(item => {
-    const matchesSearch =
-      item.guia.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      item.cliente.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      item.conductor.toLowerCase().includes(searchTerm.toLowerCase());
+    const codeMatch = String(item.code || '').toLowerCase().includes(searchTerm.toLowerCase());
+    const ordenMatch = String(item.ordenId || '').toLowerCase().includes(searchTerm.toLowerCase());
 
+    const matchesSearch = codeMatch || ordenMatch;
     const matchesEstado = filterEstado === 'todos' || item.estado === filterEstado;
 
     return matchesSearch && matchesEstado;
@@ -62,7 +60,7 @@ const ADispatchHistoryModal = ({ open, setOpen, history }) => {
           <div className="relative flex-1">
             <Search className="absolute left-2 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
             <Input
-              placeholder="Buscar por guía, cliente o conductor..."
+              placeholder="Buscar por código de despacho u orden..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
               className="pl-8"
@@ -111,60 +109,47 @@ const ADispatchHistoryModal = ({ open, setOpen, history }) => {
               >
                 <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 mb-3">
                   <div className="flex items-center gap-2">
-                    <span className="font-mono font-bold text-sm">{item.guia}</span>
+                    <span className="font-mono font-bold text-sm">{item.code}</span>
                     {getStatusBadge(item.estado)}
                   </div>
                   <div className="flex items-center gap-2 text-xs text-muted-foreground">
                     <Calendar className="h-3 w-3" />
-                    {item.fecha}
+                    Creado: {item.fecha}
                   </div>
                 </div>
 
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-sm">
                   <div className="flex items-start gap-2">
-                    <User className="h-3.5 w-3.5 text-muted-foreground mt-0.5" />
-                    <div>
-                      <p className="text-[10px] text-muted-foreground">Cliente</p>
-                      <p className="text-xs font-medium">{item.cliente}</p>
-                    </div>
-                  </div>
-
-                  <div className="flex items-start gap-2">
-                    <MapPin className="h-3.5 w-3.5 text-muted-foreground mt-0.5" />
-                    <div>
-                      <p className="text-[10px] text-muted-foreground">Dirección</p>
-                      <p className="text-xs">{item.direccion}</p>
-                    </div>
-                  </div>
-
-                  <div className="flex items-start gap-2">
-                    <Truck className="h-3.5 w-3.5 text-muted-foreground mt-0.5" />
-                    <div>
-                      <p className="text-[10px] text-muted-foreground">Vehículo</p>
-                      <p className="text-xs font-mono">{item.vehiculo}</p>
+                    <Package className="h-3.5 w-3.5 text-muted-foreground mt-0.5" />
+                    <div className="truncate">
+                      <p className="text-[10px] text-muted-foreground">Orden Asignada</p>
+                      <p className="text-xs font-medium truncate">{item.ordenId}</p>
                     </div>
                   </div>
 
                   <div className="flex items-start gap-2">
                     <User className="h-3.5 w-3.5 text-muted-foreground mt-0.5" />
-                    <div>
-                      <p className="text-[10px] text-muted-foreground">Conductor</p>
-                      <p className="text-xs">{item.conductor}</p>
+                    <div className="truncate">
+                      <p className="text-[10px] text-muted-foreground">Preparado por</p>
+                      <p className="text-xs truncate">{item.prepared_by_id || 'N/A'}</p>
                     </div>
                   </div>
-                </div>
 
-                {item.observaciones && (
-                  <div className="mt-3 p-2 bg-muted/30 rounded-md">
-                    <p className="text-[10px] text-muted-foreground">Observaciones:</p>
-                    <p className="text-xs">{item.observaciones}</p>
+                  <div className="flex items-start gap-2">
+                    <Clock className="h-3.5 w-3.5 text-muted-foreground mt-0.5" />
+                    <div>
+                      <p className="text-[10px] text-muted-foreground">Fecha Despacho</p>
+                      <p className="text-xs font-mono">{item.dispatched_at}</p>
+                    </div>
                   </div>
-                )}
 
-                <div className="mt-3 pt-2 border-t text-right">
-                  <p className="text-[10px] text-muted-foreground">
-                    Orden asociada: #{item.ordenId}
-                  </p>
+                  <div className="flex items-start gap-2">
+                    <CheckCircle className="h-3.5 w-3.5 text-muted-foreground mt-0.5" />
+                    <div>
+                      <p className="text-[10px] text-muted-foreground">Fecha Entrega</p>
+                      <p className="text-xs">{item.delivered_at}</p>
+                    </div>
+                  </div>
                 </div>
               </div>
             ))}
