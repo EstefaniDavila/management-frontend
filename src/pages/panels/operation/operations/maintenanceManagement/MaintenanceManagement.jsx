@@ -4,74 +4,12 @@ import { Button } from '@/components/ui/button';
 import { TbPlus } from 'react-icons/tb';
 import TableMaintenanceManagement from '@/composables/operation/operations/maintenanceManagement/tables/GeneralMaintenanceManagement';
 import ModalNewMaintenance from '@/composables/admin/operations/maintenance/modals/ModalNewMaintenance';
-
-import { custom } from 'zod';
-
-const fakeMaintenances = {
-  rows: [
-    {
-      id: 1,
-      code: "MT-001",
-      customer: "Constructora Lima SAC",
-      equipment: "Excavadora CAT 320",
-      maintenance_type: "Preventivo",
-      technician: "Juan Pérez",
-      status: "Pendiente",
-      date: "2026-04-15",
-      client: "Constructora Lima SAC"
-    },
-    {
-      id: 2,
-      code: "MT-002",
-      customer: "Minera Andina",
-      equipment: "Cargador Frontal Komatsu WA380",
-      maintenance_type: "Correctivo",
-      technician: "Carlos Ramírez",
-      status: "En proceso",
-      date: "2026-04-16",
-      client: "Minera Andina"
-    },
-    {
-      id: 3,
-      code: "MT-003",
-      customer: "Obras del Sur",
-      equipment: "Retroexcavadora JCB 3CX",
-      maintenance_type: "Preventivo",
-      technician: "Luis Torres",
-      status: "Completado",
-      date: "2026-04-10",
-      client: "Obras del Sur"
-    },
-    {
-      id: 4,
-      code: "MT-004",
-      customer: "Constructora Norte",
-      equipment: "Volquete Volvo FMX",
-      maintenance_type: "Correctivo",
-      technician: "Miguel Sánchez",
-      status: "Pendiente",
-      date: "2026-04-18",
-      client: "Constructora Norte"
-    },
-    {
-      id: 5,
-      code: "MT-005",
-      customer: "Servicios Industriales SAC",
-      equipment: "Grúa Liebherr LTM 1050",
-      maintenance_type: "Preventivo",
-      technician: "Pedro Gómez",
-      status: "En proceso",
-      date: "2026-04-17",
-      client: "Servicios Industriales SAC"
-    }
-  ],
-  rowCount: 5
-}
+import useFetchMaintenances from '@/composables/operation/operations/maintenanceManagement/hooks/useFetchMaintenances';
 
 
 const Maintenance = () => {
   const [typeModal, setTypeModal] = useState("")
-  const [category, setCategory] = useState(null)
+  const [maintenance, setMaintenance] = useState(null)
   const [isModalOpen, setIsModalOpen] = useState(false)
   const [pagination, setPagination] = useState({
     pageIndex: 0,
@@ -81,21 +19,20 @@ const Maintenance = () => {
   const [searchFields, setSearchFields] = useState(["code,name"])
 
   const searchParams = {search, fields: searchFields.join(',') }
-  // const { data: categoriesData, refetch: refetchCategories } = useFetchCategories(pagination, searchParams)
-  const categoriesData = fakeMaintenances
-  const refetchCategories = () => console.log("refetch fake")
-  const totalPages = Math.ceil((categoriesData?.rowCount || 0 )/ pagination.pageSize) || 0
+  const { data: maintenancesData, refetch: refetchMaintenances } = useFetchMaintenances(pagination, searchParams)
+  const totalPages = Math.ceil((maintenancesData?.rowCount || 0 )/ pagination.pageSize) || 0
+  console.log("Maintenances Data:", maintenancesData)
 
   const handleOpenModal = (type, data = null) => {
     setIsModalOpen(true)
     setTypeModal(type)
-    setCategory(data)
+    setMaintenance(data)
   }
 
   const handleCloseModal = () => {
     setIsModalOpen(false)
     setTypeModal('')
-    setCategory(null)
+    setMaintenance(null)
   }
 
   return (
@@ -106,12 +43,18 @@ const Maintenance = () => {
             <CardTitle>Procesar solicitudes de Mantenimiento</CardTitle>
           </CardHeader>
           <CardContent>
+            <Button
+              onClick={() => handleOpenModal("new")}
+              className="bg-green-300 text-black hover:bg-green-600 justify-start"
+            >
+              <TbPlus /> Crear Mantenimiento
+            </Button>
             <TableMaintenanceManagement
               handleOpenModal={handleOpenModal}
-              fetchData={refetchCategories}
-              data={categoriesData?.rows || []}
+              fetchData={refetchMaintenances}
+              data={maintenancesData?.rows || []}
               pagination={pagination}
-              setCategory={setCategory}
+              setCategory={setMaintenance}
               setTypeModal={setTypeModal}
               totalPages={totalPages}
               search={search}
@@ -127,7 +70,7 @@ const Maintenance = () => {
           isOpen={isModalOpen}
           handleClose={handleCloseModal}
           typeModal={typeModal}
-          fetchData={refetchCategories}
+          fetchData={refetchMaintenances}
         />
       )}
       {/* {typeModal === 'edit' && (

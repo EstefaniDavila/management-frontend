@@ -2,9 +2,11 @@ import React, { useMemo } from 'react'
 import DataTable from '@/components/custom/data_table'
 import columns from '@/services/admin/operations/maintenanceManagement/columns'
 import useEntityMutation from '@/hooks/useEntityMutation'
+import { useNavigate } from 'react-router-dom'
 
 const TableMaintenanceManagement = ({ handleOpenModal, data, fetchData, pagination, setPagination, setMaintenance, setTypeModal, totalPages, search, setSearch, searchFields, setSearchFields }) => {
   const {mutateAsync} = useEntityMutation({entityName : 'maintenance'})
+  const navigate = useNavigate()
 
   const handleDelete = async (id) => {
     // try {
@@ -17,12 +19,11 @@ const TableMaintenanceManagement = ({ handleOpenModal, data, fetchData, paginati
     // }
   }
 
-  const handleCreate = () => {
-    setTypeModal('new')
-    handleOpenModal('new')
+  const handleBuild = (maintenance) => {
+    navigate(`/maintenances/${maintenance.id}`)
   }
 
-  const columnsWithActions = useMemo(() => columns(handleCreate))
+  const columnsWithActions = useMemo(() => columns(handleBuild))
 
   return (
     <DataTable

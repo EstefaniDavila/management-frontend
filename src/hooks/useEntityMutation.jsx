@@ -9,7 +9,7 @@ import { CheckCircle } from 'lucide-react'
 
 const entityTranslations = {
   professors: "profesores",
-
+  maintenances: "mantenimientos",
 }
 
 const useEntityMutation = ({ entityName }) => {
