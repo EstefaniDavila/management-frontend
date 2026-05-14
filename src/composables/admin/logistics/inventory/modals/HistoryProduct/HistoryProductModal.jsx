@@ -8,20 +8,84 @@ import {
   Package, Pencil, TrendingUp, TrendingDown, Bell, History, Truck, DollarSign
 } from 'lucide-react';
 import AlertStockModal from './AlertStockModal/AlertStockModal';
+import useCrud from '@/hooks/useCrud';
+import { useAuth } from '@/providers/UserContext';
 
 const HistoryProductModal = ({ open, setOpen, product }) => {
   const [isEditing, setIsEditing] = useState(false);
   const [showAlertModal, setShowAlertModal] = useState(false);
   const [isMobile, setIsMobile] = useState(false);
+  const [movements, setMovements] = useState([]);
 
+  const { getModel: getStockMovements } = useCrud('/api/v1/admin/stock_movements');
+  const { getModel: getSpareParts } = useCrud('/api/v1/admin/spare_parts');
+
+  const { user } = useAuth();
 
   useEffect(() => {
     const checkMobile = () => setIsMobile(window.innerWidth < 640);
-    checkMobile(); // Ejecutar al montar
+    checkMobile();
     window.addEventListener('resize', checkMobile);
     return () => window.removeEventListener('resize', checkMobile);
   }, []);
 
+  useEffect(() => {
+    if (open && product) {
+      loadMovements();
+    }
+  }, [open, product]);
+
+  const loadMovements = async () => {
+    try {
+      const [movementsResponse, sparePartsResponse] = await Promise.all([
+        getStockMovements(),
+        getSpareParts()
+      ]);
+
+      const allMovements = movementsResponse.data || (Array.isArray(movementsResponse) ? movementsResponse : []);
+      const allSpareParts = sparePartsResponse.data || (Array.isArray(sparePartsResponse) ? sparePartsResponse : []);
+
+      console.log('product completo:', product);
+      console.log('_original:', product?._original);
+
+      const productId = product?._original?.id;
+      const sparePart = allSpareParts.find(sp => sp.product_id === productId);
+      const sparePartId = sparePart?.id;
+
+      console.log('🔍 productId:', productId);
+      console.log('🔍 sparePart encontrado:', sparePart);
+      console.log('🔍 spare_part_id a filtrar:', sparePartId);
+      console.log('📦 Todos los movimientos:', allMovements.length);
+
+      const filteredMovements = allMovements.filter(m => m.spare_part_id === sparePartId);
+
+      console.log('✅ Movimientos filtrados:', filteredMovements.length);
+
+      if (filteredMovements.length === 0) {
+        console.warn('⚠️ No se encontraron movimientos para spare_part_id:', sparePartId);
+        console.log('📋 Lista de spare_part_ids disponibles:', [...new Set(allMovements.map(m => m.spare_part_id))]);
+      }
+
+      const formattedMovements = filteredMovements.map(m => {
+        const dateObj = new Date(m.created_at);
+        const formattedDate = `${dateObj.getFullYear()}-${String(dateObj.getMonth() + 1).padStart(2, '0')}-${String(dateObj.getDate()).padStart(2, '0')} ${String(dateObj.getHours()).padStart(2, '0')}:${String(dateObj.getMinutes()).padStart(2, '0')}`;
+
+        return {
+          date: formattedDate,
+          type: m.movement_type === 'in' ? 'Entrada' : 'Salida',
+          quantity: m.quantity,
+          document: m.reference || '-',
+          responsible: m.performed_by_id === user?.id ? 'Tú' : (m.performed_by_id?.substring(0, 8) || 'Sistema')
+        };
+      });
+
+      formattedMovements.sort((a, b) => new Date(b.date) - new Date(a.date));
+      setMovements(formattedMovements);
+
+    } catch (error) {
+      console.error("Error al cargar los movimientos de stock:", error);
+    }
+  };
 
   const productDetails = {
     stockMin: 10,
@@ -33,11 +97,6 @@ const HistoryProductModal = ({ open, setOpen, product }) => {
 
   if (!product) return null;
 
-  const movements = [
-    { date: "2024-04-16 14:30", type: "Salida", quantity: 3, document: "Pedido P001", responsible: "Juan Pérez" },
-    { date: "2024-04-15 09:15", type: "Entrada", quantity: 50, document: "OC-001", responsible: "Carlos López" },
-  ];
-
   return (
     <>
       <Modal
@@ -48,7 +107,7 @@ const HistoryProductModal = ({ open, setOpen, product }) => {
           <div className="flex flex-col sm:flex-row sm:items-center justify-between w-full gap-2 pr-8">
             <div className="flex items-center gap-2">
               <Package className="h-5 w-5 text-primary" />
-              <span className="truncate text-base sm:text-lg">Historial: {productDetails.desc}</span>
+              <span className="truncate text-base sm:text-lg">Historial: {productDetails.desc || productDetails.name || productDetails.id}</span>
             </div>
             <Button
               variant="outline"
@@ -66,7 +125,6 @@ const HistoryProductModal = ({ open, setOpen, product }) => {
       >
         <div className="flex flex-col h-full max-h-[75vh] space-y-4 overflow-y-auto">
 
-
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 bg-muted/30 p-3 sm:p-4 rounded-xl border shadow-sm">
             <div className="space-y-2">
               <Label className="text-[10px] font-bold uppercase text-muted-foreground flex items-center gap-1">
@@ -81,7 +139,7 @@ const HistoryProductModal = ({ open, setOpen, product }) => {
                   </div>
                 ) : (
                   <div>
-                    <p className="text-xl sm:text-2xl font-bold leading-none">{productDetails.stock}</p>
+                    <p className="text-xl sm:text-2xl font-bold leading-none">{productDetails.stock || 0}</p>
                     <span className="text-[9px] sm:text-[10px] text-muted-foreground italic block mt-1">
                       Mín: {productDetails.stockMin} / Máx: {productDetails.stockMax}
                     </span>
@@ -98,7 +156,7 @@ const HistoryProductModal = ({ open, setOpen, product }) => {
                 ) : (
                   <>
                     <p className="text-xs sm:text-sm font-medium flex items-center gap-1 truncate">
-                      📍 {productDetails.loc}
+                      📍 {productDetails.loc || 'Almacén Principal'}
                     </p>
                     <Badge className="text-[10px] h-5 bg-green-500/10 text-green-600 border-green-200">
                       Operativo
@@ -118,7 +176,7 @@ const HistoryProductModal = ({ open, setOpen, product }) => {
                 ) : (
                   <>
                     <p className="text-xs sm:text-sm font-medium truncate">{productDetails.proveedor}</p>
-                    <p className="text-[9px] sm:text-[10px] text-muted-foreground">Última entrega: 15/04/24</p>
+                    <p className="text-[9px] sm:text-[10px] text-muted-foreground">Última entrega: -</p>
                   </>
                 )}
               </div>
@@ -157,25 +215,35 @@ const HistoryProductModal = ({ open, setOpen, product }) => {
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-border/40">
-                  {movements.map((m, i) => (
-                    <tr key={i} className="hover:bg-muted/30 transition-colors group">
-                      <td className="p-2 sm:p-3 text-[9px] sm:text-[10px] font-mono whitespace-nowrap text-muted-foreground">{m.date}</td>
-                      <td className="p-2 sm:p-3">
-                        <div className="flex items-center gap-1 sm:gap-2">
-                          {m.type === "Entrada" ?
-                            <TrendingUp className="h-3 w-3 text-emerald-500" /> :
-                            <TrendingDown className="h-3 w-3 text-rose-500" />
-                          }
-                          <span className={`text-[10px] sm:text-xs font-medium ${m.type === "Entrada" ? "text-emerald-600" : "text-rose-600"}`}>
-                            {m.type}
-                          </span>
-                        </div>
+                  {movements.length > 0 ? (
+                    movements.map((m, i) => (
+                      <tr key={i} className="hover:bg-muted/30 transition-colors group">
+                        <td className="p-2 sm:p-3 text-[9px] sm:text-[10px] font-mono whitespace-nowrap text-muted-foreground">{m.date}</td>
+                        <td className="p-2 sm:p-3">
+                          <div className="flex items-center gap-1 sm:gap-2">
+                            {m.type === "Entrada" ?
+                              <TrendingUp className="h-3 w-3 text-emerald-500" /> :
+                              <TrendingDown className="h-3 w-3 text-rose-500" />
+                            }
+                            <span className={`text-[10px] sm:text-xs font-medium ${m.type === "Entrada" ? "text-emerald-600" : "text-rose-600"}`}>
+                              {m.type}
+                            </span>
+                          </div>
+                        </td>
+                        <td className="p-2 sm:p-3 text-right font-bold text-[10px] sm:text-xs">{m.quantity}</td>
+                        <td className="p-2 sm:p-3 text-[9px] sm:text-[10px] font-medium hidden sm:table-cell">{m.document}</td>
+                        <td className="p-2 sm:p-3 text-[9px] sm:text-[10px] text-muted-foreground hidden md:table-cell truncate max-w-[150px]" title={m.responsible}>
+                          {m.responsible}
+                        </td>
+                      </tr>
+                    ))
+                  ) : (
+                    <tr>
+                      <td colSpan="5" className="p-4 text-center text-xs text-muted-foreground">
+                        No hay movimientos registrados para este producto.
                       </td>
-                      <td className="p-2 sm:p-3 text-right font-bold text-[10px] sm:text-xs">{m.quantity}</td>
-                      <td className="p-2 sm:p-3 text-[9px] sm:text-[10px] font-medium hidden sm:table-cell">{m.document}</td>
-                      <td className="p-2 sm:p-3 text-[9px] sm:text-[10px] text-muted-foreground hidden md:table-cell">{m.responsible}</td>
                     </tr>
-                  ))}
+                  )}
                 </tbody>
               </table>
             </div>
@@ -196,7 +264,7 @@ const HistoryProductModal = ({ open, setOpen, product }) => {
       <AlertStockModal
         open={showAlertModal}
         setOpen={setShowAlertModal}
-        productName={productDetails.desc}
+        productName={productDetails.desc || productDetails.name}
       />
     </>
   );

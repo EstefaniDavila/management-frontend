@@ -13,15 +13,17 @@ const OrdersSuppliersTable = ({
   searchFields,
   setSearchFields,
   handleOpenModal,
+  handleReceiveOrder,
+  handleCancelOrder
 }) => {
 
-  const handleEdit    = (order) => handleOpenModal('edit', order);
-  const handleDelete  = (order) => handleOpenModal('delete', order);
+  const handleEdit = (order) => handleOpenModal('edit', order);
+  const handleDelete = (order) => handleOpenModal('delete', order);
   const handleDetails = (order) => handleOpenModal('details', order);
 
-  const columnsWithActions = useMemo(() => 
-    columns(handleEdit, handleDetails, handleDelete), 
-    [handleEdit, handleDelete, handleDetails]
+  const columnsWithActions = useMemo(() =>
+    columns(handleEdit, handleDetails, handleDelete, handleReceiveOrder, handleCancelOrder),
+    [handleEdit, handleDelete, handleDetails, handleReceiveOrder, handleCancelOrder]
   );
 
   return (

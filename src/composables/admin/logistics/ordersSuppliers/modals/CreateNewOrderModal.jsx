@@ -1,6 +1,8 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import Modal from '@/components/custom/modal';
 import { Button } from '@/components/custom/button';
+import useCrud from '@/hooks/useCrud';
+import { useAuth } from '@/providers/UserContext';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
@@ -23,25 +25,42 @@ import {
 import { Plus, Trash2 } from 'lucide-react';
 
 const CreateNewOrderModal = ({ open, setOpen, onSave, suppliers }) => {
+    const { user } = useAuth();
+
     const [formData, setFormData] = useState({
         supplier_id: '',
-        requested_by_id: '1eb92bee-6e92-4f20-8862-d5b699b8c5d1',
+        requested_by_id: user?.id || '',
         expected_date: '',
-        status: 'pending',
         notes: '',
         purchase_order_items_attributes: [
             { ui_id: Date.now(), product_id: '', product_nombre: '', quantity: 1, unit_cost: 0, subtotal: 0 }
         ]
     });
 
-    // Simulated UUIDs to match the JSON structure
-    const productosMock = [
-        { id: "7fac07eb-49c2-458e-94bf-1593e99a7a25", nombre: "Filtro de aceite", precio: 25.50 },
-        { id: "4f0610c9-2351-464c-8341-a3bde472531a", nombre: "Batería 12V", precio: 80.00 },
-        { id: "c18d9f12-3b4e-4e5a-8b6b-2d3e4f5a6b7c", nombre: "Correa de distribución", precio: 35.00 },
-        { id: "d29e0a23-4c5f-5f6b-9c7c-3e4f5a6b7c8d", nombre: "Bujías (paquete x4)", precio: 25.00 },
-        { id: "e30f1b34-5d6g-6g7c-0d8d-4f5a6b7c8d9e", nombre: "Aceite de motor 5L", precio: 68.00 },
-    ];
+    useEffect(() => {
+        if (user?.id) {
+            setFormData(prev => ({
+                ...prev,
+                requested_by_id: user.id
+            }));
+        }
+    }, [user?.id]);
+
+    const [productos, setProductos] = useState([]);
+    const { getModel } = useCrud('/api/v1/admin/products');
+
+    useEffect(() => {
+        const fetchProducts = async () => {
+            try {
+                const response = await getModel();
+                const productsArray = response.data || (Array.isArray(response) ? response : []);
+                setProductos(productsArray);
+            } catch (error) {
+                console.error("Error fetching products:", error);
+            }
+        };
+        fetchProducts();
+    }, []);
 
     const handleInputChange = (field, value) => {
         setFormData(prev => ({
@@ -111,23 +130,20 @@ const CreateNewOrderModal = ({ open, setOpen, onSave, suppliers }) => {
             alert('Por favor complete todos los productos seleccionados');
             return;
         }
-
-        // Clean up UI-only properties before sending payload
         const cleanedItemsAttributes = formData.purchase_order_items_attributes.map(item => ({
             product_id: item.product_id,
             quantity: item.quantity,
-            unit_cost: parseFloat(item.unit_cost).toFixed(2)
+            unit_cost: parseFloat(item.unit_cost)
         }));
 
         const payload = new FormData();
         payload.append('supplier_id', formData.supplier_id);
         if (formData.requested_by_id) payload.append('requested_by_id', formData.requested_by_id);
         if (formData.expected_date) payload.append('expected_date', formData.expected_date);
-        if (formData.status) payload.append('status', formData.status);
         if (formData.notes) payload.append('notes', formData.notes);
 
         cleanedItemsAttributes.forEach((item, index) => {
-            payload.append(`purchase_order_items_attributes][${index}][product_id`, item.product_id);
+            payload.append(`purchase_order_items_attributes[${index}][product_id]`, item.product_id);
             payload.append(`purchase_order_items_attributes][${index}][quantity`, item.quantity);
             payload.append(`purchase_order_items_attributes][${index}][unit_cost`, item.unit_cost);
         });
@@ -136,9 +152,8 @@ const CreateNewOrderModal = ({ open, setOpen, onSave, suppliers }) => {
 
         setFormData({
             supplier_id: '',
-            requested_by_id: '1eb92bee-6e92-4f20-8862-d5b699b8c5d1',
+            requested_by_id: user?.id || '',
             expected_date: '',
-            status: 'pending',
             notes: '',
             purchase_order_items_attributes: [
                 { ui_id: Date.now(), product_id: '', product_nombre: '', quantity: 1, unit_cost: 0, subtotal: 0 }
@@ -181,26 +196,6 @@ const CreateNewOrderModal = ({ open, setOpen, onSave, suppliers }) => {
                             value={formData.expected_date}
                             onChange={(e) => handleInputChange('expected_date', e.target.value)}
                         />
-                    </div>
-
-                    <div className="space-y-2">
-                        <Label>Estado</Label>
-                        <div className="flex items-center gap-4">
-                            <Select
-                                value={formData.status === 'delivered' ? 'pending' : formData.status}
-                                onValueChange={(value) => handleInputChange('status', value)}
-                                disabled={formData.status === 'delivered'}
-                            >
-                                <SelectTrigger className="w-[180px]">
-                                    <SelectValue />
-                                </SelectTrigger>
-                                <SelectContent>
-                                    <SelectItem value="pending">Pendiente</SelectItem>
-                                    <SelectItem value="in_transit">En tránsito</SelectItem>
-                                    <SelectItem value="cancelled">Cancelado</SelectItem>
-                                </SelectContent>
-                            </Select>
-                        </div>
                     </div>
 
                     <div className="space-y-2 md:col-span-2">
@@ -250,9 +245,9 @@ const CreateNewOrderModal = ({ open, setOpen, onSave, suppliers }) => {
                                                 <Select
                                                     value={item.product_id}
                                                     onValueChange={(value) => {
-                                                        const selected = productosMock.find(p => p.id === value);
+                                                        const selected = productos.find(p => p.id === value);
                                                         if (selected) {
-                                                            selectProduct(index, selected.id, selected.nombre, selected.precio);
+                                                            selectProduct(index, selected.id, selected.name, selected.base_price ? parseFloat(selected.base_price) : 0);
                                                         }
                                                     }}
                                                 >
@@ -260,9 +255,9 @@ const CreateNewOrderModal = ({ open, setOpen, onSave, suppliers }) => {
                                                         <SelectValue placeholder="Seleccionar" />
                                                     </SelectTrigger>
                                                     <SelectContent>
-                                                        {productosMock.map((prod) => (
+                                                        {productos.map((prod) => (
                                                             <SelectItem key={prod.id} value={prod.id}>
-                                                                {prod.nombre} - ${prod.precio.toFixed(2)}
+                                                                {prod.name} - ${parseFloat(prod.base_price || 0).toFixed(2)}
                                                             </SelectItem>
                                                         ))}
                                                     </SelectContent>

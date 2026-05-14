@@ -13,10 +13,11 @@ const GeneralInventoryTable = ({
   searchFields,
   setSearchFields,
   handleOpenModal,
+  handleDeleteProduct,
 }) => {
 
   const handleEdit    = (product) => handleOpenModal('edit', product);
-  const handleDelete  = (product) => handleOpenModal('delete', product);
+  const handleDelete  = (product) => handleDeleteProduct(product);
   const handleHistory = (product) => handleOpenModal('history', product);
 
 const columnsWithActions = useMemo(() => 

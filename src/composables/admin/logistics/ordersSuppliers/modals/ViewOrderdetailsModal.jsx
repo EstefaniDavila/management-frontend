@@ -1,7 +1,8 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import Modal from '@/components/custom/modal';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
+import useCrud from '@/hooks/useCrud';
 import {
     FileText,
     Calendar,
@@ -15,13 +16,56 @@ import {
 } from 'lucide-react';
 
 const ViewOrderdetailsModal = ({ open, setOpen, order }) => {
+    const [products, setProducts] = useState([]);
+    const [orderItems, setOrderItems] = useState([]);
+    const [isLoadingItems, setIsLoadingItems] = useState(false);
+    const { getModel: getProducts } = useCrud('/api/v1/admin/products');
+    const { getModel: getItems } = useCrud('');
+
+    useEffect(() => {
+        if (open && order) {
+            fetchProducts();
+            fetchOrderItems();
+        }
+    }, [open, order]);
+
+    const fetchProducts = async () => {
+        try {
+            const response = await getProducts();
+            const productsArray = response.data || (Array.isArray(response) ? response : []);
+            setProducts(productsArray);
+        } catch (error) {
+            console.error("Error fetching products:", error);
+        }
+    };
+
+    const fetchOrderItems = async () => {
+        setIsLoadingItems(true);
+        try {
+            const response = await getItems(`/api/v1/admin/purchase_orders/${order.id}/items`);
+            const itemsArray = response.data || (Array.isArray(response) ? response : []);
+            setOrderItems(itemsArray);
+        } catch (error) {
+            console.error("Error fetching order items:", error);
+        } finally {
+            setIsLoadingItems(false);
+        }
+    };
+
+    const getProductName = (productId) => {
+        if (!productId) return 'Producto no encontrado';
+        const product = products.find(p => p.id === productId);
+        return product ? product.name : productId.substring(0, 8) + '...';
+    };
+
     if (!order) return null;
 
-    const orderProducts = [
-        { id: 1, nombre: "Filtro de aceite", cantidad: 10, precio: 45.50, subtotal: 455.00 },
-        { id: 2, nombre: "Batería 12V", cantidad: 2, precio: 120.00, subtotal: 240.00 },
-        { id: 3, nombre: "Correa de distribución", cantidad: 5, precio: 35.00, subtotal: 175.00 },
-    ];
+    const formatDate = (dateString) => {
+        if (!dateString) return 'No especificada';
+        const date = new Date(dateString);
+        if (isNaN(date.getTime())) return dateString.split('T')[0] || 'No especificada';
+        return date.toLocaleDateString('es-PE');
+    };
 
     return (
         <Modal
@@ -57,7 +101,15 @@ const ViewOrderdetailsModal = ({ open, setOpen, order }) => {
                         <Calendar className="h-4 w-4 text-muted-foreground" />
                         <div>
                             <p className="text-[9px] text-muted-foreground">Fecha de Pedido</p>
-                            <p className="text-sm font-medium">{order.fechaPedido}</p>
+                            <p className="text-sm font-medium">{formatDate(order.fechaPedido)}</p>
+                        </div>
+                    </div>
+
+                    <div className="flex items-center gap-3 p-3 rounded-lg border bg-card">
+                        <Calendar className="h-4 w-4 text-muted-foreground" />
+                        <div>
+                            <p className="text-[9px] text-muted-foreground">Fecha Estimada</p>
+                            <p className="text-sm font-medium">{formatDate(order.fechaEntrega)}</p>
                         </div>
                     </div>
 
@@ -70,28 +122,28 @@ const ViewOrderdetailsModal = ({ open, setOpen, order }) => {
                     </div>
 
                     <div className="flex items-center gap-3 p-3 rounded-lg border bg-card">
-                        <CreditCard className="h-4 w-4 text-muted-foreground" />
+                        <Truck className="h-4 w-4 text-muted-foreground" />
                         <div>
-                            <p className="text-[9px] text-muted-foreground">Método de Pago</p>
-                            <p className="text-sm font-medium">Transferencia</p>
+                            <p className="text-[9px] text-muted-foreground">Estado</p>
+                            <p className="text-sm font-medium">{order.status}</p>
                         </div>
                     </div>
 
-                    <div className="flex items-center gap-3 p-3 rounded-lg border bg-card">
-                        <Truck className="h-4 w-4 text-muted-foreground" />
-                        <div>
-                            <p className="text-[9px] text-muted-foreground">Estado de Envío</p>
-                            <p className="text-sm font-medium">
-                                {order.status === 'ENTREGADO' ? 'Entregado' : 'En Camino'}
-                            </p>
+                    {order._original?.received_at && (
+                        <div className="flex items-center gap-3 p-3 rounded-lg border bg-card">
+                            <Package className="h-4 w-4 text-muted-foreground" />
+                            <div>
+                                <p className="text-[9px] text-muted-foreground">Fecha de Recepción</p>
+                                <p className="text-sm font-medium">{formatDate(order._original.received_at)}</p>
+                            </div>
                         </div>
-                    </div>
+                    )}
                 </div>
 
                 <div className="space-y-3">
                     <h3 className="text-xs font-bold text-muted-foreground uppercase tracking-widest flex items-center gap-2">
                         <Package className="h-3 w-3" />
-                        Productos
+                        Productos {orderItems.length > 0 && `(${orderItems.length})`}
                     </h3>
 
                     <div className="border rounded-lg overflow-hidden">
@@ -106,14 +158,37 @@ const ViewOrderdetailsModal = ({ open, setOpen, order }) => {
                                     </tr>
                                 </thead>
                                 <tbody className="divide-y">
-                                    {orderProducts.map((product) => (
-                                        <tr key={product.id} className="hover:bg-muted/30">
-                                            <td className="p-2 sm:p-3 text-xs">{product.nombre}</td>
-                                            <td className="p-2 sm:p-3 text-center text-xs">{product.cantidad}</td>
-                                            <td className="p-2 sm:p-3 text-right text-xs">${product.precio.toFixed(2)}</td>
-                                            <td className="p-2 sm:p-3 text-right text-xs font-medium">${product.subtotal.toFixed(2)}</td>
+                                    {isLoadingItems ? (
+                                        <tr>
+                                            <td colSpan="4" className="p-8 text-center text-muted-foreground">
+                                                <div className="flex justify-center items-center gap-2">
+                                                    <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-primary"></div>
+                                                    Cargando productos...
+                                                </div>
+                                            </td>
                                         </tr>
-                                    ))}
+                                    ) : orderItems.length > 0 ? (
+                                        orderItems.map((product, index) => {
+                                            const unitCost = parseFloat(product.unit_cost) || 0;
+                                            const quantity = parseInt(product.quantity) || 0;
+                                            const subtotal = parseFloat(product.total_cost) || (unitCost * quantity);
+
+                                            return (
+                                                <tr key={product.id || index} className="hover:bg-muted/30">
+                                                    <td className="p-2 sm:p-3 text-xs">{getProductName(product.product_id)}</td>
+                                                    <td className="p-2 sm:p-3 text-center text-xs">{quantity}</td>
+                                                    <td className="p-2 sm:p-3 text-right text-xs">${unitCost.toFixed(2)}</td>
+                                                    <td className="p-2 sm:p-3 text-right text-xs font-medium">${subtotal.toFixed(2)}</td>
+                                                </tr>
+                                            );
+                                        })
+                                    ) : (
+                                        <tr>
+                                            <td colSpan="4" className="p-8 text-center text-muted-foreground">
+                                                No hay productos registrados para esta orden
+                                            </td>
+                                        </tr>
+                                    )}
                                 </tbody>
                                 <tfoot className="bg-muted/30 border-t">
                                     <tr>
@@ -126,21 +201,11 @@ const ViewOrderdetailsModal = ({ open, setOpen, order }) => {
                     </div>
                 </div>
 
-                <div className="space-y-2">
-                    <h3 className="text-xs font-bold text-muted-foreground uppercase tracking-widest flex items-center gap-2">
-                        <MapPin className="h-3 w-3" />
-                        Dirección de Envío
-                    </h3>
-                    <div className="p-3 rounded-lg border bg-card">
-                        <p className="text-sm">Almacén Principal</p>
-                        <p className="text-xs text-muted-foreground mt-1">Av. Industrial 123, Lima</p>
-                    </div>
-                </div>
-
                 <div className="flex flex-col sm:flex-row gap-2 pt-2 sticky bottom-0 bg-background py-2">
                     <Button
                         variant="outline"
                         className="w-full sm:w-auto gap-2"
+                        onClick={() => window.print()}
                     >
                         <Printer className="h-4 w-4" />
                         Imprimir
@@ -148,6 +213,9 @@ const ViewOrderdetailsModal = ({ open, setOpen, order }) => {
                     <Button
                         variant="default"
                         className="w-full sm:w-auto gap-2"
+                        onClick={() => {
+                            alert(`Generando PDF para la orden ${order.orderId}...\nPróximamente disponible`);
+                        }}
                     >
                         <Download className="h-4 w-4" />
                         Descargar PDF

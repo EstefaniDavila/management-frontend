@@ -56,8 +56,8 @@ const PurchaseOrderHistory = () => {
           proveedor: supplier ? supplier.business_name : 'Desconocido',
           supplier_id: order.supplier_id,
           fechaPedido: order.created_at,
-          fechaEntrega: order.received_at,
-          totalProductos: order.items_count || 0,
+          fechaEntrega: order.expected_date,
+          fechaAceptada: order.received_at,
           montoTotal: parseFloat(order.total) || 0,
           status: statusMap[order.status] || order.status,
           _original: order
@@ -140,6 +140,40 @@ const PurchaseOrderHistory = () => {
     );
   };
 
+  const handleReceiveOrder = (order) => {
+    if (!window.confirm("¿Estás seguro de marcar esta orden como recibida/entregada?")) return;
+
+    orderMutation.mutate(
+      {
+        action: 'update',
+        entity: {},
+        endpoint: `/api/v1/admin/purchase_orders/${order.id}/receive`,
+        id: order.id
+      },
+      {
+        onSuccess: () => {
+          refetchData();
+        }
+      }
+    );
+  };
+
+  const handleCancelOrder = (order) => {
+    orderMutation.mutate(
+      {
+        action: 'update',
+        entity: {},
+        endpoint: `/api/v1/admin/purchase_orders/${order.id}/cancel`,
+        id: order.id
+      },
+      {
+        onSuccess: () => {
+          refetchData();
+        }
+      }
+    );
+  };
+
   const proveedoresUnicos = [...new Set(orders.map(o => o.proveedor))];
 
   const filteredData = orders.filter(item => {
@@ -215,6 +249,8 @@ const PurchaseOrderHistory = () => {
               searchFields={searchFields}
               setSearchFields={setSearchFields}
               handleOpenModal={handleOpenModal}
+              handleReceiveOrder={handleReceiveOrder}
+              handleCancelOrder={handleCancelOrder}
             />
           </div>
         </div>
