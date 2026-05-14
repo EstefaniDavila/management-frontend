@@ -19,23 +19,24 @@ import ForgotPassword from '../app/login/ForgotPassword'
 import ResetPassword from '../app/login/ResetPassword'
 import { useAuth } from '../providers/UserContext'
 const Routes = () => {
-  const {  user, authTokens } = useAuth('')
+  const { user, authTokens } = useAuth('')
   console.log("User in Routes.jsx:", user)
 
-const roleRouter = {
-  Admin:        adminRoutes,       // Administrador - acceso total
-  Customer:     customerRoutes,    // Cliente externo - acceso limitado
-  SalesAdvisor: advisorRoutes,     // Asesor Comercial - Marketing & Sales
-  Technician:   techRoutes,        // Técnico - Production & Operations
-  WarehouseOp:  warehouseRoutes,   // Operador de Almacén - Logistics & Warehouse
-  // Operation:    operationRoutes,   // Operación - su área + reportes
-  // Manager:      areaManagerRoutes,     // Jefe de Área - su departamento + reportes
-}
+  const roleRouter = {
+    Admin: adminRoutes,       // Administrador - acceso total
+    Customer: customerRoutes,    // Cliente externo - acceso limitado
+    SalesAdvisor: advisorRoutes,     // Asesor Comercial - Marketing & Sales
+    Technician: techRoutes,        // Técnico - Production & Operations
+    Warehouseman: warehouseRoutes,
+    LogisticsUser: logisticCoordinatorRoutes,   // Operador de Almacén - Logistics & Warehouse
+    // Operation:    operationRoutes,   // Operación - su área + reportes
+    // Manager:      areaManagerRoutes,     // Jefe de Área - su departamento + reportes
+  }
 
-const managerRouter = {
-  operations: operationRoutes,
-  sales: areaManagerRoutes,
-}
+  const managerRouter = {
+    operations: operationRoutes,
+    sales: areaManagerRoutes,
+  }
 
   const routesForPublic = [
 

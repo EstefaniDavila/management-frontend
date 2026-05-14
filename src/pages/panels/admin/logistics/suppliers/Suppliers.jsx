@@ -5,7 +5,7 @@ import SupplierTable from '@/composables/admin/logistics/suppliers/tables/Suppli
 import CreateNewSupplierModal from '@/composables/admin/logistics/suppliers/modals/CreateNewSupplierModal';
 import UpdateSupplierModal from '@/composables/admin/logistics/suppliers/modals/UpdateSupplierModal';
 import SupplierOrderModal from '@/composables/admin/logistics/suppliers/modals/SupplierOrderModal/SupplierOrderModal';
-import PlaceaNewOrderModal from '@/composables/admin/logistics/suppliers/modals/PlaceaNewOrderModal';
+import CreateNewOrderModal from '@/composables/admin/logistics/ordersSuppliers/modals/CreateNewOrderModal';
 import useCrud from '@/hooks/useCrud';
 import useEntityMutation from '@/hooks/useEntityMutation';
 
@@ -29,6 +29,7 @@ const Suppliers = () => {
 
   const { getModel } = useCrud('/api/v1/admin/suppliers');
   const supplierMutation = useEntityMutation({ entityName: 'supplier' });
+  const orderMutation = useEntityMutation({ entityName: 'purchase_order' });
 
   const fetchProveedores = async () => {
     try {
@@ -100,15 +101,15 @@ const Suppliers = () => {
     );
   };
 
-  const handleSaveOrder = async (pedidoData) => {
-    try {
-      console.log("Pedido creado:", pedidoData);
-      alert(`Pedido ${pedidoData.orderId} creado exitosamente para ${pedidoData.proveedor}`);
-      handleCloseModal();
-    } catch (error) {
-      console.error("Error al crear pedido:", error);
-      alert("Error al crear el pedido");
-    }
+  const handleSaveOrder = (pedidoData) => {
+    orderMutation.mutate(
+      { action: 'create', entity: pedidoData, endpoint: '/api/v1/admin/purchase_orders' },
+      {
+        onSuccess: () => {
+          handleCloseModal();
+        }
+      }
+    );
   };
 
   const handleDeleteConfirm = (proveedorId) => {
@@ -184,11 +185,12 @@ const Suppliers = () => {
         />
       )}
       {typeModal === 'create' && (
-        <PlaceaNewOrderModal
+        <CreateNewOrderModal
           open={isModalOpen}
           setOpen={handleCloseModal}
           onSave={handleSaveOrder}
-          suppliers={suppliersMock}
+          suppliers={proveedores}
+          initialSupplierId={selectedProveedor?.id}
         />
       )}
     </div>

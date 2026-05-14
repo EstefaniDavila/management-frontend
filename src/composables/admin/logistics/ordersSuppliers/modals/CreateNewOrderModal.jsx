@@ -24,7 +24,7 @@ import {
 } from '@/components/ui/table';
 import { Plus, Trash2 } from 'lucide-react';
 
-const CreateNewOrderModal = ({ open, setOpen, onSave, suppliers }) => {
+const CreateNewOrderModal = ({ open, setOpen, onSave, suppliers, initialSupplierId }) => {
     const { user } = useAuth();
 
     const [formData, setFormData] = useState({
@@ -45,6 +45,26 @@ const CreateNewOrderModal = ({ open, setOpen, onSave, suppliers }) => {
             }));
         }
     }, [user?.id]);
+
+    useEffect(() => {
+        if (initialSupplierId && open) {
+            setFormData(prev => ({
+                ...prev,
+                supplier_id: initialSupplierId.toString()
+            }));
+        } else if (!open) {
+            // Reset when modal closes
+            setFormData({
+                supplier_id: '',
+                requested_by_id: user?.id || '',
+                expected_date: '',
+                notes: '',
+                purchase_order_items_attributes: [
+                    { ui_id: Date.now(), product_id: '', product_nombre: '', quantity: 1, unit_cost: 0, subtotal: 0 }
+                ]
+            });
+        }
+    }, [initialSupplierId, open, user?.id]);
 
     const [productos, setProductos] = useState([]);
     const { getModel } = useCrud('/api/v1/admin/products');
@@ -151,7 +171,7 @@ const CreateNewOrderModal = ({ open, setOpen, onSave, suppliers }) => {
         await onSave(payload);
 
         setFormData({
-            supplier_id: '',
+            supplier_id: initialSupplierId ? initialSupplierId.toString() : '',
             requested_by_id: user?.id || '',
             expected_date: '',
             notes: '',
@@ -175,7 +195,7 @@ const CreateNewOrderModal = ({ open, setOpen, onSave, suppliers }) => {
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div className="space-y-2">
                         <Label htmlFor="supplier_id">Proveedor *</Label>
-                        <Select onValueChange={(value) => handleInputChange('supplier_id', value)}>
+                        <Select value={formData.supplier_id} onValueChange={(value) => handleInputChange('supplier_id', value)}>
                             <SelectTrigger>
                                 <SelectValue placeholder="Seleccione un proveedor" />
                             </SelectTrigger>

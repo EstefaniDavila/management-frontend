@@ -14,12 +14,6 @@ const warehouseRoutes = [
         },
         children: [
           {
-            index: true,
-            lazy: async () => ({
-              Component: (await import('../../pages/general/errors/not-found-error')).default,
-            }),
-          },
-          {
             path: "inventory",
             lazy: async () => ({
               Component: (await import('../../pages/panels/warehouse/WarehouseInventory')).default,

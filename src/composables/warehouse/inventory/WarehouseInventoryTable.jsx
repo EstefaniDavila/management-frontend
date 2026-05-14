@@ -1,4 +1,4 @@
-import React, { useMemo } from 'react';
+import React, { useMemo, useCallback } from 'react';
 import DataTable from '@/components/custom/data_table';
 import columns from '@/services/warehouse/columns';
 
@@ -14,21 +14,26 @@ const WarehouseInventoryTable = ({
     setSearchFields,
     handleOpenModal,
 }) => {
-
-    const handleEdit = (product) => handleOpenModal('edit', product);
-    const handleHistory = (product) => handleOpenModal('history', product);
+    const handleEdit = useCallback((product) => handleOpenModal('edit', product), [handleOpenModal]);
+    const handleHistory = useCallback((product) => handleOpenModal('history', product), [handleOpenModal]);
 
     const columnsWithActions = useMemo(() =>
         columns(handleEdit, handleHistory),
         [handleEdit, handleHistory]
     );
 
+    const memoizedFetchData = useCallback(() => {
+        if (data.length === 0) {
+            fetchData();
+        }
+    }, [data.length, fetchData]);
+
     return (
         <div className="w-full space-y-4">
             <DataTable
                 columns={columnsWithActions}
                 data={data}
-                fetchData={fetchData}
+                fetchData={memoizedFetchData}
                 pagination={pagination}
                 setPagination={setPagination}
                 totalPages={totalPages}

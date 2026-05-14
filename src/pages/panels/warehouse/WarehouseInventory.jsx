@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Filter } from 'lucide-react';
 import {
@@ -11,20 +11,10 @@ import {
 import WarehouseInventoryTable from '@/composables/warehouse/inventory/WarehouseInventoryTable';
 import UpdateProductModal from '@/composables/admin/logistics/inventory/modals/UpdateProductModal';
 import HistoryProductModal from '@/composables/admin/logistics/inventory/modals/HistoryProduct/HistoryProductModal';
-
-const fakeInventory = {
-  rows: [
-    { id: "1R-0750", desc: "Filtro aceite", stock: 47, loc: "Estante A", status: "OK", type: "repuesto" },
-    { id: "153-5710", desc: "Batería 12V", stock: 8, loc: "Estante B", status: "Bajo", type: "repuesto" },
-    { id: "CAT-C15", desc: "Retroexcavadora JCB 3CX", stock: 2, loc: "Zona 1", status: "OK", type: "maquinaria" },
-    { id: "9X-2012", desc: "Kit junta motor", stock: 0, loc: "Estante C", status: "AGOT", type: "repuesto" },
-    { id: "7E-7777", desc: "Volquete Volvo FMX", stock: 15, loc: "Estante A", status: "OK", type: "maquinaria" },
-  ],
-  rowCount: 47
-};
+import useCrud from '@/hooks/useCrud';
 
 const WarehouseInventory = () => {
-  const [products, setProducts] = useState(fakeInventory.rows);
+  const [products, setProducts] = useState([]);
   const [pagination, setPagination] = useState({ pageIndex: 0, pageSize: 10 });
   const [search, setSearch] = useState("");
   const [searchFields, setSearchFields] = useState(["id", "desc"]);
@@ -33,8 +23,78 @@ const WarehouseInventory = () => {
   const [typeModal, setTypeModal] = useState("");
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedProduct, setSelectedProduct] = useState(null);
+  const [isLoading, setIsLoading] = useState(true);
 
-  const refetchData = () => console.log("Refetching data...");
+  const { getModel } = useCrud('/api/v1/warehouse/products?active=true');
+
+  const getProductStatus = (item) => {
+    if (!item.active) return "inactivo";
+
+    if (item.product_type === "vehicle") {
+      return item.vehicle?.status || "available";
+    }
+
+    if (item.product_type === "spare_part") {
+      const stock = item.spare_part?.stock || 0;
+      const minStock = item.spare_part?.min_stock || 0;
+
+      if (stock === 0) return "agot";
+      if (stock < minStock) return "bajo";
+
+      return "ok";
+    }
+
+    return "desconocido";
+  };
+
+  const fetchProducts = async () => {
+    setIsLoading(true);
+    try {
+      const response = await getModel();
+      const productsArray = Array.isArray(response) ? response : (response?.data || []);
+
+      // 👈 FILTRO: Solo vehículos disponibles y todos los repuestos
+      const filteredArray = productsArray.filter(item => {
+        // Si es vehículo, solo mostrar si está disponible
+        if (item.product_type === "vehicle") {
+          return item.vehicle?.status === "available";
+        }
+        // Si es repuesto, mostrar todos
+        return true;
+      });
+
+      console.log("Productos antes:", productsArray.length);
+      console.log("Productos después del filtro:", filteredArray.length);
+
+      const formattedData = filteredArray.map((item) => {
+        const isVehicle = item.product_type === "vehicle";
+
+        return {
+          id: item.code,
+          desc: item.name,
+          type: isVehicle ? "maquinaria" : "repuesto",
+          stock: isVehicle ? '-' : (item.spare_part?.stock || 0),
+          loc: isVehicle
+            ? (item.vehicle?.location || 'No asignado')
+            : (item.spare_part?.category || 'No asignado'),
+          status: getProductStatus(item),
+          product_type: item.product_type,
+          _original: item,
+        };
+      });
+
+      setProducts(formattedData);
+    } catch (error) {
+      console.error('Error cargando productos:', error);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+  useEffect(() => {
+    fetchProducts();
+  }, []);
+
+  const refetchData = () => fetchProducts();
 
   const handleOpenModal = (type, product = null) => {
     setTypeModal(type);
@@ -78,12 +138,17 @@ const WarehouseInventory = () => {
 
 
   const filteredData = products.filter(item => {
-    const matchStatus = filterStatus === "todos" || item.status.toLowerCase() === filterStatus.toLowerCase();
+    const statusVal = item.status || "";
+    const matchStatus = filterStatus === "todos" || statusVal.toLowerCase() === filterStatus.toLowerCase();
     const matchType = filterType === "todos" || item.type === filterType;
     return matchStatus && matchType;
   });
 
   const totalPages = Math.ceil(filteredData.length / pagination.pageSize);
+
+  if (isLoading) {
+    return <div className="flex justify-center items-center h-64">Cargando inventario...</div>;
+  }
 
   return (
     <div className="px-4 py-4 md:px-6 w-full">
@@ -145,8 +210,6 @@ const WarehouseInventory = () => {
         </div>
 
       </div>
-
-
 
 
       {isModalOpen && typeModal === 'edit' && (

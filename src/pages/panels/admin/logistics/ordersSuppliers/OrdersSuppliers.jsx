@@ -14,7 +14,6 @@ import ViewOrderDetailModal from '@/composables/admin/logistics/ordersSuppliers/
 import useCrud from '@/hooks/useCrud';
 import useEntityMutation from '@/hooks/useEntityMutation';
 import UpdateOrderModal from '@/composables/admin/logistics/ordersSuppliers/modals/UpdateOrderModal';
-import DeleteOrderModal from '@/composables/admin/logistics/ordersSuppliers/modals/DeleteOrderModal';
 
 const PurchaseOrderHistory = () => {
   const { getModel: getOrders } = useCrud('/api/v1/admin/purchase_orders');
@@ -134,7 +133,6 @@ const PurchaseOrderHistory = () => {
       {
         onSuccess: () => {
           refetchData();
-          handleCloseModal();
         }
       }
     );
@@ -249,6 +247,7 @@ const PurchaseOrderHistory = () => {
               searchFields={searchFields}
               setSearchFields={setSearchFields}
               handleOpenModal={handleOpenModal}
+              handleDeleteOrder={handleDeleteOrder}
               handleReceiveOrder={handleReceiveOrder}
               handleCancelOrder={handleCancelOrder}
             />
@@ -272,15 +271,6 @@ const PurchaseOrderHistory = () => {
           setOpen={handleCloseModal}
           orderToEdit={selectedOrder}
           onSave={handleUpdateOrder}
-        />
-      )}
-
-      {typeModal === 'delete' && (
-        <DeleteOrderModal
-          open={isModalOpen}
-          setOpen={handleCloseModal}
-          order={selectedOrder}
-          onConfirm={handleDeleteOrder}
         />
       )}
 
