@@ -107,7 +107,7 @@ const LogisticOrders = () => {
       if (pedidoData.purchase_order) {
         const { purchase_order } = pedidoData;
         const supplier = suppliers.find(s => s.id.toString() === purchase_order.supplier_id);
-        
+
         const totalProductos = purchase_order.purchase_order_items_attributes.reduce((acc, item) => acc + item.quantity, 0);
         const montoTotal = purchase_order.purchase_order_items_attributes.reduce((acc, item) => acc + (item.quantity * parseFloat(item.unit_cost)), 0);
 

@@ -53,13 +53,12 @@ const WarehouseInventory = () => {
       const response = await getModel();
       const productsArray = Array.isArray(response) ? response : (response?.data || []);
 
-      // 👈 FILTRO: Solo vehículos disponibles y todos los repuestos
       const filteredArray = productsArray.filter(item => {
-        // Si es vehículo, solo mostrar si está disponible
+
         if (item.product_type === "vehicle") {
           return item.vehicle?.status === "available";
         }
-        // Si es repuesto, mostrar todos
+
         return true;
       });
 

@@ -5,20 +5,22 @@ import { Eye, CheckCircle, XCircle } from 'lucide-react';
 
 const getOrderStatusBadge = (status) => {
     switch (status) {
-        case "ENTREGADO":
-            return <Badge className="bg-green-500 hover:bg-green-600">● Entregado</Badge>;
-        case "PENDIENTE":
-            return <Badge className="bg-yellow-500 hover:bg-yellow-600 text-black">● Pendiente</Badge>;
-        case "CANCELADO":
+        case "completed":
+            return <Badge className="bg-green-500 hover:bg-green-600">● Completado</Badge>;
+        case "draft":
+            return <Badge className="bg-amber-500 hover:bg-amber-600 text-black">● Pendiente</Badge>;
+        case "sent":
+            return <Badge className="bg-blue-500 hover:bg-blue-600">● Enviado</Badge>;
+        case "partially_received":
+            return <Badge className="bg-yellow-500 hover:bg-yellow-600 text-black">● Recibido Parcial</Badge>;
+        case "cancelled":
             return <Badge variant="destructive">● Cancelado</Badge>;
-        case "EN_TRANSITO":
-            return <Badge className="bg-blue-500 hover:bg-blue-600">● En tránsito</Badge>;
         default:
             return <Badge variant="outline">{status}</Badge>;
     }
 };
 
-const columns = (handleDetails, handleConfirmReception) => [
+const columns = (handleDetails, handleReceive, handleCancel) => [
     {
         accessorKey: 'orderId',
         header: 'Nº PEDIDO',
@@ -28,13 +30,19 @@ const columns = (handleDetails, handleConfirmReception) => [
     {
         accessorKey: 'proveedor',
         header: 'PROVEEDOR',
-        cell: info => info.getValue(),
+        cell: info => info.getValue() || 'N/A',
+        enableColumnFilter: true,
+    },
+    {
+        accessorKey: 'notas',
+        header: 'NOTA',
+        cell: info => `${info.getValue()} unid`,
         enableColumnFilter: true,
     },
     {
         accessorKey: 'fechaPedido',
         header: 'FECHA PEDIDO',
-        cell: info => new Date(info.getValue()).toLocaleDateString('es-ES'),
+        cell: info => info.getValue() ? new Date(info.getValue()).toLocaleDateString('es-ES') : 'N/A',
         enableColumnFilter: true,
     },
     {
@@ -44,30 +52,10 @@ const columns = (handleDetails, handleConfirmReception) => [
         enableColumnFilter: true,
     },
     {
-        accessorKey: 'totalProductos',
-        header: 'TOTAL PRODUCTOS',
-        cell: info => `${info.getValue()} unid`,
-        enableColumnFilter: true,
-    },
-    {
         accessorKey: 'status',
         header: 'ESTADO',
         cell: info => getOrderStatusBadge(info.getValue()),
         enableColumnFilter: true,
-    },
-    {
-        accessorKey: 'conforme',
-        header: 'RECEPCIÓN',
-        cell: ({ row }) => {
-            const conforme = row.original.conforme;
-            if (conforme === true) {
-                return <Badge className="bg-green-100 text-green-800">✓ Conforme</Badge>;
-            }
-            if (conforme === false) {
-                return <Badge variant="destructive">✗ No conforme</Badge>;
-            }
-            return <Badge variant="outline">⏳ Pendiente</Badge>;
-        },
     },
     {
         header: () => <div className="text-center">ACCIONES</div>,
@@ -84,27 +72,28 @@ const columns = (handleDetails, handleConfirmReception) => [
                     <Eye className="h-4 w-4" />
                 </Button>
 
-                {row.original.status === "ENTREGADO" && row.original.conforme === undefined && (
-                    <>
-                        <Button
-                            variant="ghost"
-                            size="icon"
-                            className="h-8 w-8 text-green-500 hover:text-green-600 hover:bg-green-50"
-                            title="Confirmar Recepción Conforme"
-                            onClick={() => handleConfirmReception(row.original, true)}
-                        >
-                            <CheckCircle className="h-4 w-4" />
-                        </Button>
-                        <Button
-                            variant="ghost"
-                            size="icon"
-                            className="h-8 w-8 text-red-500 hover:text-red-600 hover:bg-red-50"
-                            title="Marcar como No Conforme"
-                            onClick={() => handleConfirmReception(row.original, false)}
-                        >
-                            <XCircle className="h-4 w-4" />
-                        </Button>
-                    </>
+                {(row.original.status === "draft" || row.original.status === "sent" || row.original.status === "partially_received") && (
+                    <Button
+                        variant="ghost"
+                        size="icon"
+                        className="h-8 w-8 text-green-500 hover:text-green-600 hover:bg-green-50"
+                        title="Marcar Recibido"
+                        onClick={() => handleReceive(row.original)}
+                    >
+                        <CheckCircle className="h-4 w-4" />
+                    </Button>
+                )}
+
+                {(row.original.status === "draft" || row.original.status === "sent") && (
+                    <Button
+                        variant="ghost"
+                        size="icon"
+                        className="h-8 w-8 text-red-500 hover:text-red-600 hover:bg-red-50"
+                        title="Cancelar Orden"
+                        onClick={() => handleCancel(row.original)}
+                    >
+                        <XCircle className="h-4 w-4" />
+                    </Button>
                 )}
             </div>
         ),

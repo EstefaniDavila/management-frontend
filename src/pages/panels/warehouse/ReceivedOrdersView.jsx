@@ -9,7 +9,9 @@ import {
 } from "@/components/ui/dropdown-menu";
 
 import OrdersSuppliersReviewTable from '@/composables/warehouse/ordersReview/table/OrdersSuppliersReview';
-import ViewOrderDetailModal from '@/composables/admin/logistics/suppliers/modals/SupplierOrderModal/ViewOrderDetailModal/ViewOrderDetailModal';
+import ViewOrderDetailsModalWarehouse from '@/composables/warehouse/ordersReview/Modals/ViewOrderDetailsModalWarehouse';
+import useCrud from '@/hooks/useCrud';
+import useEntityMutation from '@/hooks/useEntityMutation';
 
 const ReceivedOrdersView = () => {
     const [orders, setOrders] = useState([]);
@@ -21,37 +23,84 @@ const ReceivedOrdersView = () => {
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [selectedOrder, setSelectedOrder] = useState(null);
 
-    const fetchDeliveredOrders = async () => {
-        const mockData = [
-            { orderId: "PO-2024-001", proveedor: "Maquinarias S.A.", fechaPedido: "2024-01-15", fechaEntrega: "2024-01-22", totalProductos: 15, status: "ENTREGADO", conforme: undefined },
-            { orderId: "PO-2024-005", proveedor: "Logística Express", fechaPedido: "2024-02-01", fechaEntrega: "2024-02-08", totalProductos: 32, status: "ENTREGADO", conforme: true },
-        ];
-        setOrders(mockData);
+    const { getModel: getOrdersModel } = useCrud('/api/v1/warehouse/purchase_orders');
+    const { getModel: getSuppliersModel } = useCrud('/api/v1/warehouse/suppliers');
+    const orderMutation = useEntityMutation({ entityName: 'purchase_orders' });
+
+    const fetchOrders = async () => {
+        try {
+            const [ordersResponse, suppliersResponse] = await Promise.all([
+                getOrdersModel(),
+                getSuppliersModel().catch(() => []) // Fallback in case suppliers fail
+            ]);
+
+            const fetchedOrders = Array.isArray(ordersResponse) ? ordersResponse : (ordersResponse?.data || []);
+            const fetchedSuppliers = Array.isArray(suppliersResponse) ? suppliersResponse : (suppliersResponse?.data || []);
+
+            const supplierMap = fetchedSuppliers.reduce((acc, supplier) => {
+                acc[supplier.id] = supplier.name || supplier.business_name || supplier.company_name;
+                return acc;
+            }, {});
+
+            const mappedOrders = fetchedOrders.map(item => ({
+                id: item.id,
+                orderId: item.code || `PO-${item.id}`,
+                proveedor: item.supplier?.name || item.supplier_name || supplierMap[item.supplier_id] || "Desconocido",
+                fechaPedido: item.order_date || item.created_at,
+                fechaEntrega: item.received_at || item.expected_date || null,
+                montoTotal: parseFloat(item.total || item.total_amount || 0),
+                notas: item.notes || "Sin notas",
+                status: item.status,
+                _original: item,
+            }));
+
+            setOrders(mappedOrders);
+        } catch (error) {
+            console.error("Error fetching orders:", error);
+        }
     };
 
-    useEffect(() => { fetchDeliveredOrders(); }, []);
+    useEffect(() => { fetchOrders(); }, []);
 
-    const handleOpenModal = (type, data) => {
+    const handleOpenModal = (type, order) => {
         setTypeModal(type);
-        setSelectedOrder(data);
+        setSelectedOrder(order);
         setIsModalOpen(true);
     };
 
-    const handleConfirm = (order, isConforme) => {
-        setOrders(prev => prev.map(o =>
-            o.orderId === order.orderId
-                ? { ...o, conforme: isConforme }
-                : o
-        ));
+    const handleReceiveOrder = async (order) => {
+        try {
+            await orderMutation.mutateAsync({
+                action: 'update',
+                entity: {},
+                endpoint: `/api/v1/admin/purchase_orders/${order.id}/receive`
+            });
+            fetchOrders();
+        } catch (error) {
+            console.error("Error al recibir orden:", error);
+        }
     };
 
-    const pendientes = orders.filter(o => o.status === "ENTREGADO" && o.conforme === undefined).length;
+    const handleCancelOrder = async (order) => {
+        try {
+            await orderMutation.mutateAsync({
+                action: 'update',
+                entity: {},
+                endpoint: `/api/v1/warehouse/purchase_orders/${order.id}/cancel`
+            });
+            fetchOrders();
+        } catch (error) {
+            console.error("Error al cancelar orden:", error);
+        }
+    };
+
+    const pendientes = orders.filter(o => o.status === "sent" || o.status === "partially_received").length;
 
     const filteredData = useMemo(() => {
         return filterProveedor === "todos" ? orders : orders.filter(o => o.proveedor === filterProveedor);
     }, [orders, filterProveedor]);
 
-    const proveedoresUnicos = [...new Set(orders.map(o => o.proveedor))];
+    const proveedoresUnicos = [...new Set(orders.map(o => o.proveedor))].filter(Boolean);
     const totalPages = Math.ceil(filteredData.length / pagination.pageSize);
 
     return (
@@ -61,7 +110,7 @@ const ReceivedOrdersView = () => {
                 <div className="flex items-center justify-between">
                     <div className="flex items-center gap-2">
                         <PackageCheck className="h-5 w-5 text-green-600" />
-                        <h1 className="text-base font-semibold">Pedidos Recibidos</h1>
+                        <h1 className="text-base font-semibold">Revisión de Órdenes</h1>
                         {pendientes > 0 && (
                             <span className="px-2 py-0.5 bg-yellow-100 text-yellow-700 text-xs rounded-full">
                                 {pendientes} pendientes
@@ -92,7 +141,7 @@ const ReceivedOrdersView = () => {
                 <div className="w-full bg-card rounded-xl border shadow-sm overflow-hidden">
                     <OrdersSuppliersReviewTable
                         data={filteredData}
-                        fetchData={fetchDeliveredOrders}
+                        fetchData={fetchOrders}
                         pagination={pagination}
                         setPagination={setPagination}
                         totalPages={totalPages}
@@ -101,12 +150,13 @@ const ReceivedOrdersView = () => {
                         searchFields={searchFields}
                         setSearchFields={setSearchFields}
                         handleOpenModal={handleOpenModal}
-                        onConfirmOrder={handleConfirm}
+                        onReceiveOrder={handleReceiveOrder}
+                        onCancelOrder={handleCancelOrder}
                     />
                 </div>
 
                 {typeModal === 'details' && (
-                    <ViewOrderDetailModal
+                    <ViewOrderDetailsModalWarehouse
                         open={isModalOpen}
                         setOpen={() => setIsModalOpen(false)}
                         order={selectedOrder}

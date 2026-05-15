@@ -53,7 +53,7 @@ const CreateNewOrderModal = ({ open, setOpen, onSave, suppliers, initialSupplier
                 supplier_id: initialSupplierId.toString()
             }));
         } else if (!open) {
-            // Reset when modal closes
+
             setFormData({
                 supplier_id: '',
                 requested_by_id: user?.id || '',
