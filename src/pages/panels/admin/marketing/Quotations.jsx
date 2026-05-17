@@ -42,12 +42,16 @@ const Quotations = () => {
       const formattedData = quotesArray.map(item => ({
         id: item.id,
         code: item.code || '-',
-        customer: item.client_name,
+        customer: item.client_name || item.customer,
         document: item.client_document || '-',
         equipment: 'Consultar items', 
         quotation_type: item.quotation_type || 'machinery_sale',
-        advisor: item.advisor_name || 'Sin asignar',
+        advisor: item.advisor_name || item.advisor || 'Sin asignar',
         amount: item.total || item.subtotal || 0,
+        subtotal: item.subtotal || 0,
+        tax: item.tax || 0,
+        items: item.items || [],
+        lead_description: item.lead_description || '',
         date: item.created_at,
         status: item.status,
         _original: item

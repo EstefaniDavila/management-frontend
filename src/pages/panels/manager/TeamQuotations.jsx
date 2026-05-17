@@ -52,10 +52,14 @@ const TeamQuotations = () => {
       const formattedData = quotesArray.map(item => ({
         id: item.id,
         code: item.code || '-',
-        customer: item.client_name || 'Sin cliente',
+        customer: item.client_name || item.customer || 'Sin cliente',
         quotation_type: item.quotation_type,
-        advisor: item.advisor_name || 'Sin asignar',
+        advisor: item.advisor_name || item.advisor || 'Sin asignar',
         amount: item.total || item.subtotal || 0,
+        subtotal: item.subtotal || 0,
+        tax: item.tax || 0,
+        items: item.items || [],
+        lead_description: item.lead_description || '',
         date: item.created_at,
         status: item.status,
         _original: item
