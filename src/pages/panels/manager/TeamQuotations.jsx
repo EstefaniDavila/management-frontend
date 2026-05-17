@@ -5,7 +5,6 @@ import { useSales } from '@/providers/SalesContext'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { TbCheck, TbX } from 'react-icons/tb'
-
 const statusColor = {
   draft:            'bg-gray-100 text-gray-700',
   sent:             'bg-blue-100 text-blue-800',

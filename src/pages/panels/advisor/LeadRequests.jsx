@@ -61,6 +61,8 @@ const LeadRequests = () => {
         quotation_id: item.quotation_id,
         quotation_items: item.quotation_items || [],
         created_at: item.created_at,
+        has_completed_area_request: item.has_completed_area_request,
+        pending_area_request: item.pending_area_request,
         _original: item
       }))
 

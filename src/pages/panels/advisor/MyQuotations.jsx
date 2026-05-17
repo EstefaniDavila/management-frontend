@@ -131,6 +131,8 @@ const MyQuotations = () => {
     if (!selectedQuotationForArea) return
     try {
       await insertAreaRequest({
+        user_id: user?.id,
+        advisor_id: user?.roleable_type !== 'Manager' ? user?.roleable?.id : null,
         area_request: {
           quotation_id: selectedQuotationForArea.id,
           area: areaRequestFormData.area,

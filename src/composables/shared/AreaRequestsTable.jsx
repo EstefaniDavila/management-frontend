@@ -61,6 +61,11 @@ export default function AreaRequestsTable({ currentArea, role }) {
   // Reply States
   const [isReplyOpen, setIsReplyOpen] = useState(false)
   const [selectedRequestForReply, setSelectedRequestForReply] = useState(null)
+  
+  // View States
+  const [isViewOpen, setIsViewOpen] = useState(false)
+  const [selectedRequestForView, setSelectedRequestForView] = useState(null)
+
   const [replyFormData, setReplyFormData] = useState({
     machine_ready: 'true',
     unit_price: '',
@@ -290,6 +295,59 @@ export default function AreaRequestsTable({ currentArea, role }) {
             </DialogFooter>
           </DialogContent>
         </Dialog>
+
+        <Dialog open={isViewOpen} onOpenChange={setIsViewOpen}>
+          <DialogContent className="sm:max-w-[525px]">
+            <DialogHeader>
+              <DialogTitle className="text-black dark:text-white">Detalle de Solicitud de Área</DialogTitle>
+              <DialogDescription>
+                Información de la solicitud enviada y sus resultados.
+              </DialogDescription>
+            </DialogHeader>
+            {selectedRequestForView && (
+              <div className="flex flex-col gap-4 py-4 text-black dark:text-white">
+                <div className="grid grid-cols-2 gap-2 text-sm border p-3 rounded-md bg-muted/20">
+                  <div><span className="font-semibold">ID:</span> {selectedRequestForView.id.substring(0,8)}</div>
+                  <div><span className="font-semibold">Cotización:</span> {selectedRequestForView.quotation_code || '-'}</div>
+                  <div className="col-span-2"><span className="font-semibold">Tipo:</span> {selectedRequestForView.name}</div>
+                  <div><span className="font-semibold">De:</span> {selectedRequestForView.creator_email || 'Asesor'}</div>
+                  <div><span className="font-semibold">Para Área:</span> {selectedRequestForView.area}</div>
+                  <div><span className="font-semibold">Fecha:</span> {selectedRequestForView.created_at}</div>
+                  <div>
+                    <span className="font-semibold">Estado:</span>{' '}
+                    <Badge variant={selectedRequestForView.status === 'completed' ? 'success' : selectedRequestForView.status === 'in_progress' ? 'warning' : 'outline'}>
+                      {selectedRequestForView.status === 'completed' ? 'Completado' : selectedRequestForView.status === 'pending' ? 'Pendiente' : selectedRequestForView.status}
+                    </Badge>
+                  </div>
+                </div>
+                
+                <div className="flex flex-col gap-1 border p-3 rounded-md bg-muted/20">
+                  <span className="font-semibold text-sm">Detalle / Notas de Solicitud:</span>
+                  <p className="text-sm whitespace-pre-line text-muted-foreground">{selectedRequestForView.description || 'Sin descripción'}</p>
+                </div>
+
+                {selectedRequestForView.status === 'completed' && (
+                  <div className="flex flex-col gap-2 border p-3 rounded-md bg-green-50/50 border-green-200">
+                    <span className="font-semibold text-sm text-green-800">Respuesta del Área:</span>
+                    <div className="grid grid-cols-2 gap-2 text-sm text-green-900">
+                      <div><span className="font-semibold">Máquina Lista:</span> {selectedRequestForView.machine_ready ? 'Sí' : 'No'}</div>
+                      <div><span className="font-semibold">Precio Sugerido:</span> S/ {selectedRequestForView.unit_price || '-'}</div>
+                    </div>
+                    <div className="text-sm mt-2 text-green-900">
+                      <span className="font-semibold">Notas:</span>
+                      <p className="whitespace-pre-line mt-1">{selectedRequestForView.notes || 'Sin notas adicionales'}</p>
+                    </div>
+                  </div>
+                )}
+              </div>
+            )}
+            <DialogFooter>
+              <Button onClick={() => setIsViewOpen(false)} variant="outline">
+                Cerrar
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
       </div>
 
       <div className="flex flex-col md:flex-row gap-4 items-center justify-between">
@@ -351,7 +409,7 @@ export default function AreaRequestsTable({ currentArea, role }) {
                   </TableCell>
                   <TableCell className="text-right">
                     <div className="flex justify-end gap-2">
-                      <Button variant="ghost" size="icon">
+                      <Button variant="ghost" size="icon" onClick={() => { setSelectedRequestForView(req); setIsViewOpen(true); }}>
                         <EyeIcon className="h-4 w-4" />
                       </Button>
                        {(rolePath === 'admin' || rolePath === 'manager') && req.status !== 'completed' && (

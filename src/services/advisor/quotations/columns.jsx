@@ -122,7 +122,7 @@ const columns = (handleView, handleSend, handleApprove, handleReject, handleSend
             triggerContent={<span className="bg-blue-500 text-white rounded-full p-1"><TbEye size={18}/></span>}
             onClick={() => handleView(row.original)}
           />
-          {status === 'draft' && (
+          {(status === 'draft' || status === 'pending') && (
             isRentalOrMaint ? (
               // Si es alquiler/mantenimiento, y aún no ha sido revisada por área técnica:
               !has_completed_area_request ? (

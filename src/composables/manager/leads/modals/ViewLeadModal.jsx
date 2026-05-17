@@ -11,29 +11,42 @@ import { useNavigate } from 'react-router-dom'
 import { useAuth } from '@/providers/UserContext'
 import axios from 'axios'
 
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog"
+import { Textarea } from "@/components/ui/textarea"
+import { Label } from "@/components/ui/label"
+import { TbArrowForward } from 'react-icons/tb'
+import useCrud from '@/hooks/useCrud'
+
 const typeLabel = {
   machinery_sale: 'Venta Maquinaria',
-  parts_sale:     'Venta Repuestos',
-  maintenance:    'Mantenimiento',
-  rental:         'Alquiler',
+  parts_sale: 'Venta Repuestos',
+  maintenance: 'Mantenimiento',
+  rental: 'Alquiler',
 }
 
 const statusColor = {
-  pending:     'bg-yellow-100 text-yellow-800',
-  new:         'bg-purple-100 text-purple-800',
-  assigned:    'bg-blue-100 text-blue-800',
+  pending: 'bg-yellow-100 text-yellow-800',
+  new: 'bg-purple-100 text-purple-800',
+  assigned: 'bg-blue-100 text-blue-800',
   in_progress: 'bg-orange-100 text-orange-800',
-  converted:   'bg-green-100 text-green-800',
-  lost:        'bg-gray-100 text-gray-800',
+  converted: 'bg-green-100 text-green-800',
+  lost: 'bg-gray-100 text-gray-800',
 }
 
 const statusLabel = {
-  pending:     'Pendiente',
-  new:         'Nuevo / Web',
-  assigned:    'Asignado',
+  pending: 'Pendiente',
+  new: 'Nuevo / Web',
+  assigned: 'Asignado',
   in_progress: 'En Proceso',
-  converted:   'Convertido',
-  lost:        'Perdido',
+  converted: 'Convertido',
+  lost: 'Perdido',
 }
 
 const ViewLeadModal = ({ isOpen, handleClose, lead }) => {
@@ -41,6 +54,20 @@ const ViewLeadModal = ({ isOpen, handleClose, lead }) => {
   const { user } = useAuth()
   const [priority, setPriority] = useState('NC')
   const [isSaving, setIsSaving] = useState(false)
+
+  // Send to Area modal states
+  const [isSendToAreaOpen, setIsSendToAreaOpen] = useState(false)
+  const [areaRequestFormData, setAreaRequestFormData] = useState({
+    area: 'Logística',
+    name: 'Completar Cotización',
+    description: ''
+  })
+
+  const { insertModel: insertAreaRequest } = useCrud(
+    user?.role === 'manager' || user?.area 
+      ? '/api/v1/manager/area_requests' 
+      : '/api/v1/advisor/area_requests'
+  )
 
   const handleGoToQuotation = () => {
     if (!lead || !lead.quotation_id) return
@@ -55,7 +82,7 @@ const ViewLeadModal = ({ isOpen, handleClose, lead }) => {
     } else if (window.location.pathname.includes('/admin')) {
       redirectPath = '/admin/marketing/quotations'
     }
-    
+
     handleClose()
     navigate(`${redirectPath}?${queryParams.toString()}`)
   }
@@ -77,11 +104,11 @@ const ViewLeadModal = ({ isOpen, handleClose, lead }) => {
       const endpoint = isManager
         ? `/api/v1/manager/leads/${lead.id}`
         : `/api/v1/advisor/leads/${lead.id}`
-      
+
       const payload = {
         lead: { priority }
       }
-      
+
       await axios.put(`${backend_host}${endpoint}`, payload)
       alert('Clasificación guardada con éxito!')
       window.location.reload()
@@ -93,7 +120,43 @@ const ViewLeadModal = ({ isOpen, handleClose, lead }) => {
     }
   }
 
+  const handleOpenSendToArea = () => {
+    setAreaRequestFormData({
+      area: lead.request_type === 'rental' ? 'Logística' : 'Operaciones',
+      name: 'Completar Cotización',
+      description: `Por favor, revisar disponibilidad de la máquina para la cotización de ${lead.request_type === 'rental' ? 'Alquiler' : 'Mantenimiento'}, revisar estado técnico y definir precio unitario sugerido.`
+    })
+    setIsSendToAreaOpen(true)
+  }
+
+  const handleSendToAreaSubmit = async () => {
+    if (!lead || !lead.quotation_id) {
+      alert("No hay cotización asociada a este lead para enviar al área.")
+      return
+    }
+    try {
+      await insertAreaRequest({
+        user_id: user?.id,
+        advisor_id: user?.roleable_type !== 'Manager' ? user?.roleable?.id : null,
+        area_request: {
+          quotation_id: lead.quotation_id,
+          area: areaRequestFormData.area,
+          name: areaRequestFormData.name,
+          description: areaRequestFormData.description
+        }
+      })
+      setIsSendToAreaOpen(false)
+      alert("Solicitud enviada exitosamente")
+      handleClose()
+      window.location.reload()
+    } catch (e) {
+      console.error(e)
+      alert("Error al enviar la solicitud")
+    }
+  }
+
   return (
+    <>
     <SheetMultiStep open={isOpen} onOpenChange={handleClose}>
       <SheetMultiStepContent side="right" className="flex flex-col h-full overflow-y-auto max-w-lg w-full sm:max-w-xl">
 
@@ -114,13 +177,13 @@ const ViewLeadModal = ({ isOpen, handleClose, lead }) => {
           {/* Stats rápidos */}
           <div className="grid grid-cols-2 gap-3">
             {[
-              { icon: BuildingIcon,  label: 'Empresa',  value: lead.company },
-              { icon: TagIcon,       label: 'Tipo',     value: typeLabel[lead.request_type] || lead.request_type },
-              { icon: CalendarIcon,  label: 'Fecha',    value: lead.created_at },
-              { icon: UserIcon,      label: 'Asesor',   value: lead.assigned_to || 'Sin asignar' },
+              { icon: BuildingIcon, label: 'Empresa', value: lead.company },
+              { icon: TagIcon, label: 'Tipo', value: typeLabel[lead.request_type] || lead.request_type },
+              { icon: CalendarIcon, label: 'Fecha', value: lead.created_at },
+              { icon: UserIcon, label: 'Asesor', value: lead.assigned_to || 'Sin asignar' },
             ].map(stat => (
               <div key={stat.label} className="flex flex-col gap-1 border rounded-lg p-3 bg-card shadow-sm">
-                <stat.icon className="size-4 text-muted-foreground"/>
+                <stat.icon className="size-4 text-muted-foreground" />
                 <span className="text-sm font-semibold truncate">{stat.value}</span>
                 <span className="text-xs text-muted-foreground">{stat.label}</span>
               </div>
@@ -147,8 +210,8 @@ const ViewLeadModal = ({ isOpen, handleClose, lead }) => {
                   <SelectItem value="NH">CH (Cliente Histórico)</SelectItem>
                 </SelectContent>
               </Select>
-              <Button 
-                onClick={handleSavePriority} 
+              <Button
+                onClick={handleSavePriority}
                 disabled={isSaving}
                 className="bg-blue-600 hover:bg-blue-700 text-white font-medium shadow-sm"
               >
@@ -204,8 +267,8 @@ const ViewLeadModal = ({ isOpen, handleClose, lead }) => {
             </p>
             <div className="flex flex-col gap-3">
               {[
-                { label: 'Nombre',    value: lead.name,  icon: UserIcon  },
-                { label: 'Correo',    value: lead.email, icon: MailIcon  },
+                { label: 'Nombre', value: lead.name, icon: UserIcon },
+                { label: 'Correo', value: lead.email, icon: MailIcon },
                 { label: 'Teléfono', value: lead.phone, icon: PhoneIcon },
               ].map(f => (
                 <div key={f.label} className="flex flex-col gap-0.5 border-b pb-3 last:border-0 last:pb-0">
@@ -230,6 +293,16 @@ const ViewLeadModal = ({ isOpen, handleClose, lead }) => {
 
         <SheetMultiStepFooter className="mt-auto pt-6 border-t bg-background flex justify-between items-center w-full">
           <Button variant="outline" onClick={handleClose}>Cerrar</Button>
+          {(lead?.request_type === 'rental' || lead?.request_type === 'maintenance') && lead?.quotation_id && (
+            <Button
+              onClick={handleOpenSendToArea}
+              className="bg-indigo-600 hover:bg-indigo-700 text-white flex items-center gap-2"
+            >
+              <TbArrowForward className="h-4 w-4" />
+              Enviar a Área
+            </Button>
+          )}
+
           {lead && lead.quotation_id && user && user.roleable_type !== 'Manager' && (
             <Button
               onClick={handleGoToQuotation}
@@ -243,6 +316,68 @@ const ViewLeadModal = ({ isOpen, handleClose, lead }) => {
 
       </SheetMultiStepContent>
     </SheetMultiStep>
+
+    <Dialog open={isSendToAreaOpen} onOpenChange={setIsSendToAreaOpen}>
+      <DialogContent className="sm:max-w-[425px]">
+        <DialogHeader>
+          <DialogTitle className="text-black dark:text-white">Enviar a Área Especializada</DialogTitle>
+          <DialogDescription>
+            Solicita al equipo de Logística u Operaciones que complete los datos de esta solicitud de {lead?.request_type === 'rental' ? 'alquiler' : 'mantenimiento'}.
+          </DialogDescription>
+        </DialogHeader>
+        <div className="grid gap-4 py-4 text-black dark:text-white">
+          <div className="grid grid-cols-4 items-center gap-4">
+            <Label htmlFor="toArea" className="text-right text-xs">
+              Área Destino
+            </Label>
+            <Select value={areaRequestFormData.area} onValueChange={(v) => setAreaRequestFormData({...areaRequestFormData, area: v})}>
+              <SelectTrigger className="col-span-3 text-black dark:text-white">
+                <SelectValue placeholder="Selecciona el área" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="Logística">Logística (Sugerido para Alquileres)</SelectItem>
+                <SelectItem value="Operaciones">Operaciones (Sugerido para Mantenimiento)</SelectItem>
+                <SelectItem value="Comercial">Comercial</SelectItem>
+                <SelectItem value="Técnico">Técnico</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+          <div className="grid grid-cols-4 items-center gap-4">
+            <Label htmlFor="reqType" className="text-right text-xs">
+              Tipo
+            </Label>
+            <Select value={areaRequestFormData.name} onValueChange={(v) => setAreaRequestFormData({...areaRequestFormData, name: v})}>
+              <SelectTrigger className="col-span-3 text-black dark:text-white">
+                <SelectValue placeholder="Tipo de solicitud" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="Completar Cotización">Completar Cotización</SelectItem>
+                <SelectItem value="Revisión Técnica">Revisión Técnica</SelectItem>
+                <SelectItem value="Actualización Datos">Actualización Datos</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+          <div className="grid grid-cols-4 items-start gap-4">
+            <Label htmlFor="reqDescription" className="text-right pt-2 text-xs">
+              Detalle / Notas
+            </Label>
+            <Textarea
+              id="reqDescription"
+              value={areaRequestFormData.description}
+              onChange={(e) => setAreaRequestFormData({...areaRequestFormData, description: e.target.value})}
+              placeholder="Indica qué campos o datos específicos requieres que completen..."
+              className="col-span-3 text-black dark:text-white bg-white"
+            />
+          </div>
+        </div>
+        <DialogFooter>
+          <Button onClick={handleSendToAreaSubmit} className="bg-indigo-600 hover:bg-indigo-700 text-white">
+            Enviar Solicitud
+          </Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
+    </>
   )
 }
 
