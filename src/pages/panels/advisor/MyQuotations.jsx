@@ -89,6 +89,7 @@ const MyQuotations = () => {
         status: item.status,
         has_completed_area_request: item.has_completed_area_request,
         pending_area_request: item.pending_area_request,
+        lead_description: item.lead_description,
         _original: item
       }))
 
@@ -119,10 +120,11 @@ const MyQuotations = () => {
 
   const handleOpenSendToArea = (q) => {
     setSelectedQuotationForArea(q)
+    const originalDetails = q.lead_description ? `\n\n--- DETALLE ORIGINAL DEL CLIENTE (Días, fechas, notas) ---\n${q.lead_description}` : '\n\n--- DETALLES DEL CLIENTE (Llenar antes de enviar) ---\nFechas solicitadas:\nDías:\nOtros requerimientos:'
     setAreaRequestFormData({
       area: q.quotation_type === 'rental' ? 'Logística' : 'Operaciones',
       name: 'Completar Cotización',
-      description: `Por favor, revisar disponibilidad de la máquina para la cotización de ${q.quotation_type === 'rental' ? 'Alquiler' : 'Mantenimiento'}, revisar estado técnico y definir precio unitario sugerido.`
+      description: `Por favor, revisar disponibilidad de la máquina para la cotización de ${q.quotation_type === 'rental' ? 'Alquiler' : 'Mantenimiento'}, revisar estado técnico y definir precio unitario sugerido.${originalDetails}`
     })
     setIsSendToAreaOpen(true)
   }
@@ -264,7 +266,7 @@ const MyQuotations = () => {
                 value={areaRequestFormData.description}
                 onChange={(e) => setAreaRequestFormData({...areaRequestFormData, description: e.target.value})}
                 placeholder="Indica qué campos o datos específicos requieres que completen..."
-                className="col-span-3 text-black dark:text-white bg-white"
+                className="col-span-3 min-h-[150px]"
               />
             </div>
           </div>

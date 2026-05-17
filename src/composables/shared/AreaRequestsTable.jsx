@@ -69,6 +69,10 @@ export default function AreaRequestsTable({ currentArea, role }) {
   const [replyFormData, setReplyFormData] = useState({
     machine_ready: 'true',
     unit_price: '',
+    rental_rate_type: 'Día',
+    estimated_days: '',
+    start_date: '',
+    pickup_details: '',
     notes: ''
   })
 
@@ -116,14 +120,18 @@ export default function AreaRequestsTable({ currentArea, role }) {
           area_request: { 
             notes: replyFormData.notes,
             machine_ready: replyFormData.machine_ready === 'true',
-            unit_price: replyFormData.unit_price ? parseFloat(replyFormData.unit_price) : undefined
+            unit_price: replyFormData.unit_price ? parseFloat(replyFormData.unit_price) : undefined,
+            rental_rate_type: replyFormData.rental_rate_type,
+            estimated_days: replyFormData.estimated_days,
+            start_date: replyFormData.start_date,
+            pickup_details: replyFormData.pickup_details
           } 
         }, 
         `/api/v1/admin/area_requests/${selectedRequestForReply.id}/reply`
       )
       setIsReplyOpen(false)
       setSelectedRequestForReply(null)
-      setReplyFormData({ machine_ready: 'true', unit_price: '', notes: '' })
+      setReplyFormData({ machine_ready: 'true', unit_price: '', rental_rate_type: 'Día', estimated_days: '', start_date: '', pickup_details: '', notes: '' })
       fetchRequests()
     } catch (e) {
       console.error(e)
@@ -240,52 +248,141 @@ export default function AreaRequestsTable({ currentArea, role }) {
         </Dialog>
 
         <Dialog open={isReplyOpen} onOpenChange={setIsReplyOpen}>
-          <DialogContent className="sm:max-w-[425px]">
+          <DialogContent className="sm:max-w-[900px] w-full max-h-[90vh] overflow-y-auto">
             <DialogHeader>
-              <DialogTitle className="text-black dark:text-white">Responder Solicitud de Área</DialogTitle>
+              <DialogTitle className="text-black dark:text-white text-xl">Responder Solicitud de Área</DialogTitle>
               <DialogDescription>
-                Completa los datos técnicos, define el costo final de la cotización y determina la disponibilidad de la máquina.
+                Completa los datos técnicos, tiempos, costos y requerimientos logísticos de esta cotización.
               </DialogDescription>
             </DialogHeader>
-            <div className="grid gap-4 py-4 text-black dark:text-white">
-              <div className="grid grid-cols-4 items-center gap-4">
-                <Label htmlFor="machineReady" className="text-right text-xs">
-                  Máquina Lista
-                </Label>
-                <Select value={replyFormData.machine_ready} onValueChange={(v) => setReplyFormData({...replyFormData, machine_ready: v})}>
-                  <SelectTrigger className="col-span-3 text-black dark:text-white">
-                    <SelectValue placeholder="Selecciona disponibilidad" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="true">Sí, máquina lista/disponible</SelectItem>
-                    <SelectItem value="false">No disponible actualmente</SelectItem>
-                  </SelectContent>
-                </Select>
+            
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 py-4 text-black dark:text-white">
+              {/* Columna Izquierda: Detalles de la Solicitud */}
+              <div className="flex flex-col gap-4 md:border-r md:pr-6">
+                <h3 className="font-semibold text-lg border-b pb-2">Información de la Solicitud</h3>
+                {selectedRequestForReply && (
+                  <div className="flex flex-col gap-3 mt-2 mb-2 p-4 text-sm text-muted-foreground border rounded-md bg-muted/10 shadow-sm">
+                    <p><strong className="text-black dark:text-white">Origen:</strong> {selectedRequestForReply.creator_email}</p>
+                    <p><strong className="text-black dark:text-white">Cotización:</strong> {selectedRequestForReply.quotation_code}</p>
+                    <p><strong className="text-black dark:text-white">Tipo de Solicitud:</strong> {selectedRequestForReply.name}</p>
+                    <p><strong className="text-black dark:text-white">Detalle / Notas:</strong> {selectedRequestForReply.description || 'Sin detalle'}</p>
+                    <div className="mt-2">
+                      <strong className="text-black dark:text-white">Equipos a Revisar:</strong>
+                      <ul className="list-disc list-inside mt-2 space-y-1">
+                        {selectedRequestForReply.quotation_items && selectedRequestForReply.quotation_items.length > 0 ? (
+                          selectedRequestForReply.quotation_items.map((item, i) => (
+                            <li key={i} className="text-black dark:text-white font-medium bg-muted/30 px-2 py-1 rounded">{item.quantity}x {item.description}</li>
+                          ))
+                        ) : (
+                          <li>No hay equipos</li>
+                        )}
+                      </ul>
+                    </div>
+                  </div>
+                )}
               </div>
-              <div className="grid grid-cols-4 items-center gap-4">
-                <Label htmlFor="unitPrice" className="text-right text-xs">
-                  Precio (S/)
-                </Label>
-                <Input
-                  id="unitPrice"
-                  type="number"
-                  placeholder="Ej: 1500"
-                  value={replyFormData.unit_price}
-                  onChange={(e) => setReplyFormData({...replyFormData, unit_price: e.target.value})}
-                  className="col-span-3 text-black dark:text-white bg-white"
-                />
-              </div>
-              <div className="grid grid-cols-4 items-start gap-4">
-                <Label htmlFor="replyNotes" className="text-right pt-2 text-xs">
-                  Observaciones
-                </Label>
-                <Textarea
-                  id="replyNotes"
-                  value={replyFormData.notes}
-                  onChange={(e) => setReplyFormData({...replyFormData, notes: e.target.value})}
-                  placeholder="Detalles del estado de la máquina, observaciones técnicas..."
-                  className="col-span-3 text-black dark:text-white bg-white"
-                />
+
+              {/* Columna Derecha: Formulario de Respuesta */}
+              <div className="flex flex-col gap-4">
+                <h3 className="font-semibold text-lg border-b pb-2">Tu Respuesta Técnica</h3>
+                
+                <div className="grid gap-2">
+                  <Label htmlFor="machineReady" className="text-xs">
+                    Disponibilidad de Máquina / Factibilidad
+                  </Label>
+                  <Select value={replyFormData.machine_ready} onValueChange={(v) => setReplyFormData({...replyFormData, machine_ready: v})}>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Selecciona disponibilidad" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="true">Sí, máquina lista/disponible</SelectItem>
+                      <SelectItem value="false">No disponible o En Reparación</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="grid gap-2">
+                    <Label className="text-xs">
+                      Tipo de Tarifa (Alquiler)
+                    </Label>
+                    <Select value={replyFormData.rental_rate_type} onValueChange={(v) => setReplyFormData({...replyFormData, rental_rate_type: v})}>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Tipo de cobro" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="Hora">Por Hora</SelectItem>
+                        <SelectItem value="Día">Por Día</SelectItem>
+                        <SelectItem value="Semana">Por Semana</SelectItem>
+                        <SelectItem value="Mes">Por Mes</SelectItem>
+                        <SelectItem value="Global">Tarifa Global / Fija</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <div className="grid gap-2">
+                    <Label htmlFor="unitPrice" className="text-xs">
+                      Precio Sugerido por {replyFormData.rental_rate_type} (S/)
+                    </Label>
+                    <Input
+                      id="unitPrice"
+                      type="number"
+                      placeholder="Ej: 1500"
+                      value={replyFormData.unit_price}
+                      onChange={(e) => setReplyFormData({...replyFormData, unit_price: e.target.value})}
+                    />
+                  </div>
+                </div>
+
+                <div className="grid gap-2">
+                  <Label htmlFor="estimatedDays" className="text-xs">
+                    Periodo Estimado / Duración
+                  </Label>
+                  <Input
+                    id="estimatedDays"
+                    type="text"
+                    placeholder="Ej: 5 días, 2 semanas..."
+                    value={replyFormData.estimated_days}
+                    onChange={(e) => setReplyFormData({...replyFormData, estimated_days: e.target.value})}
+                  />
+                </div>
+
+                <div className="grid gap-2">
+                  <Label htmlFor="startDate" className="text-xs">
+                    Fecha de Inicio Sugerida
+                  </Label>
+                  <Input
+                    id="startDate"
+                    type="date"
+                    value={replyFormData.start_date}
+                    onChange={(e) => setReplyFormData({...replyFormData, start_date: e.target.value})}
+                  />
+                </div>
+
+                <div className="grid gap-2">
+                  <Label htmlFor="pickupDetails" className="text-xs">
+                    Detalles de Recojo / Despacho / Logística
+                  </Label>
+                  <Textarea
+                    id="pickupDetails"
+                    value={replyFormData.pickup_details}
+                    onChange={(e) => setReplyFormData({...replyFormData, pickup_details: e.target.value})}
+                    placeholder="Incluir costos de traslado, dirección, requerimientos de cama baja, etc."
+                    className="min-h-[60px]"
+                  />
+                </div>
+
+                <div className="grid gap-2">
+                  <Label htmlFor="replyNotes" className="text-xs">
+                    Observaciones Adicionales
+                  </Label>
+                  <Textarea
+                    id="replyNotes"
+                    value={replyFormData.notes}
+                    onChange={(e) => setReplyFormData({...replyFormData, notes: e.target.value})}
+                    placeholder="Detalles del estado de la máquina, recomendaciones..."
+                    className="min-h-[80px]"
+                  />
+                </div>
               </div>
             </div>
             <DialogFooter>
@@ -319,6 +416,19 @@ export default function AreaRequestsTable({ currentArea, role }) {
                       {selectedRequestForView.status === 'completed' ? 'Completado' : selectedRequestForView.status === 'pending' ? 'Pendiente' : selectedRequestForView.status}
                     </Badge>
                   </div>
+                </div>
+                
+                <div className="flex flex-col gap-1 border p-3 rounded-md bg-muted/20">
+                  <span className="font-semibold text-sm">Equipos de la Cotización:</span>
+                  <ul className="text-sm list-disc list-inside text-muted-foreground">
+                    {selectedRequestForView.quotation_items && selectedRequestForView.quotation_items.length > 0 ? (
+                      selectedRequestForView.quotation_items.map((item, i) => (
+                        <li key={i}>{item.quantity}x {item.description}</li>
+                      ))
+                    ) : (
+                      <li>No hay equipos</li>
+                    )}
+                  </ul>
                 </div>
                 
                 <div className="flex flex-col gap-1 border p-3 rounded-md bg-muted/20">

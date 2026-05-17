@@ -123,6 +123,18 @@ const ViewQuotationModal = ({ isOpen, handleClose, quotation }) => {
               </div>
             </div>
           )}
+
+          {/* Notas Originales del Lead / Solicitud Web */}
+          {quotation.lead_description && (
+            <div className="border rounded-lg p-4 bg-indigo-50/50 border-indigo-100">
+              <p className="text-xs font-semibold uppercase tracking-wide text-indigo-800 mb-3">
+                Requerimientos Originales del Cliente
+              </p>
+              <div className="text-sm text-indigo-900 whitespace-pre-line leading-relaxed">
+                {quotation.lead_description}
+              </div>
+            </div>
+          )}
  
         </div>
 

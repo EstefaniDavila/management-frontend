@@ -121,10 +121,11 @@ const ViewLeadModal = ({ isOpen, handleClose, lead }) => {
   }
 
   const handleOpenSendToArea = () => {
+    const originalDetails = lead.description ? `\n\n--- DETALLE ORIGINAL DEL CLIENTE (Días, fechas, notas) ---\n${lead.description}` : '\n\n--- DETALLE DEL CLIENTE ---\n(No hay detalles adicionales del cliente, por favor verificar requerimientos)'
     setAreaRequestFormData({
       area: lead.request_type === 'rental' ? 'Logística' : 'Operaciones',
       name: 'Completar Cotización',
-      description: `Por favor, revisar disponibilidad de la máquina para la cotización de ${lead.request_type === 'rental' ? 'Alquiler' : 'Mantenimiento'}, revisar estado técnico y definir precio unitario sugerido.`
+      description: `Por favor, revisar disponibilidad de la máquina para la cotización de ${lead.request_type === 'rental' ? 'Alquiler' : 'Mantenimiento'}, revisar estado técnico y definir precio unitario sugerido.${originalDetails}`
     })
     setIsSendToAreaOpen(true)
   }
@@ -366,7 +367,7 @@ const ViewLeadModal = ({ isOpen, handleClose, lead }) => {
               value={areaRequestFormData.description}
               onChange={(e) => setAreaRequestFormData({...areaRequestFormData, description: e.target.value})}
               placeholder="Indica qué campos o datos específicos requieres que completen..."
-              className="col-span-3 text-black dark:text-white bg-white"
+              className="col-span-3 min-h-[150px]"
             />
           </div>
         </div>

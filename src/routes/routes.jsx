@@ -33,6 +33,7 @@ const Routes = () => {
 
   const managerRouter = {
     operations: operationRoutes,
+    Operations: operationRoutes,
     sales: areaManagerRoutes,
     comercial: areaManagerRoutes,
     Comercial: areaManagerRoutes,
