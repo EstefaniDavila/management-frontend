@@ -32,7 +32,7 @@ const ReceivedOrdersView = () => {
         try {
             const [ordersResponse, suppliersResponse] = await Promise.all([
                 getOrdersModel(),
-                getSuppliersModel().catch(() => []) // Fallback in case suppliers fail
+                getSuppliersModel().catch(() => [])
             ]);
 
             const fetchedOrders = Array.isArray(ordersResponse) ? ordersResponse : (ordersResponse?.data || []);
@@ -298,20 +298,13 @@ const ReceivedOrdersView = () => {
     return (
         <div className="px-4 py-4 md:px-6 w-full">
             <div className="max-w-[1600px] mx-auto flex flex-col gap-3">
-
                 <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-2">
-                        <PackageCheck className="h-5 w-5 text-green-600" />
-                        <h1 className="text-base font-semibold">Revisión de Órdenes</h1>
-                        {pendientes > 0 && (
-                            <span className="px-2 py-0.5 bg-yellow-100 text-yellow-700 text-xs rounded-full">
-                                {pendientes} pendientes
-                            </span>
-                        )}
+                    <div className="flex flex-col gap-1">
+                        <h1 className="text-base font-semibold">VALIDACIÓN DE ÓRDENES</h1>
+                        <p className="text-sm text-neutral-400">
+                            Revisa el historial de pedidos realizados, verifica que todo esté conforme al recibir la mercadería y aprueba o rechaza el ingreso al almacén.
+                        </p>
                     </div>
-                    <Button size="sm" variant="outline" onClick={() => console.log("Exportar")} className="gap-1">
-                        <Download className="h-3.5 w-3.5" /> Exportar
-                    </Button>
                 </div>
 
                 <div className="flex items-center gap-2">

@@ -8,13 +8,13 @@ export const warehouseLinks = [
     area: "Logistics & Warehouse",
   },
   {
-    title: "Inventory",
+    title: "Vista Inventorio",
     href: "/inventory",
     icon: PackageIcon,
     area: "Logistics & Warehouse",
   },
   {
-    title: "Orders Review",
+    title: "Validar Órdenes",
     href: "/ordersReview",
     icon: PackageCheck,
     area: "Logistics & Warehouse",

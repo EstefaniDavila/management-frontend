@@ -101,7 +101,7 @@ const Suppliers = () => {
   };
 
   const { mutateAsync: createPurchaseOrder } = useEntityMutation({
-    entityName: 'purchase_orders'
+    entityName: 'purchase_order'
   });
 
   const handleSaveOrder = async (pedidoData) => {
@@ -132,12 +132,13 @@ const Suppliers = () => {
 
         <div className="flex flex-col gap-6">
 
-          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
-
-            <h1 className="text-xl md:text-2xl font-bold tracking-tight">
-              GESTIÓN DE PROVEEDORES
+          <div className="flex flex-col gap-1">
+            <h1 className="text-xl md:text-2xl font-bold tracking-tight text-white">
+              PEDIDO A PROVEEDORES
             </h1>
-
+            <p className="text-sm text-neutral-400 max-w-2xl">
+              Consulta la lista de proveedores activos y genera órdenes de pedido para mantener los niveles óptimos de tu inventario.
+            </p>
           </div>
 
           <div className="w-full bg-card rounded-xl border shadow-sm overflow-hidden">

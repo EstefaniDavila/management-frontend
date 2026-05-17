@@ -3,7 +3,7 @@ import { PackageIcon, TruckIcon, SettingsIcon, PackageCheck } from "lucide-react
 export const logisticCoordinatorLinks = [
 
   {
-    title: "Suppliers",
+    title: "Pedido a Proveedores",
     href: "/suppliers",
     icon: PackageCheck,
     area: "Logistics & Warehouse",
@@ -15,7 +15,7 @@ export const logisticCoordinatorLinks = [
   //area: "Logistics & Warehouse",
   //}, 
   {
-    title: "Order to Suppliers",
+    title: "Lista de Órdenes",
     href: "/orderSuppliers",
     icon: PackageIcon,
     area: "Logistics & Warehouse",

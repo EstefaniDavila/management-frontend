@@ -186,7 +186,7 @@ const PurchaseOrderHistory = () => {
       console.log('5. response.ok:', response.ok);
       console.log('6. content-type:', response.headers.get('content-type'));
 
-      const text = await response.text(); // 👈 text primero, no json
+      const text = await response.text();
       console.log('7. respuesta raw:', text.substring(0, 200));
 
       if (!response.ok) throw new Error(`Error ${response.status}: ${text}`);
@@ -196,7 +196,7 @@ const PurchaseOrderHistory = () => {
 
       const doc = new jsPDF();
 
-      const primaryColor = [30, 64, 175];   // azul
+      const primaryColor = [30, 64, 175];
       const grayDark = [30, 30, 30];
       const grayMid = [100, 100, 100];
       const grayLight = [240, 240, 240];
@@ -204,7 +204,6 @@ const PurchaseOrderHistory = () => {
       const pageW = doc.internal.pageSize.getWidth();
       let y = 0;
 
-      // ── Header ──────────────────────────────────────────────
       doc.setFillColor(...primaryColor);
       doc.rect(0, 0, pageW, 32, 'F');
 
@@ -221,7 +220,6 @@ const PurchaseOrderHistory = () => {
         14, 27
       );
 
-      // Estado (badge derecha)
       const statusLabel = {
         draft: 'PENDIENTE', completed: 'ENTREGADO',
         cancelled: 'CANCELADO', in_transit: 'EN TRÁNSITO'
@@ -241,7 +239,6 @@ const PurchaseOrderHistory = () => {
 
       y = 42;
 
-      // ── Sección Proveedor ────────────────────────────────────
       const drawSection = (title, startY) => {
         doc.setFillColor(...grayLight);
         doc.rect(14, startY, pageW - 28, 7, 'F');
@@ -275,7 +272,6 @@ const PurchaseOrderHistory = () => {
       drawRow('Dirección', s.address, y, 0);
       y += 16;
 
-      // ── Sección Orden ────────────────────────────────────────
       y = drawSection('DATOS DE LA ORDEN', y);
       drawRow('Fecha esperada', data.expected_date ?? '—', y, 0);
       drawRow('Fecha recepción', data.received_at
@@ -287,10 +283,10 @@ const PurchaseOrderHistory = () => {
       }
       y += 2;
 
-      // ── Tabla de Items ───────────────────────────────────────
+
       y = drawSection('DETALLE DE PRODUCTOS', y);
 
-      // Cabecera tabla
+
       const cols = [
         { label: 'CÓD. PRODUCTO', x: 14, w: 38 },
         { label: 'PRODUCTO', x: 54, w: 70 },
@@ -307,7 +303,7 @@ const PurchaseOrderHistory = () => {
       cols.forEach(c => doc.text(c.label, c.x + 2, y + 5.5));
       y += 8;
 
-      // Filas
+
       data.items.forEach((item, i) => {
         const bg = i % 2 === 0 ? [255, 255, 255] : [248, 250, 252];
         doc.setFillColor(...bg);
@@ -328,13 +324,13 @@ const PurchaseOrderHistory = () => {
         y += 8;
       });
 
-      // Borde tabla
+
       doc.setDrawColor(...primaryColor);
       doc.setLineWidth(0.3);
       doc.rect(14, y - (data.items.length * 8) - 8, pageW - 28, data.items.length * 8 + 8);
       y += 4;
 
-      // ── Total ────────────────────────────────────────────────
+
       doc.setFillColor(...primaryColor);
       doc.roundedRect(pageW - 60, y, 46, 12, 2, 2, 'F');
       doc.setTextColor(255, 255, 255);
@@ -344,7 +340,7 @@ const PurchaseOrderHistory = () => {
       doc.text(`S/ ${Number(data.total).toFixed(2)}`, pageW - 16, y + 8, { align: 'right' });
       y += 20;
 
-      // ── Footer ───────────────────────────────────────────────
+
       doc.setDrawColor(...grayLight);
       doc.setLineWidth(0.5);
       doc.line(14, y, pageW - 14, y);
