@@ -4,14 +4,43 @@ import { TbPlus } from 'react-icons/tb'
 import SalesOrdersTable from '@/composables/admin/marketing/salesOrders/tables/SalesOrdersTable'
 import CreateSalesOrderModal from '@/composables/admin/marketing/salesOrders/modals/CreateSalesOrderModal'
 import ViewSalesOrderModal from '@/composables/admin/marketing/salesOrders/modals/ViewSalesOrderModal'
-import { useSales } from '@/providers/SalesContext'
+import useCrud from '@/hooks/useCrud'
+import { useEffect } from 'react'
 
 const SalesOrders = () => {
-  const { salesOrders, updateOrder, deleteOrder, createOrder } = useSales()
+  const { getModel, deleteModel } = useCrud('/api/v1/admin/sales_orders')
+  const [salesOrders, setSalesOrders] = useState([])
+
+  useEffect(() => {
+    fetchOrders()
+  }, [])
+
+  const fetchOrders = async () => {
+    try {
+      const res = await getModel()
+      // Map backend data to frontend table structure
+      const mapped = (res.sales_orders || []).map(o => ({
+        id: o.id,
+        code: o.code,
+        quotation_code: o.quotation?.code || '-',
+        customer: o.client?.business_name || o.client?.contact_name || 'Sin cliente',
+        document: o.client?.document_number || '-',
+        order_type: o.quotation?.quotation_type || 'sale',
+        advisor: o.advisor ? `${o.advisor.first_name} ${o.advisor.last_name}` : 'Sin asesor',
+        amount: o.total,
+        date: new Date(o.created_at).toISOString().split('T')[0],
+        status: o.status,
+        _original: o
+      }))
+      setSalesOrders(mapped)
+    } catch (e) {
+      console.error(e)
+    }
+  }
 
   const [pagination, setPagination]     = useState({ pageIndex: 0, pageSize: 10 })
   const [search, setSearch]             = useState('')
-  const [searchFields, setSearchFields] = useState(['code'])
+  const [searchFields, setSearchFields] = useState(['code', 'customer'])
   const [isModalOpen, setIsModalOpen]   = useState(false)
   const [isViewOpen, setIsViewOpen]     = useState(false)
   const [selected, setSelected]         = useState(null)
@@ -21,11 +50,16 @@ const SalesOrders = () => {
   const handleCreate = ()    => { setSelected(null); setIsModalOpen(true) }
   const handleEdit   = (row) => { setSelected(row);  setIsModalOpen(true) }
   const handleView   = (row) => { setSelected(row);  setIsViewOpen(true) }
-  const handleDelete = (row) => deleteOrder(row.id)
+  const handleDelete = async (row) => {
+    if (window.confirm('¿Seguro que deseas eliminar esta orden?')) {
+      await deleteModel(row.id)
+      fetchOrders()
+    }
+  }
 
   const handleSave = (form) => {
-    if (form.id) updateOrder(form)
-    else         createOrder({ ...form, id: Date.now(), status: 'Generated' })
+    // Para simplificar, recargamos la data tras crear/editar
+    fetchOrders()
   }
 
   return (

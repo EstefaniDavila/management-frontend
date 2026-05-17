@@ -4,9 +4,36 @@ import GeneralTooltip from '@/helpers/generalTooltip'
 import { TbEdit, TbTrash, TbEye, TbCheck, TbX } from "react-icons/tb"
 
 const statusColor = {
-  Pending:  'bg-yellow-200 text-yellow-800',
-  Approved: 'bg-green-200 text-green-800',
-  Rejected: 'bg-red-200 text-red-800',
+  Pending:          'bg-yellow-100 text-yellow-800',
+  pending_approval: 'bg-yellow-100 text-yellow-800',
+  Approved:         'bg-green-100 text-green-800',
+  approved:         'bg-green-100 text-green-800',
+  Rejected:         'bg-red-100 text-red-800',
+  rejected:         'bg-red-100 text-red-800',
+  draft:            'bg-gray-100 text-gray-800',
+  sent:             'bg-blue-100 text-blue-800',
+}
+
+const statusLabel = {
+  Pending:          'Pendiente',
+  pending_approval: 'Pendiente',
+  Approved:         'Aprobado',
+  approved:         'Aprobado',
+  Rejected:         'Rechazado',
+  rejected:         'Rechazado',
+  draft:            'Borrador',
+  sent:             'Enviado',
+}
+
+const statusTooltip = {
+  Pending:          'Cotización en espera de revisión por la gerencia',
+  pending_approval: 'Cotización en espera de revisión por la gerencia',
+  Approved:         'Cotización aprobada',
+  approved:         'Cotización aprobada',
+  Rejected:         'Cotización rechazada',
+  rejected:         'Cotización rechazada',
+  draft:            'Borrador en edición por el asesor',
+  sent:             'Cotización enviada al cliente',
 }
 
 const typeLabels = {
@@ -63,8 +90,21 @@ const columns = (handleView, handleApprove, handleReject, handleDelete, handleEd
     accessorKey: 'status',
     header: 'Estado',
     cell: info => {
-      const value = info.getValue()
-      return <Badge className={`px-2 py-1 rounded ${statusColor[value]}`}>{value}</Badge>
+      const v = info.getValue() || 'draft'
+      const color = statusColor[v] || 'bg-gray-100 text-gray-800'
+      const label = statusLabel[v] || v
+      const tooltip = statusTooltip[v] || 'Estado actual de la cotización'
+
+      return (
+        <GeneralTooltip
+          content={tooltip}
+          triggerContent={
+            <Badge className={`px-2 py-1 rounded cursor-help ${color}`}>
+              {label}
+            </Badge>
+          }
+        />
+      )
     },
     enableColumnFilter: true,
   },

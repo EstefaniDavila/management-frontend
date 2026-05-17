@@ -25,25 +25,27 @@ const Routes = () => {
   const roleRouter = {
     Admin: adminRoutes,       // Administrador - acceso total
     Customer: customerRoutes,    // Cliente externo - acceso limitado
-    SalesAdvisor: advisorRoutes,     // Asesor Comercial - Marketing & Sales
+    Advisor: advisorRoutes,     // Asesor Comercial - Marketing & Sales
     Technician: techRoutes,        // Técnico - Production & Operations
-    Warehouseman: warehouseRoutes,
-    LogisticsUser: logisticCoordinatorRoutes,   // Operador de Almacén - Logistics & Warehouse
-    // Operation:    operationRoutes,   // Operación - su área + reportes
-    // Manager:      areaManagerRoutes,     // Jefe de Área - su departamento + reportes
+    Warehouseman: warehouseRoutes,   // Operador de Almacén - Logistics & Warehouse
+    LogisticsUser: logisticCoordinatorRoutes, // Coordinador logístico
   }
 
   const managerRouter = {
     operations: operationRoutes,
+    Operations: operationRoutes,
     sales: areaManagerRoutes,
+    comercial: areaManagerRoutes,
+    Comercial: areaManagerRoutes,
+    operaciones: operationRoutes,
+    Operaciones: operationRoutes,
   }
 
   const routesForPublic = [
-
-    // { path: "/500", Component: GeneralError },
-    // { path: "/404", Component: NotFoundError },
-    // { path: "/503", Component: MaintenanceError },
-    // { path: "*", Component: NotFoundError },
+    { path: "/500", Component: GeneralError },
+    { path: "/404", Component: NotFoundError },
+    { path: "/503", Component: MaintenanceError },
+    { path: "*", Component: NotFoundError },
   ]
 
   let routesForAuthenticatedOnly = []
@@ -51,11 +53,11 @@ const Routes = () => {
   if (!user) {
     routesForAuthenticatedOnly = []
   } else if (user.roleable_type === "Manager") {
-    routesForAuthenticatedOnly =
-      managerRouter[user.roleable.area]
+    const area = (user.roleable?.area || user.area || '').toLowerCase()
+    console.log('[Routes] Manager area:', area, '| roleable:', user.roleable)
+    routesForAuthenticatedOnly = managerRouter[area] || areaManagerRoutes
   } else {
-    routesForAuthenticatedOnly =
-      roleRouter[user.roleable_type] || []
+    routesForAuthenticatedOnly = roleRouter[user.roleable_type] || []
   }
 
   const routesForNotAuthenticatedOnly = [

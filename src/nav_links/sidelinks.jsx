@@ -8,19 +8,21 @@ import { operationLinks } from "./customSideLinks/operationLinks"
 import { logisticCoordinatorLinks } from "./customSideLinks/logisticsCoordinator"
 
 const roleLinks = {
-  Admin: adminLinks,
-  // Manager:          areaManagerLinks,   // Jefe de área
-  SalesAdvisor: advisorLinks,   // Asesor comercial
-  Technician: techLinks,
-  Warehouseman: warehouseLinks, // Almacenero
-  Customer: customerLinks,
-  LogisticsUser: logisticCoordinatorLinks,
-  // Operation:        operationLinks,       // Jefe de Operaciones
+  Admin:            adminLinks,
+  Advisor:          advisorLinks,   // Asesor comercial
+  Technician:       techLinks,
+  Warehouseman:     warehouseLinks, // Almacenero
+  Customer:         customerLinks,
+  LogisticsUser:    logisticCoordinatorLinks, // Coordinador logistico
 }
 
 const managerLinks = {
-  operations: operationLinks,
-  sales: areaManagerLinks
+  operations:   operationLinks,
+  sales:        areaManagerLinks,
+  comercial:    areaManagerLinks,
+  Comercial:    areaManagerLinks,
+  operaciones:  operationLinks,
+  Operaciones:  operationLinks,
 }
 
 export const getSidelinks = () => {
@@ -29,7 +31,8 @@ export const getSidelinks = () => {
   if (!user) return []
 
   if (user.roleable_type === "Manager") {
-    return managerLinks[user.roleable.area]
+    const area = (user.roleable?.area || '').toLowerCase()
+    return managerLinks[area] || areaManagerLinks
   }
 
   return roleLinks[user.roleable_type] || []
