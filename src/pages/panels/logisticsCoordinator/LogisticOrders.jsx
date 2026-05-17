@@ -283,13 +283,7 @@ const LogisticOrders = () => {
       <div className="max-w-[1600px] mx-auto flex flex-col gap-3">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">
-            <PackageCheck className="h-5 w-5 text-green-600" />
             <h1 className="text-base font-semibold">Órdenes de Compra - Logística</h1>
-            {pendientes > 0 && (
-              <span className="px-2 py-0.5 bg-yellow-100 text-yellow-700 text-xs rounded-full">
-                {pendientes} pendientes
-              </span>
-            )}
           </div>
         </div>
 

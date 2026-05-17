@@ -159,7 +159,7 @@ const columns = (handleEdit, handleHistory, handleDelete) => [
 
   {
     accessorKey: 'secondaryValue',
-    header: 'MIN',
+    header: 'STOCK MÍNIMO/H. USO',
     cell: ({ row }) => {
       const value = row.original.secondaryValue;
       const productType = row.original.product_type;

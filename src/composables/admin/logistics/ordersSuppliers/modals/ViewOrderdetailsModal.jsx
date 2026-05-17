@@ -89,8 +89,8 @@ const ViewOrderdetailsModal = ({ open, setOpen, order }) => {
                         <p className="text-lg sm:text-xl font-bold font-mono">{order.orderId}</p>
                     </div>
                     <Badge className={`w-fit ${order.status === 'ENTREGADO'
-                            ? 'bg-green-500'
-                            : 'bg-blue-500'
+                        ? 'bg-green-500'
+                        : 'bg-blue-500'
                         }`}>
                         {order.status}
                     </Badge>
@@ -200,28 +200,6 @@ const ViewOrderdetailsModal = ({ open, setOpen, order }) => {
                         </div>
                     </div>
                 </div>
-
-                <div className="flex flex-col sm:flex-row gap-2 pt-2 sticky bottom-0 bg-background py-2">
-                    <Button
-                        variant="outline"
-                        className="w-full sm:w-auto gap-2"
-                        onClick={() => window.print()}
-                    >
-                        <Printer className="h-4 w-4" />
-                        Imprimir
-                    </Button>
-                    <Button
-                        variant="default"
-                        className="w-full sm:w-auto gap-2"
-                        onClick={() => {
-                            alert(`Generando PDF para la orden ${order.orderId}...\nPróximamente disponible`);
-                        }}
-                    >
-                        <Download className="h-4 w-4" />
-                        Descargar PDF
-                    </Button>
-                </div>
-
             </div>
         </Modal>
     );

@@ -27,11 +27,6 @@ import { Plus, Trash2 } from 'lucide-react';
 const CreateNewOrderModalLogistic = ({ open, setOpen, onSave, suppliers, initialSupplierId }) => {
     const { user } = useAuth();
 
-    // Usar useEntityMutation para purchase_orders
-    const { mutateAsync: createPurchaseOrder } = useEntityMutation({
-        entityName: 'purchase_orders'
-    });
-
     const [formData, setFormData] = useState({
         supplier_id: '',
         requested_by_id: user?.id || '',
@@ -41,8 +36,6 @@ const CreateNewOrderModalLogistic = ({ open, setOpen, onSave, suppliers, initial
             { ui_id: Date.now(), product_id: '', product_nombre: '', quantity: 1, unit_cost: 0, subtotal: 0 }
         ]
     });
-
-    // Resto del código (useEffects, handlers) se mantiene igual...
     useEffect(() => {
         if (user?.id) {
             setFormData(prev => ({ ...prev, requested_by_id: user.id }));
@@ -62,24 +55,51 @@ const CreateNewOrderModalLogistic = ({ open, setOpen, onSave, suppliers, initial
                     { ui_id: Date.now(), product_id: '', product_nombre: '', quantity: 1, unit_cost: 0, subtotal: 0 }
                 ]
             });
+            setSupplierProducts([]);
         }
     }, [initialSupplierId, open, user?.id]);
 
-    const [productos, setProductos] = useState([]);
-    const { getModel } = useCrud('/api/v1/logistic_user/products');
+    const [supplierProducts, setSupplierProducts] = useState([]);
+    const [loadingProducts, setLoadingProducts] = useState(false);
 
     useEffect(() => {
-        const fetchProducts = async () => {
+        const fetchSupplierProducts = async () => {
+            if (!formData.supplier_id) {
+                setSupplierProducts([]);
+                return;
+            }
+
+            setLoadingProducts(true);
             try {
-                const response = await getModel();
-                const productsArray = response.data || (Array.isArray(response) ? response : []);
-                setProductos(productsArray);
+                const response = await fetch(`/api/v1/admin/suppliers/${formData.supplier_id}/supplier_products`);
+                const data = await response.json();
+                const mappedProducts = data.map(sp => ({
+                    id: sp.product.id,
+                    name: sp.product.name,
+                    code: sp.product.code,
+                    base_price: parseFloat(sp.unit_cost),
+                    supplier_code: sp.supplier_code,
+                    supplier_product_id: sp.id
+                }));
+
+                setSupplierProducts(mappedProducts);
+
+                setFormData(prev => ({
+                    ...prev,
+                    purchase_order_items_attributes: [
+                        { ui_id: Date.now(), product_id: '', product_nombre: '', quantity: 1, unit_cost: 0, subtotal: 0 }
+                    ]
+                }));
             } catch (error) {
-                console.error("Error fetching products:", error);
+                console.error("Error fetching supplier products:", error);
+                setSupplierProducts([]);
+            } finally {
+                setLoadingProducts(false);
             }
         };
-        fetchProducts();
-    }, []);
+
+        fetchSupplierProducts();
+    }, [formData.supplier_id]);
 
     const handleInputChange = (field, value) => {
         setFormData(prev => ({ ...prev, [field]: value }));
@@ -138,37 +158,28 @@ const CreateNewOrderModalLogistic = ({ open, setOpen, onSave, suppliers, initial
             return;
         }
 
-        // Preparar los items en el formato correcto
         const cleanedItemsAttributes = formData.purchase_order_items_attributes.map(item => ({
             product_id: item.product_id,
             quantity: item.quantity,
             unit_cost: parseFloat(item.unit_cost)
         }));
 
-        // Crear el objeto con el formato que espera el backend
-        const payload = {
-            supplier_id: formData.supplier_id,
-            requested_by_id: formData.requested_by_id,
-            expected_date: formData.expected_date,
-            notes: formData.notes,
-            purchase_order_items_attributes: cleanedItemsAttributes
-        };
+        const payload = new FormData();
+        payload.append('supplier_id', formData.supplier_id);
+        if (formData.requested_by_id) payload.append('requested_by_id', formData.requested_by_id);
+        if (formData.expected_date) payload.append('expected_date', formData.expected_date);
+        if (formData.notes) payload.append('notes', formData.notes);
+
+        cleanedItemsAttributes.forEach((item, index) => {
+            payload.append(`purchase_order_items_attributes[${index}][product_id]`, item.product_id);
+            payload.append(`purchase_order_items_attributes[${index}][quantity]`, item.quantity);
+            payload.append(`purchase_order_items_attributes[${index}][unit_cost]`, item.unit_cost);
+        });
 
         try {
-            // Usar useEntityMutation para crear
-            const response = await createPurchaseOrder({
-                action: "create",
-                entity: purchaseOrderData, // ← El objeto que quieres crear
-                endpoint: '/api/v1/logistic_user/purchase_orders'
-            });
-
-            console.log("Pedido creado:", response);
-
             if (onSave) {
                 await onSave(payload);
             }
-
-            // Resetear formulario
             setFormData({
                 supplier_id: initialSupplierId ? initialSupplierId.toString() : '',
                 requested_by_id: user?.id || '',
@@ -178,10 +189,10 @@ const CreateNewOrderModalLogistic = ({ open, setOpen, onSave, suppliers, initial
                     { ui_id: Date.now(), product_id: '', product_nombre: '', quantity: 1, unit_cost: 0, subtotal: 0 }
                 ]
             });
+            setSupplierProducts([]);
 
         } catch (error) {
             console.error("Error al crear pedido:", error);
-            // El toast ya se maneja en useEntityMutation
         }
     };
 
@@ -194,7 +205,6 @@ const CreateNewOrderModalLogistic = ({ open, setOpen, onSave, suppliers, initial
             size="lg"
             callBack={handleSubmit}
         >
-            {/* Resto del JSX se mantiene igual */}
             <div className="flex flex-col gap-4 py-4 max-h-[60vh] overflow-y-auto px-1">
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div className="space-y-2">
@@ -237,11 +247,29 @@ const CreateNewOrderModalLogistic = ({ open, setOpen, onSave, suppliers, initial
                 <div className="space-y-3">
                     <div className="flex justify-between items-center">
                         <Label>Productos *</Label>
-                        <Button type="button" variant="outline" size="sm" onClick={addProduct} className="gap-1">
+                        <Button
+                            type="button"
+                            variant="outline"
+                            size="sm"
+                            onClick={addProduct}
+                            className="gap-1"
+                            disabled={!formData.supplier_id || supplierProducts.length === 0}
+                        >
                             <Plus className="h-4 w-4" />
                             Agregar Producto
                         </Button>
                     </div>
+                    {formData.supplier_id && supplierProducts.length === 0 && !loadingProducts && (
+                        <div className="text-center p-4 bg-yellow-50 text-yellow-600 rounded-lg text-sm">
+                            Este proveedor no tiene productos registrados en el catálogo.
+                        </div>
+                    )}
+
+                    {loadingProducts && (
+                        <div className="text-center p-4 text-muted-foreground">
+                            Cargando productos del proveedor...
+                        </div>
+                    )}
 
                     <div className="border rounded-lg overflow-hidden">
                         <div className="overflow-x-auto">
@@ -260,21 +288,22 @@ const CreateNewOrderModalLogistic = ({ open, setOpen, onSave, suppliers, initial
                                         <TableRow key={item.ui_id}>
                                             <TableCell>
                                                 <Select
-                                                    value={item.product_id}
+                                                    value={item.product_id ? String(item.product_id) : ""}
                                                     onValueChange={(value) => {
-                                                        const selected = productos.find(p => p.id === value);
+                                                        const selected = supplierProducts.find(p => String(p.id) === String(value));
                                                         if (selected) {
-                                                            selectProduct(index, selected.id, selected.name, selected.base_price ? parseFloat(selected.base_price) : 0);
+                                                            selectProduct(index, selected.id, selected.name, selected.base_price);
                                                         }
                                                     }}
+                                                    disabled={!formData.supplier_id || supplierProducts.length === 0}
                                                 >
                                                     <SelectTrigger className="h-8">
-                                                        <SelectValue placeholder="Seleccionar" />
+                                                        <SelectValue placeholder="Seleccionar producto" />
                                                     </SelectTrigger>
                                                     <SelectContent>
-                                                        {productos.map((prod) => (
-                                                            <SelectItem key={prod.id} value={prod.id}>
-                                                                {prod.name} - ${parseFloat(prod.base_price || 0).toFixed(2)}
+                                                        {supplierProducts.map((prod, idx) => (
+                                                            <SelectItem key={`${prod.id}-${idx}`} value={String(prod.id)}>
+                                                                {prod.name} - ${prod.base_price.toFixed(2)}
                                                             </SelectItem>
                                                         ))}
                                                     </SelectContent>
@@ -287,6 +316,7 @@ const CreateNewOrderModalLogistic = ({ open, setOpen, onSave, suppliers, initial
                                                     value={item.quantity}
                                                     onChange={(e) => handleProductChange(index, 'quantity', parseInt(e.target.value) || 0)}
                                                     className="h-8 text-center"
+                                                    disabled={!item.product_id}
                                                 />
                                             </TableCell>
                                             <TableCell>
@@ -295,8 +325,8 @@ const CreateNewOrderModalLogistic = ({ open, setOpen, onSave, suppliers, initial
                                                     min="0"
                                                     step="0.01"
                                                     value={item.unit_cost}
-                                                    onChange={(e) => handleProductChange(index, 'unit_cost', parseFloat(e.target.value) || 0)}
-                                                    className="h-8 text-right"
+                                                    readOnly
+                                                    className="h-8 text-right bg-muted"
                                                 />
                                             </TableCell>
                                             <TableCell className="text-right font-medium">

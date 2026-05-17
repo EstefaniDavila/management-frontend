@@ -70,27 +70,11 @@ const columns = (handleEdit, handleHistory, handleDelete) => [
     enableColumnFilter: true,
   },
   {
-    accessorKey: 'status',
-    header: 'ESTADO',
-    cell: info => getStatusBadge(info.getValue()),
-    enableColumnFilter: true,
-  },
-  {
     header: () => <div className="text-center">ACCIONES</div>,
     id: 'actions',
     cell: ({ row }) => (
 
       <div className="flex items-center justify-center gap-2">
-        <Button
-          variant="ghost"
-          size="icon"
-          className="h-8 w-8 text-orange-500 hover:text-orange-600 hover:bg-orange-50"
-          title="Editar"
-          onClick={() => handleEdit(row.original)}
-        >
-          <Pencil className="h-4 w-4" />
-        </Button>
-
         <Button
           variant="ghost"
           size="icon"
@@ -100,8 +84,6 @@ const columns = (handleEdit, handleHistory, handleDelete) => [
         >
           <History className="h-4 w-4" />
         </Button>
-
-
 
       </div>
     ),
