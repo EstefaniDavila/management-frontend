@@ -21,7 +21,6 @@ const WorkOrder = () => {
   const searchParams = {search, fields: searchFields.join(',') }
   const { data: workOrdersData, refetch: refetchWorkOrders } = useFetchWorkOrdersByTechnician(pagination, searchParams, user?.roleable?.id)
   const totalPages = Math.ceil((workOrdersData?.rowCount || 0 )/ pagination.pageSize) || 0
-  console.log('workOrdersData', workOrdersData) 
   const handleOpenModal = (type, data = null) => {
     setIsModalOpen(true)
     setTypeModal(type)

@@ -15,13 +15,13 @@ const entityTranslations = {
 const useEntityMutation = ({ entityName }) => {
   const { toast } = useToast()
   const queryClient = useQueryClient()
-  const { insertModel, updateModel, deleteModel } = useCrud()
+  const { insertModel, updateModel, deleteModel, patchModel } = useCrud()
 
   const mutation = useMutation({
     mutationFn: async ({ action, entity, endpoint }) => {
       const formData = new FormData()
 
-      if (action === "create" || action === "update") {
+      if (action === "create" || action === "update" || action === "patch") {
         if (entity instanceof FormData) {
           for (const [key, value] of entity.entries()) {
             formData.append(`${entityName}[${key}]`, value);
@@ -40,6 +40,8 @@ const useEntityMutation = ({ entityName }) => {
           return await updateModel(formData, endpoint)
         case "delete":
           return await deleteModel(endpoint)
+        case "patch":
+          return await patchModel(formData, endpoint)
         default:
           throw new Error("Acción no válida")
       }

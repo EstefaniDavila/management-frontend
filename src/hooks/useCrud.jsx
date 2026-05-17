@@ -94,6 +94,33 @@ const useCrud = (endpoint) => {
       }
     }
   }
+  
+  const patchModel = async (_data, _endpoint = endpoint) => {
+      const confirmation = await confirm({
+        title: "Actualizar parcialmente el registro",
+        body: "¿Estás seguro de que quieres actualizar este registro?",
+        cancelButton: "Cancelar",
+        actionButton: "Actualizar",
+      })
+      if (!confirmation) {
+        throw new Error('Acción cancelada por el usuario')
+      }
+      try {
+        const response = await axios.patch(`${backend_host}${_endpoint}`,_data)
+        return response.data
+      } catch (error) {
+        if (error.response) {
+          const backendMessage =error.response.data?.message || "Error desconocido"
+          console.error('Error al actualizar el registro:',backendMessage)
+          throw error
+        } else {
+          console.error('Network error or server is not responding:',error)
+          return Promise.reject({
+            message: 'Network error or server is not responding'
+          })
+        }
+      }
+    }
 
 
 
@@ -102,6 +129,7 @@ const useCrud = (endpoint) => {
     insertModel,
     deleteModel,
     updateModel,
+    patchModel,
   }
 }
 

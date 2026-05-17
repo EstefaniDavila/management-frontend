@@ -92,7 +92,7 @@ const columns = (handleShow, handleBuild, handleResume) => [
             onClick={()=> handleBuild(row?.original, 'edit')}
           />
         )}
-        {status === "OPEN" && (
+        {/* {status === "OPEN" && (
           <GeneralTooltip
             content='Revisar Mantenimiento'
             triggerContent={
@@ -102,8 +102,8 @@ const columns = (handleShow, handleBuild, handleResume) => [
             }
             onClick={()=> handleShow(row?.original, 'edit')}
           />
-        )}
-        {status === "CLOSED" && (
+        )} */}
+        {/* {status === "CLOSED" && (
           <GeneralTooltip
             content='Resumen Orden de Trabajo'
             triggerContent={
@@ -113,7 +113,7 @@ const columns = (handleShow, handleBuild, handleResume) => [
             }
             onClick={()=> handleResume(row?.original, 'resume')}
           />
-        )}
+        )} */}
       </div>
     )
   },

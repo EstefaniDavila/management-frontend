@@ -1,9 +1,14 @@
 import { useLocation } from 'react-router-dom'
+import { useState } from 'react'
 import { AlertTriangle, Wrench, Clock, Hash, Building2, CalendarDays } from "lucide-react"
 import { Badge } from "@/components/ui/badge"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import OpenWorkOrderSection from '@/composables/technician/operations/work-order/sections/OpenWorkOrderSection'
 import InProgressWorkOrderSection from '@/composables/technician/operations/work-order/sections/InProgressWorkOrderSection'
+import useEntityMutation from '@/hooks/useEntityMutation'
+import { Button } from "@/components/ui/button"
+import { useNavigate } from "react-router-dom"
+
 
 const formatDate = (date) => {
   if (!date) return "-"
@@ -30,9 +35,23 @@ const priorityColors = {
 
 export default function WorkOrderDetail() {
   const { state } = useLocation()
-  const workOrder = state?.workOrder
+  const [workOrder, setWorkOrder] = useState(state?.workOrder)
   const maintenance = workOrder?.maintenance
   const vehicle = maintenance?.enterprise_vehicle
+  const navigate = useNavigate()
+  const [formData, setFormData] = useState({
+    diagnosis: "",
+    diagnosis_result: "",
+    status: "CLOSED"
+  })
+  const mutationWorkOrder = useEntityMutation({entityName: "work_order"})
+
+  const handleCloseWorkOrder = async () => {
+    mutationWorkOrder.mutate(
+      { action: 'patch', entity: formData, endpoint: `/api/v1/manager/work_orders/update_diagnosis/${workOrder?.id}` },
+    )
+    navigate(-1)
+  }
   
   return (
     <div className="p-6 space-y-4">
@@ -129,16 +148,27 @@ export default function WorkOrderDetail() {
         </CardContent>
       </Card>
 
-      {maintenance?.status === "OPEN" && (
+      {workOrder?.work_order_type === "DIAGNOSTIVE" && (
         <OpenWorkOrderSection
           workOrder={workOrder}
+          setWorkOrder={setWorkOrder}
         />
       )}
 
-      {maintenance?.status === "IN_PROGRESS" && (
+      {(workOrder?.work_order_type === "EXECUTION" ||
+        workOrder?.work_order_type === "SUPERVISION" ) && (
         <InProgressWorkOrderSection
           workOrder={workOrder}
+          setWorkOrder={setWorkOrder}
         />
+      )}
+
+      {workOrder?.status === "IN_PROGRESS" && (
+        <div className="flex justify-center">
+        <Button variant="outline" onClick={handleCloseWorkOrder}>
+          Terminar Orden de Trabajo
+        </Button>
+      </div>
       )}
 
     </div>

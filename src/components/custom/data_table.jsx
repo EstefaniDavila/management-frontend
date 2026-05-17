@@ -52,7 +52,9 @@ const DataTable = ({ columns, data, fetchData, pagination, setPagination, search
     technician: 'Técnico',
     date: 'Fecha',
     customer: "Cliente",
-    scheduled_date: "Fecha Programada"
+    scheduled_date: "Fecha Programada",
+    action: "Acción",
+    description: "Descripción"
   };
 
   const table = useReactTable({

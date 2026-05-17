@@ -1,4 +1,5 @@
 import React, {useState, useMemo} from 'react'
+import { useNavigate } from "react-router-dom"
 import useEntityMutation from '@/hooks/useEntityMutation'
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Textarea } from "@/components/ui/textarea"
@@ -6,12 +7,20 @@ import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
 import { useAuth } from '@/providers/UserContext'
 
-export default function OpenWorkOrderSection({ workOrder }) {
+export default function OpenWorkOrderSection({ workOrder, setWorkOrder }) {
   const { user } = useAuth()
+  const navigate = useNavigate()
   const [diagnosisStarted, setDiagnosisStarted] = useState(workOrder?.status === "IN_PROGRESS")
   const [formData, setFormData] = useState({
     diagnosis: "",
-    diagnosisResult: ""
+    diagnosis_result: "",
+    status: "CLOSED"
+  })
+  const [formDataStatus, setFormDataStatus] = useState({
+    status: "IN_PROGRESS",
+  })
+  const [formDataStatusEnd, setFormDataStatusEnd] = useState({
+    status: "DIAGNOSTICATED",
   })
   const [formDataAction, setFormDataAction] = useState({
     action: "Realizando Diagnostico",
@@ -20,35 +29,32 @@ export default function OpenWorkOrderSection({ workOrder }) {
     performed_by_id: user?.roleable?.id || "",
     work_order_id: workOrder?.id || "",
   })
-  // useMemo(()=>{
-  //   if (workOrder) {
-  //     setFormDataAction({
-  //       diagnosis: workOrder.diagnosis || '',
-  //       diagnosis_result: workOrder.diagnosis_result || '',
-  //     })
-  //   }
-  // }, [workOrder])
-  const [diagnosis, setDiagnosis] = useState(workOrder?.diagnosis || "")
-  const [diagnosisResult, setDiagnosisResult] = useState(workOrder?.diagnosis_result || "")
+  const mutationWorkOrder = useEntityMutation({entityName: "work_order"})
   const mutationAction = useEntityMutation({entityName: "work_order_action"})
+  const mutationMaintenance = useEntityMutation({entityName: "maintenance"})
 
   const handleStartDiagnostic = async () => {
     setDiagnosisStarted(true)
-    mutationAction.mutate(
-      { action: 'create', entity: formDataAction, endpoint: '/api/v1/manager/work_order_actions' },
-      handleClose(),
+    await mutationWorkOrder.mutateAsync(
+      { action: 'patch', entity: formDataStatus, endpoint: `/api/v1/manager/work_orders/update_status/${workOrder?.id}` },
     )
+    await mutationAction.mutateAsync(
+      { action: 'create', entity: formDataAction, endpoint: `/api/v1/manager/work_order_actions` },
+    )
+    setWorkOrder((prev) => ({
+      ...prev,
+      status: "IN_PROGRESS"
+    }))
   }
 
   const handleSubmitDiagnostic = async () => {
-
-    // PATCH WORK ORDER
-    // diagnosis
-    // diagnosis_result
-
-    // CREATE ACTION
-    // "Diagnóstico enviado"
-
+    await mutationWorkOrder.mutateAsync(
+      { action: 'patch', entity: formData, endpoint: `/api/v1/manager/work_orders/update_diagnosis/${workOrder?.id}` },
+    )
+    await mutationMaintenance.mutateAsync(
+      { action: 'patch', entity: formDataStatusEnd, endpoint: `/api/v1/manager/maintenances/update_status/${workOrder?.maintenance?.id}` },
+    )
+    navigate(-1)
   }
 
   return (
@@ -83,9 +89,14 @@ export default function OpenWorkOrderSection({ workOrder }) {
 
               <Textarea
                 rows={6}
-                placeholder="Describe detalladamente el diagnóstico realizado..."
-                value={diagnosis}
-                onChange={(e) => setDiagnosis(e.target.value)}
+                placeholder="Describe detalladamente el diagnóstico realizado y cual es el problema con el equipo..."
+                value={formData.diagnosis}
+                onChange={(e) => {
+                  setFormData((prev) => ({
+                    ...prev,
+                    diagnosis: e.target.value
+                  }))
+                }}
               />
             </div>
 
@@ -95,9 +106,14 @@ export default function OpenWorkOrderSection({ workOrder }) {
               </label>
 
               <Input
-                placeholder="Cambiar aceite, ajustar engranajes..."
-                value={diagnosisResult}
-                onChange={(e) => setDiagnosisResult(e.target.value)}
+                placeholder="Ingresar toda implicancia necesaria para la solución del problema..."
+                value={formData.diagnosis_result}
+                onChange={(e) => {
+                  setFormData((prev) => ({
+                    ...prev,
+                    diagnosis_result: e.target.value
+                  }))
+                }}
               />
             </div>
 
