@@ -171,21 +171,21 @@ export default function AreaRequestsTable({ currentArea, role }) {
               Nueva Solicitud
             </Button>
           </DialogTrigger>
-          <DialogContent className="sm:max-w-[425px]">
+          <DialogContent className="sm:max-w-[550px]">
             <DialogHeader>
               <DialogTitle>Crear Nueva Solicitud</DialogTitle>
               <DialogDescription>
                 Genera una petición para que otra área te apoye con requerimientos técnicos o de llenado de datos.
               </DialogDescription>
             </DialogHeader>
-            <div className="grid gap-4 py-4">
+            <div className="flex flex-col gap-4 py-4">
               {(rolePath === 'advisor' || rolePath === 'admin') && (
-                <div className="grid grid-cols-4 items-center gap-4">
-                  <Label htmlFor="quotation" className="text-right">
+                <div className="flex flex-col gap-2">
+                  <Label htmlFor="quotation">
                     Cotización
                   </Label>
                   <Select value={formData.quotation_id} onValueChange={(v) => setFormData({...formData, quotation_id: v})}>
-                    <SelectTrigger className="col-span-3">
+                    <SelectTrigger>
                       <SelectValue placeholder="Selecciona una cotización" />
                     </SelectTrigger>
                     <SelectContent>
@@ -196,40 +196,43 @@ export default function AreaRequestsTable({ currentArea, role }) {
                   </Select>
                 </div>
               )}
-              <div className="grid grid-cols-4 items-center gap-4">
-                <Label htmlFor="toArea" className="text-right">
-                  Área Destino
-                </Label>
-                <Select value={formData.area} onValueChange={(v) => setFormData({...formData, area: v})}>
-                  <SelectTrigger className="col-span-3">
-                    <SelectValue placeholder="Selecciona el área" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="Comercial">Comercial</SelectItem>
-                    <SelectItem value="Operaciones">Operaciones</SelectItem>
-                    <SelectItem value="Logística">Logística</SelectItem>
-                    <SelectItem value="Técnico">Técnico</SelectItem>
-                    <SelectItem value="General">General (Admin)</SelectItem>
-                  </SelectContent>
-                </Select>
+              <div className="grid grid-cols-2 gap-4">
+                <div className="flex flex-col gap-2">
+                  <Label htmlFor="toArea">
+                    Área Destino
+                  </Label>
+                  <Select value={formData.area} onValueChange={(v) => setFormData({...formData, area: v})}>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Selecciona el área" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="Comercial">Comercial</SelectItem>
+                      <SelectItem value="Operaciones">Operaciones</SelectItem>
+                      <SelectItem value="Logística">Logística</SelectItem>
+                      <SelectItem value="Técnico">Técnico</SelectItem>
+                      <SelectItem value="General">General (Admin)</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div className="flex flex-col gap-2">
+                  <Label htmlFor="reqType">
+                    Tipo
+                  </Label>
+                  <Select value={formData.name} onValueChange={(v) => setFormData({...formData, name: v})}>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Tipo de solicitud" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="Completar Cotización">Completar Cotización</SelectItem>
+                      <SelectItem value="Revisión Técnica">Revisión Técnica</SelectItem>
+                      <SelectItem value="Actualización Datos">Actualización Datos</SelectItem>
+                      <SelectItem value="Mantenimiento">Mantenimiento</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
               </div>
-              <div className="grid grid-cols-4 items-center gap-4">
-                <Label htmlFor="reqType" className="text-right">
-                  Tipo
-                </Label>
-                <Select value={formData.name} onValueChange={(v) => setFormData({...formData, name: v})}>
-                  <SelectTrigger className="col-span-3">
-                    <SelectValue placeholder="Tipo de solicitud" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="Completar Cotización">Completar Cotización</SelectItem>
-                    <SelectItem value="Revisión Técnica">Revisión Técnica</SelectItem>
-                    <SelectItem value="Actualización Datos">Actualización Datos</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-              <div className="grid grid-cols-4 items-start gap-4">
-                <Label htmlFor="detail" className="text-right pt-2">
+              <div className="flex flex-col gap-2">
+                <Label htmlFor="detail">
                   Detalle
                 </Label>
                 <Textarea
@@ -237,7 +240,7 @@ export default function AreaRequestsTable({ currentArea, role }) {
                   value={formData.description}
                   onChange={(e) => setFormData({...formData, description: e.target.value})}
                   placeholder="Describe exactamente qué necesitas..."
-                  className="col-span-3"
+                  className="min-h-[100px]"
                 />
               </div>
             </div>
@@ -282,113 +285,203 @@ export default function AreaRequestsTable({ currentArea, role }) {
                 )}
               </div>
 
-              {/* Columna Derecha: Formulario de Respuesta */}
-              <div className="flex flex-col gap-4">
-                <h3 className="font-semibold text-lg border-b pb-2">Tu Respuesta Técnica</h3>
+              {/* Lógica para saber si es una solicitud post-orden (solo confirmación) o pre-cotización (requiere formulario) */}
+              {(() => {
+                const isPostOrder = selectedRequestForReply?.name?.match(/Despacho|Preparar|Ejecutar/i) || selectedRequestForReply?.name?.includes('[');
                 
-                <div className="grid gap-2">
-                  <Label htmlFor="machineReady" className="text-xs">
-                    Disponibilidad de Máquina / Factibilidad
-                  </Label>
-                  <Select value={replyFormData.machine_ready} onValueChange={(v) => setReplyFormData({...replyFormData, machine_ready: v})}>
-                    <SelectTrigger>
-                      <SelectValue placeholder="Selecciona disponibilidad" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="true">Sí, máquina lista/disponible</SelectItem>
-                      <SelectItem value="false">No disponible o En Reparación</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
+                if (isPostOrder) {
+                  return (
+                    <div className="flex flex-col gap-4">
+                      <h3 className="font-semibold text-lg border-b pb-2">Confirmación de Recepción</h3>
+                      <div className="flex flex-col gap-4 p-4 border rounded-md bg-blue-50/50">
+                        <p className="text-sm text-blue-800">
+                          Tu área ha recibido esta solicitud. Al aprobarla o confirmarla, notificarás al equipo de origen que ya están trabajando en las órdenes correspondientes a esta solicitud.
+                        </p>
+                        <p className="text-sm text-blue-800 italic">
+                          No necesitas ingresar detalles aquí. Podrás manejar la gestión operativa directamente desde el módulo de tu área.
+                        </p>
+                      </div>
+                    </div>
+                  );
+                }
 
-                <div className="grid grid-cols-2 gap-4">
-                  <div className="grid gap-2">
-                    <Label className="text-xs">
-                      Tipo de Tarifa (Alquiler)
-                    </Label>
-                    <Select value={replyFormData.rental_rate_type} onValueChange={(v) => setReplyFormData({...replyFormData, rental_rate_type: v})}>
-                      <SelectTrigger>
-                        <SelectValue placeholder="Tipo de cobro" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="Hora">Por Hora</SelectItem>
-                        <SelectItem value="Día">Por Día</SelectItem>
-                        <SelectItem value="Semana">Por Semana</SelectItem>
-                        <SelectItem value="Mes">Por Mes</SelectItem>
-                        <SelectItem value="Global">Tarifa Global / Fija</SelectItem>
-                      </SelectContent>
-                    </Select>
+                // Formulario detallado original
+                return (
+                  <div className="flex flex-col gap-4">
+                    <h3 className="font-semibold text-lg border-b pb-2">Tu Respuesta Técnica</h3>
+                    
+                    <div className="grid gap-2">
+                      <Label htmlFor="machineReady" className="text-xs">
+                        Disponibilidad de Máquina / Factibilidad
+                      </Label>
+                      <Select value={replyFormData.machine_ready} onValueChange={(v) => setReplyFormData({...replyFormData, machine_ready: v})}>
+                        <SelectTrigger>
+                          <SelectValue placeholder="Selecciona disponibilidad" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="true">Sí, máquina lista/disponible</SelectItem>
+                          <SelectItem value="false">No disponible o En Reparación</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+
+                    {(() => {
+                      const isMaintenance = selectedRequestForReply?.name?.toLowerCase().includes('mantenimiento') || selectedRequestForReply?.name?.toLowerCase().includes('revisión');
+                      if (isMaintenance) {
+                        return (
+                          <>
+                            <div className="grid grid-cols-2 gap-4">
+                              <div className="grid gap-2">
+                                <Label htmlFor="unitPrice" className="text-xs">
+                                  Costo de Mantenimiento / Revisión (S/)
+                                </Label>
+                                <Input
+                                  id="unitPrice"
+                                  type="number"
+                                  placeholder="Ej: 500"
+                                  value={replyFormData.unit_price}
+                                  onChange={(e) => setReplyFormData({...replyFormData, unit_price: e.target.value})}
+                                />
+                              </div>
+                              <div className="grid gap-2">
+                                <Label htmlFor="estimatedDays" className="text-xs">
+                                  Duración del Mantenimiento
+                                </Label>
+                                <Input
+                                  id="estimatedDays"
+                                  type="text"
+                                  placeholder="Ej: 2 días, 4 horas..."
+                                  value={replyFormData.estimated_days}
+                                  onChange={(e) => setReplyFormData({...replyFormData, estimated_days: e.target.value})}
+                                />
+                              </div>
+                            </div>
+                            <div className="grid gap-2">
+                              <Label htmlFor="startDate" className="text-xs">
+                                Fecha Sugerida para Mantenimiento
+                              </Label>
+                              <Input
+                                id="startDate"
+                                type="date"
+                                value={replyFormData.start_date}
+                                onChange={(e) => setReplyFormData({...replyFormData, start_date: e.target.value})}
+                              />
+                            </div>
+                          </>
+                        );
+                      }
+                      
+                      // Campos para Alquiler
+                      return (
+                        <>
+                          <div className="grid grid-cols-2 gap-4">
+                            <div className="grid gap-2">
+                              <Label className="text-xs">
+                                Tipo de Tarifa (Alquiler)
+                              </Label>
+                              <Select value={replyFormData.rental_rate_type} onValueChange={(v) => setReplyFormData({...replyFormData, rental_rate_type: v})}>
+                                <SelectTrigger>
+                                  <SelectValue placeholder="Tipo de cobro" />
+                                </SelectTrigger>
+                                <SelectContent>
+                                  <SelectItem value="Hora">Por Hora</SelectItem>
+                                  <SelectItem value="Día">Por Día</SelectItem>
+                                  <SelectItem value="Semana">Por Semana</SelectItem>
+                                  <SelectItem value="Mes">Por Mes</SelectItem>
+                                  <SelectItem value="Global">Tarifa Global / Fija</SelectItem>
+                                </SelectContent>
+                              </Select>
+                            </div>
+                            <div className="grid gap-2">
+                              <Label htmlFor="unitPrice" className="text-xs">
+                                Precio Sugerido por {replyFormData.rental_rate_type} (S/)
+                              </Label>
+                              <Input
+                                id="unitPrice"
+                                type="number"
+                                placeholder="Ej: 1500"
+                                value={replyFormData.unit_price}
+                                onChange={(e) => setReplyFormData({...replyFormData, unit_price: e.target.value})}
+                              />
+                            </div>
+                          </div>
+
+                          <div className="grid gap-2">
+                            <Label htmlFor="estimatedDays" className="text-xs">
+                              Periodo Estimado / Duración
+                            </Label>
+                            <Input
+                              id="estimatedDays"
+                              type="text"
+                              placeholder="Ej: 5 días, 2 semanas..."
+                              value={replyFormData.estimated_days}
+                              onChange={(e) => setReplyFormData({...replyFormData, estimated_days: e.target.value})}
+                            />
+                          </div>
+
+                          <div className="grid gap-2">
+                            <Label htmlFor="startDate" className="text-xs">
+                              Fecha de Inicio Sugerida
+                            </Label>
+                            <Input
+                              id="startDate"
+                              type="date"
+                              value={replyFormData.start_date}
+                              onChange={(e) => setReplyFormData({...replyFormData, start_date: e.target.value})}
+                            />
+                          </div>
+                        </>
+                      );
+                    })()}
+
+                    <div className="grid gap-2">
+                      <Label htmlFor="pickupDetails" className="text-xs">
+                        Detalles de Recojo / Despacho / Logística
+                      </Label>
+                      <Textarea
+                        id="pickupDetails"
+                        value={replyFormData.pickup_details}
+                        onChange={(e) => setReplyFormData({...replyFormData, pickup_details: e.target.value})}
+                        placeholder="Incluir costos de traslado, dirección, requerimientos de cama baja, etc."
+                        className="min-h-[60px]"
+                      />
+                    </div>
+
+                    <div className="grid gap-2">
+                      <Label htmlFor="replyNotes" className="text-xs">
+                        Observaciones Adicionales
+                      </Label>
+                      <Textarea
+                        id="replyNotes"
+                        value={replyFormData.notes}
+                        onChange={(e) => setReplyFormData({...replyFormData, notes: e.target.value})}
+                        placeholder="Detalles del estado de la máquina, recomendaciones..."
+                        className="min-h-[80px]"
+                      />
+                    </div>
                   </div>
-                  <div className="grid gap-2">
-                    <Label htmlFor="unitPrice" className="text-xs">
-                      Precio Sugerido por {replyFormData.rental_rate_type} (S/)
-                    </Label>
-                    <Input
-                      id="unitPrice"
-                      type="number"
-                      placeholder="Ej: 1500"
-                      value={replyFormData.unit_price}
-                      onChange={(e) => setReplyFormData({...replyFormData, unit_price: e.target.value})}
-                    />
-                  </div>
-                </div>
-
-                <div className="grid gap-2">
-                  <Label htmlFor="estimatedDays" className="text-xs">
-                    Periodo Estimado / Duración
-                  </Label>
-                  <Input
-                    id="estimatedDays"
-                    type="text"
-                    placeholder="Ej: 5 días, 2 semanas..."
-                    value={replyFormData.estimated_days}
-                    onChange={(e) => setReplyFormData({...replyFormData, estimated_days: e.target.value})}
-                  />
-                </div>
-
-                <div className="grid gap-2">
-                  <Label htmlFor="startDate" className="text-xs">
-                    Fecha de Inicio Sugerida
-                  </Label>
-                  <Input
-                    id="startDate"
-                    type="date"
-                    value={replyFormData.start_date}
-                    onChange={(e) => setReplyFormData({...replyFormData, start_date: e.target.value})}
-                  />
-                </div>
-
-                <div className="grid gap-2">
-                  <Label htmlFor="pickupDetails" className="text-xs">
-                    Detalles de Recojo / Despacho / Logística
-                  </Label>
-                  <Textarea
-                    id="pickupDetails"
-                    value={replyFormData.pickup_details}
-                    onChange={(e) => setReplyFormData({...replyFormData, pickup_details: e.target.value})}
-                    placeholder="Incluir costos de traslado, dirección, requerimientos de cama baja, etc."
-                    className="min-h-[60px]"
-                  />
-                </div>
-
-                <div className="grid gap-2">
-                  <Label htmlFor="replyNotes" className="text-xs">
-                    Observaciones Adicionales
-                  </Label>
-                  <Textarea
-                    id="replyNotes"
-                    value={replyFormData.notes}
-                    onChange={(e) => setReplyFormData({...replyFormData, notes: e.target.value})}
-                    placeholder="Detalles del estado de la máquina, recomendaciones..."
-                    className="min-h-[80px]"
-                  />
-                </div>
-              </div>
+                );
+              })()}
             </div>
             <DialogFooter>
-              <Button onClick={handleReplySubmit} className="bg-green-600 hover:bg-green-700 text-white">
-                Enviar Respuesta
-              </Button>
+              {(() => {
+                const isPostOrder = selectedRequestForReply?.name?.match(/Despacho|Preparar|Ejecutar/i) || selectedRequestForReply?.name?.includes('[');
+                if (isPostOrder) {
+                  return (
+                    <Button onClick={() => {
+                      setReplyFormData({ ...replyFormData, machine_ready: 'true', notes: 'Solicitud aprobada y en proceso en el área.' })
+                      handleReplySubmit()
+                    }} className="bg-green-600 hover:bg-green-700 text-white">
+                      Marcar como Enterado / Aprobar
+                    </Button>
+                  );
+                }
+                return (
+                  <Button onClick={handleReplySubmit} className="bg-green-600 hover:bg-green-700 text-white">
+                    Enviar Respuesta
+                  </Button>
+                );
+              })()}
             </DialogFooter>
           </DialogContent>
         </Dialog>
@@ -437,17 +530,34 @@ export default function AreaRequestsTable({ currentArea, role }) {
                 </div>
 
                 {selectedRequestForView.status === 'completed' && (
-                  <div className="flex flex-col gap-2 border p-3 rounded-md bg-green-50/50 border-green-200">
-                    <span className="font-semibold text-sm text-green-800">Respuesta del Área:</span>
-                    <div className="grid grid-cols-2 gap-2 text-sm text-green-900">
-                      <div><span className="font-semibold">Máquina Lista:</span> {selectedRequestForView.machine_ready ? 'Sí' : 'No'}</div>
-                      <div><span className="font-semibold">Precio Sugerido:</span> S/ {selectedRequestForView.unit_price || '-'}</div>
-                    </div>
-                    <div className="text-sm mt-2 text-green-900">
-                      <span className="font-semibold">Notas:</span>
-                      <p className="whitespace-pre-line mt-1">{selectedRequestForView.notes || 'Sin notas adicionales'}</p>
-                    </div>
-                  </div>
+                  (() => {
+                    const isPostOrder = selectedRequestForView?.name?.match(/Despacho|Preparar|Ejecutar/i) || selectedRequestForView?.name?.includes('[');
+                    
+                    if (isPostOrder) {
+                      return (
+                        <div className="flex flex-col gap-2 border p-3 rounded-md bg-green-50/50 border-green-200">
+                          <span className="font-semibold text-sm text-green-800">Confirmación del Área:</span>
+                          <p className="text-sm text-green-900 mt-1">
+                            El área destino fue notificada y ha marcado esta solicitud como en proceso / aprobada. Las órdenes respectivas ya están siendo gestionadas en su módulo interno.
+                          </p>
+                        </div>
+                      );
+                    }
+
+                    return (
+                      <div className="flex flex-col gap-2 border p-3 rounded-md bg-green-50/50 border-green-200">
+                        <span className="font-semibold text-sm text-green-800">Respuesta del Área:</span>
+                        <div className="grid grid-cols-2 gap-2 text-sm text-green-900">
+                          <div><span className="font-semibold">Máquina Lista:</span> {selectedRequestForView.machine_ready ? 'Sí' : 'No'}</div>
+                          <div><span className="font-semibold">Precio Sugerido:</span> S/ {selectedRequestForView.unit_price || '-'}</div>
+                        </div>
+                        <div className="text-sm mt-2 text-green-900">
+                          <span className="font-semibold">Notas:</span>
+                          <p className="whitespace-pre-line mt-1">{selectedRequestForView.notes || 'Sin notas adicionales'}</p>
+                        </div>
+                      </div>
+                    );
+                  })()
                 )}
               </div>
             )}
