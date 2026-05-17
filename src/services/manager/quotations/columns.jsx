@@ -11,20 +11,26 @@ const typeLabel = {
 }
 
 const statusColor = {
-  draft:    'bg-gray-100 text-gray-700',
-  sent:     'bg-blue-100 text-blue-800',
-  approved: 'bg-green-100 text-green-800',
-  rejected: 'bg-red-100 text-red-800',
+  draft:              'bg-gray-100 text-gray-700',
+  sent:               'bg-blue-100 text-blue-800',
+  approved:           'bg-green-100 text-green-800',
+  approved_internally:'bg-teal-100 text-teal-800',
+  rejected:           'bg-red-100 text-red-800',
+  client_approved:    'bg-purple-100 text-purple-800',
+  pending_approval:   'bg-amber-100 text-amber-800',
 }
 
 const statusLabel = {
-  draft:    'Borrador',
-  sent:     'Enviada',
-  approved: 'Aprobada',
-  rejected: 'Rechazada',
+  draft:               'Borrador',
+  sent:                'Enviada al Cliente',
+  approved:            'Aprobada Definitivamente',
+  approved_internally: 'Aprobada Internamente',
+  rejected:            'Rechazada',
+  client_approved:     '✅ Cliente Aprobó',
+  pending_approval:    '⏳ Pendiente Aprobación Final',
 }
 
-const columns = (handleView, handleSend, handleApprove, handleReject) => [
+const columns = (handleView, handleSend, handleApprove, handleReject, handleFinalApprove) => [
   {
     accessorKey: 'code',
     header: 'Código',
@@ -98,6 +104,21 @@ const columns = (handleView, handleSend, handleApprove, handleReject) => [
               />
               <GeneralTooltip
                 content="Simular: Cliente rechaza"
+                triggerContent={<span className="bg-red-500 text-white rounded-full p-1"><TbX size={18}/></span>}
+                onClick={() => handleReject(row.original.id)}
+              />
+            </>
+          )}
+          {/* Aprobación Final: cuando el cliente ya aprobó, el gerente puede dar OK definitivo */}
+          {(status === 'client_approved' || status === 'pending_approval') && (
+            <>
+              <GeneralTooltip
+                content="✅ Aprobación Final → Generar Orden"
+                triggerContent={<span className="bg-emerald-600 text-white rounded-full p-1"><TbCheck size={18}/></span>}
+                onClick={() => handleFinalApprove && handleFinalApprove(row.original.id)}
+              />
+              <GeneralTooltip
+                content="Rechazar"
                 triggerContent={<span className="bg-red-500 text-white rounded-full p-1"><TbX size={18}/></span>}
                 onClick={() => handleReject(row.original.id)}
               />

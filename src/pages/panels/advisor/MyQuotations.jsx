@@ -4,7 +4,6 @@ import AdvisorQuotationsTable from '@/composables/advisor/quotations/tables/Advi
 import useCrud from '@/hooks/useCrud'
 import useEntityMutation from '@/hooks/useEntityMutation'
 import { useSales } from '@/providers/SalesContext'
-import { Badge } from '@/components/ui/badge'
 import { useAuth } from '@/providers/UserContext'
 import ViewQuotationModal from '@/composables/admin/marketing/quotations/modals/ViewQuotationModal'
 
@@ -73,7 +72,7 @@ const MyQuotations = () => {
 
       const response = await getModel(`?${params.toString()}`)
       const quotesArray = response.quotations || []
-      
+
       const formattedData = quotesArray.map(item => ({
         id: item.id,
         code: item.code || '-',
@@ -106,9 +105,9 @@ const MyQuotations = () => {
     fetchQuotations()
   }, [pagination.pageIndex, pagination.pageSize, search])
 
-  const handleView    = (q) => setSelected(q)
-  
-  const handleSend    = (id) => {
+  const handleView = (q) => setSelected(q)
+
+  const handleSend = (id) => {
     quotationMutation.mutate({
       action: 'update',
       id,
@@ -169,7 +168,7 @@ const MyQuotations = () => {
       }
     })
   }
-  
+
   const handleSendToClient = async (id) => {
     try {
       const backend_host = import.meta.env.VITE_BACKEND_HOST
@@ -182,6 +181,22 @@ const MyQuotations = () => {
     } catch (e) {
       console.error(e)
       alert('Error al enviar al cliente')
+    }
+  }
+
+  const handleResetToSent = async (id) => {
+    try {
+      const backend_host = import.meta.env.VITE_BACKEND_HOST
+      const res = await fetch(`${backend_host}/api/v1/advisor/quotations/${id}/reset_to_sent`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${localStorage.getItem('access-token')}` }
+      })
+      const data = await res.json()
+      alert(data.message || '✅ Cotización reenviada al cliente para su aprobación')
+      fetchQuotations()
+    } catch (e) {
+      console.error(e)
+      alert('Error al reenviar al cliente')
     }
   }
 
@@ -225,6 +240,7 @@ const MyQuotations = () => {
             onReject={handleReject}
             onSendToArea={handleOpenSendToArea}
             onSendToClient={handleSendToClient}
+            onResetToSent={handleResetToSent}
           />
         </div>
       </div>
@@ -248,7 +264,7 @@ const MyQuotations = () => {
               <Label htmlFor="toArea" className="text-right text-xs">
                 Área Destino
               </Label>
-              <Select value={areaRequestFormData.area} onValueChange={(v) => setAreaRequestFormData({...areaRequestFormData, area: v})}>
+              <Select value={areaRequestFormData.area} onValueChange={(v) => setAreaRequestFormData({ ...areaRequestFormData, area: v })}>
                 <SelectTrigger className="col-span-3 text-black dark:text-white">
                   <SelectValue placeholder="Selecciona el área" />
                 </SelectTrigger>
@@ -264,7 +280,7 @@ const MyQuotations = () => {
               <Label htmlFor="reqType" className="text-right text-xs">
                 Tipo
               </Label>
-              <Select value={areaRequestFormData.name} onValueChange={(v) => setAreaRequestFormData({...areaRequestFormData, name: v})}>
+              <Select value={areaRequestFormData.name} onValueChange={(v) => setAreaRequestFormData({ ...areaRequestFormData, name: v })}>
                 <SelectTrigger className="col-span-3 text-black dark:text-white">
                   <SelectValue placeholder="Tipo de solicitud" />
                 </SelectTrigger>
@@ -282,7 +298,7 @@ const MyQuotations = () => {
               <Textarea
                 id="reqDescription"
                 value={areaRequestFormData.description}
-                onChange={(e) => setAreaRequestFormData({...areaRequestFormData, description: e.target.value})}
+                onChange={(e) => setAreaRequestFormData({ ...areaRequestFormData, description: e.target.value })}
                 placeholder="Indica qué campos o datos específicos requieres que completen..."
                 className="col-span-3 min-h-[150px]"
               />

@@ -6,21 +6,25 @@ import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { TbCheck, TbX } from 'react-icons/tb'
 const statusColor = {
-  draft:            'bg-gray-100 text-gray-700',
-  sent:             'bg-blue-100 text-blue-800',
-  pending_approval: 'bg-yellow-100 text-yellow-800',
-  approved:         'bg-green-100 text-green-800',
-  rejected:         'bg-red-100 text-red-800',
-  web_request:      'bg-purple-100 text-purple-800',
+  draft:              'bg-gray-100 text-gray-700',
+  sent:               'bg-blue-100 text-blue-800',
+  pending_approval:   'bg-yellow-100 text-yellow-800',
+  approved:           'bg-green-100 text-green-800',
+  approved_internally:'bg-teal-100 text-teal-800',
+  rejected:           'bg-red-100 text-red-800',
+  web_request:        'bg-purple-100 text-purple-800',
+  client_approved:    'bg-purple-100 text-purple-800',
 }
 
 const statusLabel = { 
-  draft:            'Borrador', 
-  sent:             'Enviada', 
-  pending_approval: 'Pendiente', 
-  approved:         'Aprobada', 
-  rejected:         'Rechazada',
-  web_request:      '🌐 Web',
+  draft:               'Borrador', 
+  sent:                'Enviada al Cliente', 
+  pending_approval:    'Pendiente Aprob. Gerente', 
+  approved:            'Aprobada Definitivamente',
+  approved_internally: 'Aprobada Internamente',
+  rejected:            'Rechazada',
+  web_request:         '🌐 Web',
+  client_approved:     '✅ Cliente Aprobó',
 }
 
 const typeLabel = {
@@ -75,11 +79,24 @@ const TeamQuotations = () => {
       id: q.id,
       endpoint: `/api/v1/manager/quotations/${q.id}/approve`
     }, {
-      onSuccess: () => {
+      onSuccess: () => fetchQuotations()
+    })
+  }
+
+  // Aprobación Final: cuando el cliente ya aprobó → genera la orden operativa
+  const handleFinalApprove = (id) => {
+    quotationMutation.mutate({
+      action: 'update',
+      id,
+      endpoint: `/api/v1/manager/quotations/${id}/final_approve`
+    }, {
+      onSuccess: (data) => {
         fetchQuotations()
-        if (q.quotation_type === 'machinery_sale' || q.quotation_type === 'parts_sale') {
-          createFromQuotation({ ...q, code: q.code, equipment: q.equipment, document: '' })
-        }
+        const msg = data?.message || 'Orden generada exitosamente'
+        alert(`✅ ${msg}`)
+      },
+      onError: (err) => {
+        alert(`❌ Error: ${err?.message || 'No se pudo generar la orden'}`)
       }
     })
   }
@@ -130,10 +147,11 @@ const TeamQuotations = () => {
                 </p>
               </div>
 
-              {(q.status === 'pending_approval' || q.status === 'sent') && (
+              {/* Botón único: Aprobación Final → genera la orden operativa */}
+              {(q.status === 'pending_approval' || q.status === 'client_approved' || q.status === 'approved_internally' || q.status === 'sent') && (
                 <div className="flex gap-2 shrink-0">
-                  <Button size="sm" className="bg-green-600 hover:bg-green-700 text-white" onClick={() => handleApprove(q)}>
-                    <TbCheck size={14} className="mr-1"/> Aprobar
+                  <Button size="sm" className="bg-emerald-700 hover:bg-emerald-800 text-white" onClick={() => handleFinalApprove(q.id)}>
+                    <TbCheck size={14} className="mr-1"/> Aprobación Final → Orden
                   </Button>
                   <Button size="sm" variant="outline" onClick={() => handleReject(q.id)}>
                     <TbX size={14} className="mr-1"/> Rechazar

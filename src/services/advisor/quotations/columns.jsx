@@ -25,7 +25,7 @@ const statusColor = {
 const statusLabel = {
   draft:            'Borrador',
   sent:             'Enviada',
-  pending_approval: 'Enviada como Solicitud',
+  pending_approval: 'Enviada al Gerente',
   pending:          'Pendiente',
   approved:         'Aprobada',
   rejected:         'Rechazada',
@@ -37,7 +37,7 @@ const statusLabel = {
 const statusTooltip = {
   draft:            'Borrador (Aún se puede verificar y editar)',
   sent:             'Cotización enviada al cliente',
-  pending_approval: 'Enviada al gerente como solicitud de aprobación',
+  pending_approval: 'Cotización enviada al Gerente para aprobación final.',
   pending:          'Cotización web pendiente de validación y aprobación',
   approved:         'Cotización aprobada',
   rejected:         'Cotización rechazada',
@@ -46,7 +46,7 @@ const statusTooltip = {
   client_rejected:  'Cotización rechazada por el cliente',
 }
 
-const columns = (handleView, handleSend, handleApprove, handleReject, handleSendToArea, handleSendToClient) => [
+const columns = (handleView, handleSend, handleApprove, handleReject, handleSendToArea, handleSendToClient, handleResetToSent) => [
   {
     accessorKey: 'code',
     header: 'Código',
@@ -163,9 +163,17 @@ const columns = (handleView, handleSend, handleApprove, handleReject, handleSend
           {/* CLIENT APPROVED: el cliente ya aprobó - asesor puede enviarla al gerente para la aprobación final */}
           {status === 'client_approved' && (
             <GeneralTooltip
-              content="Enviar al Gerente para Aprobación"
+              content="Enviar al Gerente para Aprobación Final"
               triggerContent={<span className="bg-purple-500 text-white rounded-full p-1"><TbSend size={18}/></span>}
               onClick={() => handleSend(row.original.id)}
+            />
+          )}
+          {/* PENDING_APPROVAL sin aprobación del cliente: botón para reenviar al cliente */}
+          {status === 'pending_approval' && (
+            <GeneralTooltip
+              content="⚠ Reenviar al Cliente (el cliente no aprobó aún)"
+              triggerContent={<span className="bg-orange-500 text-white rounded-full p-1"><TbMessage size={18}/></span>}
+              onClick={() => handleResetToSent && handleResetToSent(row.original.id)}
             />
           )}
           {/* Simula o realiza aprobación/rechazo de cotizaciones */}
