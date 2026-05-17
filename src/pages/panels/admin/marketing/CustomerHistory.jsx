@@ -1,22 +1,63 @@
-import React, { useState } from 'react'
+import React, { useState, useEffect } from 'react'
 import CustomerHistoryTable from '@/composables/admin/marketing/customerHistory/tables/CustomerHistoryTable'
 import CustomerDetailModal from '@/composables/admin/marketing/customerHistory/modals/CustomerDetailModal'
-
-const fakeCustomers = [
-  { id: 1, code: 'CUST-001', business_name: 'Constructora Lima SAC', document_type: 'RUC', document_number: '20601234567', contact_name: 'María Torres',   phone: '987654321', email: 'contacto@constructora.com', type: 'construccion', address: 'Av. Industrial 123, Lima',        status: 'active'   },
-  { id: 2, code: 'CUST-002', business_name: 'Minera Andina',          document_type: 'RUC', document_number: '20555666777', contact_name: 'Carlos Rojas',   phone: '912345678', email: 'ventas@mineraandina.com',   type: 'mineria',     address: 'Carretera Central Km 45, Junín', status: 'active'   },
-  { id: 3, code: 'CUST-003', business_name: 'Transportes del Sur',    document_type: 'RUC', document_number: '20345678912', contact_name: 'Ana Flores',     phone: '998877665', email: 'info@transportesdelsur.com', type: 'transporte',  address: 'Panamericana Sur Km 120, Ica',   status: 'inactive' },
-  { id: 4, code: 'CUST-004', business_name: 'Energía Perú SAC',       document_type: 'RUC', document_number: '20789123456', contact_name: 'Luis Fernández', phone: '965432187', email: 'lperu@energia.com',         type: 'energia',     address: 'Av. República 456, Lima',        status: 'active'   },
-]
+import useCrud from '@/hooks/useCrud'
 
 const CustomerHistory = () => {
+  const { getModel } = useCrud('/api/v1/admin/clients')
+
+  const [customers, setCustomers]       = useState([])
   const [pagination, setPagination]     = useState({ pageIndex: 0, pageSize: 10 })
   const [search, setSearch]             = useState('')
-  const [searchFields, setSearchFields] = useState(['business_name'])
+  const [searchFields, setSearchFields] = useState(['business_name', 'contact_name', 'email'])
   const [selected, setSelected]         = useState(null)
   const [isModalOpen, setIsModalOpen]   = useState(false)
+  const [totalPages, setTotalPages]     = useState(0)
+  const [isLoading, setIsLoading]       = useState(true)
 
-  const totalPages = Math.ceil(fakeCustomers.length / pagination.pageSize)
+  const fetchCustomers = async () => {
+    try {
+      setIsLoading(true)
+      const params = new URLSearchParams()
+      params.append('page', pagination.pageIndex + 1)
+      params.append('pageSize', pagination.pageSize)
+      if (search) {
+        params.append('search_params', search)
+        params.append('search_fields', searchFields.join(','))
+      }
+
+      const response = await getModel(`?${params.toString()}`)
+      const clientsArray = response.clients || response.data || []
+      
+      const formattedData = clientsArray.map(item => ({
+        id: item.id,
+        code: item.code || '-',
+        business_name: item.business_name || item.contact_name || 'Sin Nombre',
+        document_type: item.document_type || 'RUC/DNI',
+        document_number: item.document_number || '-',
+        contact_name: item.contact_name || '',
+        phone: item.phone || '',
+        email: item.email || '',
+        type: item.client_category || 'General',
+        address: item.address || '',
+        status: item.status || 'active',
+        priority: item.client_category || 'CP',
+        tracking: [],
+        _original: item
+      }))
+
+      setCustomers(formattedData)
+      setTotalPages(response.total_pages || Math.ceil(formattedData.length / pagination.pageSize))
+    } catch (error) {
+      console.error("Error al cargar historial de clientes:", error)
+    } finally {
+      setIsLoading(false)
+    }
+  }
+
+  useEffect(() => {
+    fetchCustomers()
+  }, [pagination.pageIndex, pagination.pageSize, search])
 
   const handleView = (customer) => {
     setSelected(customer)
@@ -42,8 +83,8 @@ const CustomerHistory = () => {
           </div>
           <div className="p-4">
             <CustomerHistoryTable
-              data={fakeCustomers}
-              fetchData={() => {}}
+              data={customers}
+              fetchData={fetchCustomers}
               pagination={pagination}
               setPagination={setPagination}
               totalPages={totalPages}

@@ -19,30 +19,32 @@ import ForgotPassword from '../app/login/ForgotPassword'
 import ResetPassword from '../app/login/ResetPassword'
 import { useAuth } from '../providers/UserContext'
 const Routes = () => {
-  const {  user, authTokens } = useAuth('')
+  const { user, authTokens } = useAuth('')
   console.log("User in Routes.jsx:", user)
 
-const roleRouter = {
-  Admin:        adminRoutes,       // Administrador - acceso total
-  Customer:     customerRoutes,    // Cliente externo - acceso limitado
-  SalesAdvisor: advisorRoutes,     // Asesor Comercial - Marketing & Sales
-  Technician:   techRoutes,        // Técnico - Production & Operations
-  WarehouseOp:  warehouseRoutes,   // Operador de Almacén - Logistics & Warehouse
-  // Operation:    operationRoutes,   // Operación - su área + reportes
-  // Manager:      areaManagerRoutes,     // Jefe de Área - su departamento + reportes
-}
+  const roleRouter = {
+    Admin: adminRoutes,       // Administrador - acceso total
+    Customer: customerRoutes,    // Cliente externo - acceso limitado
+    Advisor: advisorRoutes,     // Asesor Comercial - Marketing & Sales
+    Technician: techRoutes,        // Técnico - Production & Operations
+    Warehouseman: warehouseRoutes,   // Operador de Almacén - Logistics & Warehouse
+    LogisticsUser: logisticCoordinatorRoutes, // Coordinador logístico
+  }
 
-const managerRouter = {
-  operations: operationRoutes,
-  sales: areaManagerRoutes,
-}
+  const managerRouter = {
+    operations: operationRoutes,
+    sales: areaManagerRoutes,
+    comercial: areaManagerRoutes,
+    Comercial: areaManagerRoutes,
+    operaciones: operationRoutes,
+    Operaciones: operationRoutes,
+  }
 
   const routesForPublic = [
-
-    // { path: "/500", Component: GeneralError },
-    // { path: "/404", Component: NotFoundError },
-    // { path: "/503", Component: MaintenanceError },
-    // { path: "*", Component: NotFoundError },
+    { path: "/500", Component: GeneralError },
+    { path: "/404", Component: NotFoundError },
+    { path: "/503", Component: MaintenanceError },
+    { path: "*", Component: NotFoundError },
   ]
 
   let routesForAuthenticatedOnly = []
@@ -50,11 +52,11 @@ const managerRouter = {
   if (!user) {
     routesForAuthenticatedOnly = []
   } else if (user.roleable_type === "Manager") {
-    routesForAuthenticatedOnly =
-      managerRouter[user.roleable.area]
+    const area = (user.roleable?.area || user.area || '').toLowerCase()
+    console.log('[Routes] Manager area:', area, '| roleable:', user.roleable)
+    routesForAuthenticatedOnly = managerRouter[area] || areaManagerRoutes
   } else {
-    routesForAuthenticatedOnly =
-      roleRouter[user.roleable_type] || []
+    routesForAuthenticatedOnly = roleRouter[user.roleable_type] || []
   }
 
   const routesForNotAuthenticatedOnly = [

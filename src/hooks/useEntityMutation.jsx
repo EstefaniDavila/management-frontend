@@ -26,7 +26,7 @@ const useEntityMutation = ({ entityName }) => {
           for (const [key, value] of entity.entries()) {
             formData.append(`${entityName}[${key}]`, value);
           }
-        } else {
+        } else if (entity) {
           for (const key in entity) {
             formData.append(`${entityName}[${key}]`, entity[key])
           }

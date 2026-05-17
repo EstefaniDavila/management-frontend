@@ -1,49 +1,140 @@
-import React, { useState } from 'react'
+import React, { useState, useEffect } from 'react'
 import { Button } from '@/components/ui/button'
 import { TbPlus } from 'react-icons/tb'
 import QuotationsTable from '@/composables/admin/marketing/quotations/tables/QuotationsTable'
 import CreateQuotationModal from '@/composables/admin/marketing/quotations/modals/CreateQuotationModal'
 import ViewQuotationModal from '@/composables/admin/marketing/quotations/modals/ViewQuotationModal'
 import UpdateQuotationModal from '@/composables/admin/marketing/quotations/modals/UpdateQuotationModal'
+import useCrud from '@/hooks/useCrud'
+import useEntityMutation from '@/hooks/useEntityMutation'
 import { useSales } from '@/providers/SalesContext'
 
-const fakeQuotations = {
-  rows: [
-    { id: 1, code: 'QT-001', customer: 'Constructora Lima SAC', document: '20601234567', equipment: 'Excavadora CAT 320',             quotation_type: 'machinery_sale', advisor: 'Juan Pérez',     amount: 185000, date: '2026-04-15', status: 'Pending'  },
-    { id: 2, code: 'QT-002', customer: 'Minera Andina',          document: '20555666777', equipment: 'Cargador Frontal Komatsu WA380', quotation_type: 'machinery_sale', advisor: 'Carlos Ramírez', amount: 260000, date: '2026-04-16', status: 'Approved' },
-    { id: 3, code: 'QT-003', customer: 'Obras del Sur',          document: '20345678912', equipment: 'Retroexcavadora JCB 3CX',        quotation_type: 'parts_sale',     advisor: 'Luis Torres',    amount: 145000, date: '2026-04-17', status: 'Rejected' },
-    { id: 4, code: 'QT-004', customer: 'Energía Perú SAC',       document: '20789123456', equipment: 'Mantenimiento preventivo',       quotation_type: 'maintenance',    advisor: 'Pedro Gómez',    amount: 8500,   date: '2026-04-19', status: 'Pending'  },
-  ],
-}
-
 const Quotations = () => {
-  const [quotations, setQuotations]     = useState(fakeQuotations.rows)
+  const { getModel } = useCrud('/api/v1/admin/quotations')
+  const quotationMutation = useEntityMutation({ entityName: 'quotation' })
+
+  const [quotations, setQuotations]     = useState([])
   const [pagination, setPagination]     = useState({ pageIndex: 0, pageSize: 10 })
   const [search, setSearch]             = useState('')
-  const [searchFields, setSearchFields] = useState(['code', 'customer'])
+  const [searchFields, setSearchFields] = useState(['client_name'])
   const [isCreateOpen, setIsCreateOpen] = useState(false)
   const [isViewOpen, setIsViewOpen]     = useState(false)
   const [selected, setSelected]         = useState(null)
   const [isUpdateOpen, setIsUpdateOpen] = useState(false)
+  const [totalPages, setTotalPages]     = useState(0)
+  const [isLoading, setIsLoading]       = useState(true)
   const { createFromQuotation } = useSales()
 
-  const totalPages = Math.ceil(quotations.length / pagination.pageSize)
+  const fetchQuotations = async () => {
+    try {
+      setIsLoading(true)
+      const params = new URLSearchParams()
+      params.append('page', pagination.pageIndex + 1)
+      params.append('pageSize', pagination.pageSize)
+      if (search) {
+        params.append('search_params', search)
+        params.append('search_fields', searchFields.join(','))
+      }
 
-  const handleCreate  = (newQ) => setQuotations(prev => [newQ, ...prev])
-  const handleView    = (q)    => { setSelected(q); setIsViewOpen(true) }
-//   const handleApprove = (q)    => setQuotations(prev => prev.map(item => item.id === q.id ? { ...item, status: 'Approved' } : item))
-  const handleReject  = (q)    => setQuotations(prev => prev.map(item => item.id === q.id ? { ...item, status: 'Rejected' } : item))
-  const handleDelete  = (id)   => setQuotations(prev => prev.filter(item => item.id !== id))
+      const response = await getModel(`?${params.toString()}`)
+      const quotesArray = response.quotations || response.data || []
+      
+      const formattedData = quotesArray.map(item => ({
+        id: item.id,
+        code: item.code || '-',
+        customer: item.client_name,
+        document: item.client_document || '-',
+        equipment: 'Consultar items', 
+        quotation_type: item.quotation_type || 'machinery_sale',
+        advisor: `Asesor ${item.advisor_id || ''}`,
+        amount: item.total || item.subtotal || 0,
+        date: item.created_at,
+        status: item.status,
+        _original: item
+      }))
 
-  const handleEdit   = (q) => { setSelected(q); setIsUpdateOpen(true) }
-  const handleUpdate = (updated) => setQuotations(prev => prev.map(q => q.id === updated.id ? updated : q))
+      setQuotations(formattedData)
+      setTotalPages(response.total_pages || Math.ceil(formattedData.length / pagination.pageSize))
+    } catch (error) {
+      console.error("Error al cargar cotizaciones:", error)
+    } finally {
+      setIsLoading(false)
+    }
+  }
+
+  useEffect(() => {
+    fetchQuotations()
+  }, [pagination.pageIndex, pagination.pageSize, search])
+
+  const refetchData = () => fetchQuotations()
+
+  const handleCreate = (newQ) => {
+    quotationMutation.mutate({
+      action: 'create',
+      entity: newQ,
+      endpoint: '/api/v1/admin/quotations'
+    }, {
+      onSuccess: () => {
+        refetchData()
+        setIsCreateOpen(false)
+      }
+    })
+  }
+
+  const handleUpdate = (updated) => {
+    quotationMutation.mutate({
+      action: 'update',
+      id: updated.id,
+      entity: updated,
+      endpoint: `/api/v1/admin/quotations/${updated.id}`
+    }, {
+      onSuccess: () => {
+        refetchData()
+        setIsUpdateOpen(false)
+        setSelected(null)
+      }
+    })
+  }
+
+  const handleDelete = (id) => {
+    quotationMutation.mutate({
+      action: 'delete',
+      id,
+      endpoint: `/api/v1/admin/quotations/${id}`
+    }, {
+      onSuccess: () => refetchData()
+    })
+  }
+
+  const handleView = (q) => { setSelected(q); setIsViewOpen(true) }
+  const handleEdit = (q) => { setSelected(q); setIsUpdateOpen(true) }
+
+  // Simulando aprobar y rechazar como una actualización de estado
   const handleApprove = (q) => {
-  setQuotations(prev => prev.map(item =>
-    item.id === q.id ? { ...item, status: 'Approved' } : item
-  ))
-  createFromQuotation(q)  
-}
-  
+    quotationMutation.mutate({
+      action: 'update',
+      id: q.id,
+      entity: { status: 'Approved' },
+      endpoint: `/api/v1/admin/quotations/${q.id}`
+    }, {
+      onSuccess: () => {
+        refetchData()
+        createFromQuotation(q)
+      }
+    })
+  }
+
+  const handleReject = (q) => {
+    quotationMutation.mutate({
+      action: 'update',
+      id: q.id,
+      entity: { status: 'Rejected' },
+      endpoint: `/api/v1/admin/quotations/${q.id}`
+    }, {
+      onSuccess: () => refetchData()
+    })
+  }
+
   return (
     <>
       <div className="flex flex-col gap-4">
@@ -65,7 +156,7 @@ const Quotations = () => {
           <div className="p-4">
             <QuotationsTable
               data={quotations}
-              fetchData={() => {}}
+              fetchData={refetchData}
               pagination={pagination}
               setPagination={setPagination}
               totalPages={totalPages}

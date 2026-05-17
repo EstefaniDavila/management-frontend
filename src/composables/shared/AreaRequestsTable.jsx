@@ -32,46 +32,89 @@ import {
 } from "@/components/ui/dialog"
 import { Textarea } from "@/components/ui/textarea"
 
+import { useAuth } from '@/providers/UserContext'
+import useCrud from '@/hooks/useCrud'
+
 export default function AreaRequestsTable({ currentArea, role }) {
-  const [activeTab, setActiveTab] = useState('received')
+  const { user } = useAuth()
+  const rolePath = role?.toLowerCase() === 'admin' ? 'admin' :
+                   role?.toLowerCase() === 'manager' ? 'manager' :
+                   role?.toLowerCase() === 'advisor' ? 'advisor' : 'admin';
+
+  const { getModel, insertModel, updateModel } = useCrud(`/api/v1/${rolePath}/area_requests`)
+  const { getModel: getQuotations } = useCrud(`/api/v1/${rolePath === 'advisor' ? 'advisor' : 'admin'}/quotations`)
+
+  const [activeTab, setActiveTab] = useState((role?.toLowerCase() === 'admin' || role?.toLowerCase() === 'manager') ? 'all' : 'received')
   const [adminFilter, setAdminFilter] = useState('Todas')
   const [isDialogOpen, setIsDialogOpen] = useState(false)
-  const [allRequests, setAllRequests] = useState(() => {
-    const stored = localStorage.getItem('area_requests_data')
-    if (stored) return JSON.parse(stored)
-    localStorage.setItem('area_requests_data', JSON.stringify(initialRequests))
-    return initialRequests
+  const [allRequests, setAllRequests] = useState([])
+  const [quotations, setQuotations] = useState([])
+  
+  // Form State
+  const [formData, setFormData] = useState({
+    quotation_id: '',
+    area: '',
+    name: '',
+    description: ''
   })
 
-  // Listen to cross-tab or manual storage events
-  React.useEffect(() => {
-    const handleStorage = () => {
-      const stored = localStorage.getItem('area_requests_data')
-      if (stored) setAllRequests(JSON.parse(stored))
+  const fetchRequests = async () => {
+    try {
+      const res = await getModel('?pageSize=1000')
+      setAllRequests(res.area_requests || [])
+    } catch (error) {
+      console.error("Error loading requests", error)
     }
-    window.addEventListener('storage', handleStorage)
-    // Custom event to handle same-page updates
-    window.addEventListener('requests_updated', handleStorage)
-    return () => {
-      window.removeEventListener('storage', handleStorage)
-      window.removeEventListener('requests_updated', handleStorage)
-    }
-  }, [])
+  }
 
-  const handleCreateRequest = () => {
-    // Aquí iría la lógica para agregar el del modal, si fuera funcional
-    setIsDialogOpen(false)
+  const fetchQuotations = async () => {
+    if (rolePath === 'advisor' || rolePath === 'admin') {
+      try {
+        const res = await getQuotations('?pageSize=100')
+        setQuotations(res.quotations || [])
+      } catch (e) {
+        console.error("Error loading quotations", e)
+      }
+    }
+  }
+
+  React.useEffect(() => {
+    fetchRequests()
+    fetchQuotations()
+  }, [rolePath])
+
+  const handleCreateRequest = async () => {
+    if (!formData.quotation_id || !formData.area || !formData.name || !formData.description) return
+    try {
+      await insertModel({ area_request: formData })
+      setIsDialogOpen(false)
+      setFormData({ quotation_id: '', area: '', name: '', description: '' })
+      fetchRequests()
+    } catch (e) {
+      console.error(e)
+    }
   }
   
   // Filter based on role or area
   const requests = allRequests.filter(req => {
-    if (role === 'Admin') {
-      if (adminFilter === 'Todas') return true
-      return req.from === adminFilter || req.to === adminFilter
+    // req.area es el destino (toArea)
+    const fromArea = req.creator_role === 'Advisor' ? 'Comercial' : 
+                     req.creator_role === 'Admin' ? 'General' : 
+                     req.creator_role === 'Manager' ? 'Jefatura' : 
+                     req.creator_role === 'Technician' ? 'Técnico' :
+                     req.creator_role === 'Warehouseman' ? 'Logística' : 'Comercial'
+
+    let matchesTab = true;
+    if (activeTab === 'received') matchesTab = (req.area === currentArea);
+    else if (activeTab === 'sent') matchesTab = (fromArea === currentArea);
+    else if (activeTab === 'all') matchesTab = true;
+
+    let matchesAdminFilter = true;
+    if ((role === 'Admin' || role === 'Manager') && adminFilter !== 'Todas') {
+      matchesAdminFilter = (fromArea === adminFilter || req.area === adminFilter);
     }
-    if (activeTab === 'received') return req.to === currentArea
-    if (activeTab === 'sent') return req.from === currentArea
-    return true
+
+    return matchesTab && matchesAdminFilter;
   })
 
   return (
@@ -93,11 +136,28 @@ export default function AreaRequestsTable({ currentArea, role }) {
               </DialogDescription>
             </DialogHeader>
             <div className="grid gap-4 py-4">
+              {(rolePath === 'advisor' || rolePath === 'admin') && (
+                <div className="grid grid-cols-4 items-center gap-4">
+                  <Label htmlFor="quotation" className="text-right">
+                    Cotización
+                  </Label>
+                  <Select value={formData.quotation_id} onValueChange={(v) => setFormData({...formData, quotation_id: v})}>
+                    <SelectTrigger className="col-span-3">
+                      <SelectValue placeholder="Selecciona una cotización" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {quotations.map(q => (
+                        <SelectItem key={q.id} value={q.id}>{q.code} - {q.client_name || q.customer}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+              )}
               <div className="grid grid-cols-4 items-center gap-4">
                 <Label htmlFor="toArea" className="text-right">
                   Área Destino
                 </Label>
-                <Select>
+                <Select value={formData.area} onValueChange={(v) => setFormData({...formData, area: v})}>
                   <SelectTrigger className="col-span-3">
                     <SelectValue placeholder="Selecciona el área" />
                   </SelectTrigger>
@@ -106,6 +166,7 @@ export default function AreaRequestsTable({ currentArea, role }) {
                     <SelectItem value="Operaciones">Operaciones</SelectItem>
                     <SelectItem value="Logística">Logística</SelectItem>
                     <SelectItem value="Técnico">Técnico</SelectItem>
+                    <SelectItem value="General">General (Admin)</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
@@ -113,7 +174,7 @@ export default function AreaRequestsTable({ currentArea, role }) {
                 <Label htmlFor="reqType" className="text-right">
                   Tipo
                 </Label>
-                <Select>
+                <Select value={formData.name} onValueChange={(v) => setFormData({...formData, name: v})}>
                   <SelectTrigger className="col-span-3">
                     <SelectValue placeholder="Tipo de solicitud" />
                   </SelectTrigger>
@@ -130,13 +191,15 @@ export default function AreaRequestsTable({ currentArea, role }) {
                 </Label>
                 <Textarea
                   id="detail"
+                  value={formData.description}
+                  onChange={(e) => setFormData({...formData, description: e.target.value})}
                   placeholder="Describe exactamente qué necesitas..."
                   className="col-span-3"
                 />
               </div>
             </div>
             <DialogFooter>
-              <Button onClick={() => setIsDialogOpen(false)}>Enviar Solicitud</Button>
+              <Button onClick={handleCreateRequest}>Enviar Solicitud</Button>
             </DialogFooter>
           </DialogContent>
         </Dialog>
@@ -144,13 +207,16 @@ export default function AreaRequestsTable({ currentArea, role }) {
 
       <div className="flex flex-col md:flex-row gap-4 items-center justify-between">
         <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full md:w-[400px]">
-          <TabsList className="grid w-full grid-cols-2">
+          <TabsList className={`grid w-full ${(role === 'Admin' || role === 'Manager') ? 'grid-cols-3' : 'grid-cols-2'}`}>
             <TabsTrigger value="received">Recibidas</TabsTrigger>
             <TabsTrigger value="sent">Enviadas</TabsTrigger>
+            {(role === 'Admin' || role === 'Manager') && (
+              <TabsTrigger value="all">Global</TabsTrigger>
+            )}
           </TabsList>
         </Tabs>
         
-        {role === 'Admin' && (
+        { (role === 'Admin' || role === 'Manager') && (
           <div className="flex items-center gap-2">
             <Label className="text-black dark:text-white">Filtrar por Área (Admin)</Label>
             <Select value={adminFilter} onValueChange={setAdminFilter}>
@@ -162,6 +228,7 @@ export default function AreaRequestsTable({ currentArea, role }) {
                 <SelectItem value="Comercial">Comercial</SelectItem>
                 <SelectItem value="Operaciones">Operaciones</SelectItem>
                 <SelectItem value="Logística">Logística</SelectItem>
+                <SelectItem value="General">General</SelectItem>
               </SelectContent>
             </Select>
           </div>
@@ -185,20 +252,40 @@ export default function AreaRequestsTable({ currentArea, role }) {
             {requests.length > 0 ? (
               requests.map((req) => (
                 <TableRow key={req.id}>
-                  <TableCell className="font-medium">{req.id}</TableCell>
-                  <TableCell>{req.from}</TableCell>
-                  <TableCell>{req.to}</TableCell>
-                  <TableCell>{req.type}</TableCell>
-                  <TableCell>{req.date}</TableCell>
+                  <TableCell className="font-medium">{req.id.substring(0,8)}...</TableCell>
+                  <TableCell>{req.creator_email || 'Asesor'}</TableCell>
+                  <TableCell>{req.area}</TableCell>
+                  <TableCell>{req.name}</TableCell>
+                  <TableCell>{req.created_at}</TableCell>
                   <TableCell>
-                    <Badge variant={req.status === 'Completado' ? 'success' : req.status === 'En Progreso' ? 'warning' : 'outline'}>
-                      {req.status}
+                    <Badge variant={req.status === 'completed' ? 'success' : req.status === 'in_progress' ? 'warning' : 'outline'}>
+                      {req.status === 'completed' ? 'Completado' : req.status === 'pending' ? 'Pendiente' : req.status}
                     </Badge>
                   </TableCell>
                   <TableCell className="text-right">
-                    <Button variant="ghost" size="icon">
-                      <EyeIcon className="h-4 w-4" />
-                    </Button>
+                    <div className="flex justify-end gap-2">
+                      <Button variant="ghost" size="icon">
+                        <EyeIcon className="h-4 w-4" />
+                      </Button>
+                      {(rolePath === 'admin' || rolePath === 'manager') && req.status !== 'completed' && (
+                        <Button 
+                          variant="ghost" 
+                          size="icon" 
+                          className="text-green-600 hover:text-green-700 hover:bg-green-100"
+                          onClick={async () => {
+                            try {
+                              // Solo Admin tiene reply, pero probamos
+                              await updateModel({ area_request: { notes: 'Aprobado/Revisado' } }, `/api/v1/admin/area_requests/${req.id}/reply`)
+                              fetchRequests()
+                            } catch (e) {
+                              console.error(e)
+                            }
+                          }}
+                        >
+                          <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>
+                        </Button>
+                      )}
+                    </div>
                   </TableCell>
                 </TableRow>
               ))

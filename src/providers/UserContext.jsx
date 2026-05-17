@@ -81,7 +81,7 @@ export const UserProvider = ({ children }) => {
         `${backend_host}/api/v1/general/users/sign_in`,
         {
           authentication: {
-            document_number: credentials.document_number,
+            email: credentials.document_number,
             password: credentials.password,
           }
         },

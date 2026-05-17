@@ -8,9 +8,13 @@ const backend_host = import.meta.env.VITE_BACKEND_HOST
 const useCrud = (endpoint) => {
   const confirm = useConfirm()
 
-  const getModel = async (_endpoint = endpoint) => {
+  const getModel = async (customPathOrQuery = "") => {
     try {
-      const response = await axios.get(`${backend_host}${_endpoint}`)
+      const finalEndpoint = customPathOrQuery.startsWith('?') 
+        ? `${endpoint}${customPathOrQuery}` 
+        : (customPathOrQuery || endpoint);
+        
+      const response = await axios.get(`${backend_host}${finalEndpoint}`)
       return response.data
     } catch (error) {
       console.error("Error fetching data:", error)

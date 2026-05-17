@@ -4,8 +4,21 @@ import GeneralTooltip from '@/helpers/generalTooltip'
 import { TbEdit, TbTrash, TbEye } from "react-icons/tb"
 
 const statusColor = {
-  active:   'bg-green-200 text-green-800',
-  inactive: 'bg-gray-200 text-gray-800',
+  active:   'bg-green-100 text-green-800',
+  inactive: 'bg-gray-100 text-gray-800',
+  blocked:  'bg-red-100 text-red-800',
+}
+
+const statusLabel = {
+  active:   'Activo',
+  inactive: 'Inactivo',
+  blocked:  'Bloqueado',
+}
+
+const statusTooltip = {
+  active:   'Cliente habilitado para nuevas cotizaciones y operaciones',
+  inactive: 'Cliente dado de baja temporalmente',
+  blocked:  'Cliente bloqueado en el sistema',
 }
 
 const typeLabels = {
@@ -68,12 +81,26 @@ const columns = (handleView, handleEdit, handleDelete) => [
     accessorKey: 'priority',
     header: 'Prioridad',
     cell: info => {
-      const v = info.getValue() || 'CP'
-      const labels = { CN: 'CN (No Deseado)', CP: 'CP (Potencial)', CR: 'CR (Reciclado)' }
-      const colors = { CN: 'bg-red-100 text-red-800', CP: 'bg-yellow-100 text-yellow-800', CR: 'bg-blue-100 text-blue-800' }
+      const v = info.getValue() || 'NC'
+      const labels = { 
+        NC: 'NC (Cliente Nuevo)', 
+        CP: 'CP (Potencial)', 
+        NN: 'CN (No Deseado)', 
+        NH: 'CH (Histórico)',
+        CN: 'CN (No Deseado)', 
+        CR: 'CR (Reciclado)' 
+      }
+      const colors = { 
+        NC: 'bg-purple-100 text-purple-800 border-purple-200', 
+        CP: 'bg-yellow-100 text-yellow-800 border-yellow-200', 
+        NN: 'bg-red-100 text-red-800 border-red-200', 
+        NH: 'bg-blue-100 text-blue-800 border-blue-200',
+        CN: 'bg-red-100 text-red-800', 
+        CR: 'bg-blue-100 text-blue-800' 
+      }
       return (
-        <Badge className={`px-2 py-0.5 text-[10px] ${colors[v]}`}>
-          {labels[v]}
+        <Badge className={`px-2 py-0.5 text-[10px] font-semibold border ${colors[v] || 'bg-gray-100 text-gray-800'}`}>
+          {labels[v] || v}
         </Badge>
       )
     },
@@ -83,12 +110,20 @@ const columns = (handleView, handleEdit, handleDelete) => [
     accessorKey: 'status',
     header: 'Estado',
     cell: info => {
-      const value = info.getValue()
-      const color = statusColor[value] || 'bg-gray-200 text-gray-800'
+      const v = info.getValue() || 'inactive'
+      const color = statusColor[v] || 'bg-gray-100 text-gray-800'
+      const label = statusLabel[v] || v
+      const tooltip = statusTooltip[v] || 'Estado actual del cliente'
+      
       return (
-        <Badge className={`px-2 py-1 rounded ${color}`}>
-          {value === 'active' ? 'Activo' : 'Inactivo'}
-        </Badge>
+        <GeneralTooltip
+          content={tooltip}
+          triggerContent={
+            <Badge className={`px-2 py-1 rounded cursor-help ${color}`}>
+              {label}
+            </Badge>
+          }
+        />
       )
     },
     enableColumnFilter: true,
