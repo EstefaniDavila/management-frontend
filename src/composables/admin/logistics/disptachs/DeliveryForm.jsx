@@ -8,16 +8,15 @@ import useCrud from '@/hooks/useCrud';
 const DeliveryForm = ({ formData, onChange, errors = {} }) => {
     const [vehicles, setVehicles] = useState([]);
     const [loadingVehicles, setLoadingVehicles] = useState(false);
-
-
-    const DEFAULT_DRIVER_ID = 'db89f2e8-57fd-428d-beb0-40e0065c62dc';
+    const [drivers, setDrivers] = useState([]);
+    const [loadingDrivers, setLoadingDrivers] = useState(false);
 
     const { getModel } = useCrud('/api/v1/admin/vehicles?status=logistic');
+    const { getModel: getDrivers } = useCrud('/api/v1/admin/logistics_users');
 
     useEffect(() => {
         loadVehicles();
-
-        onChange('driver', DEFAULT_DRIVER_ID);
+        loadDrivers();
     }, []);
 
     const loadVehicles = async () => {
@@ -34,6 +33,20 @@ const DeliveryForm = ({ formData, onChange, errors = {} }) => {
             setVehicles([]);
         } finally {
             setLoadingVehicles(false);
+        }
+    };
+
+    const loadDrivers = async () => {
+        setLoadingDrivers(true);
+        try {
+            const response = await getDrivers();
+            let driversArray = response?.data || response || [];
+            if (!Array.isArray(driversArray)) driversArray = [];
+            setDrivers(driversArray);
+        } catch (error) {
+            console.error('Error cargando conductores:', error);
+        } finally {
+            setLoadingDrivers(false);
         }
     };
 
@@ -54,6 +67,34 @@ const DeliveryForm = ({ formData, onChange, errors = {} }) => {
                 {errors.destination_address && (
                     <p className="text-xs text-red-500">{errors.destination_address}</p>
                 )}
+            </div>
+
+            {/* Conductor */}
+            <div className="space-y-2">
+                <Label className="text-sm font-semibold flex items-center gap-2">
+                    <User className="h-4 w-4" />
+                    Conductor <span className="text-red-500">*</span>
+                </Label>
+                {loadingDrivers ? (
+                    <div className="flex items-center gap-2 p-2 border rounded-md">
+                        <Loader2 className="h-4 w-4 animate-spin" />
+                        <span className="text-sm">Cargando conductores...</span>
+                    </div>
+                ) : (
+                    <select
+                        className="w-full border rounded-md p-2 bg-background"
+                        value={formData.driver || ''}
+                        onChange={(e) => onChange('driver', e.target.value)}
+                    >
+                        <option value="">-- Seleccione un conductor --</option>
+                        {drivers.map(d => (
+                            <option key={d.id} value={d.id}>
+                                {d.full_name} - {d.document_number}
+                            </option>
+                        ))}
+                    </select>
+                )}
+                {errors.driver && <p className="text-xs text-red-500">{errors.driver}</p>}
             </div>
 
             {/* Vehículo */}
@@ -82,14 +123,6 @@ const DeliveryForm = ({ formData, onChange, errors = {} }) => {
                     </select>
                 )}
                 {errors.vehicle && <p className="text-xs text-red-500">{errors.vehicle}</p>}
-            </div>
-
-            <div className="hidden">
-                <input
-                    type="hidden"
-                    value={DEFAULT_DRIVER_ID}
-                    onChange={() => { }}
-                />
             </div>
 
             {/* Observaciones */}

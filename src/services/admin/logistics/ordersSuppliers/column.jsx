@@ -1,7 +1,7 @@
 import React from 'react';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { Eye, FileText, Trash2, Check, X } from 'lucide-react';
+import { Eye, FileText, Trash2, Check, X, Download as DownloadIcon } from 'lucide-react';
 
 const getOrderStatusBadge = (status) => {
   switch (status) {
@@ -18,7 +18,7 @@ const getOrderStatusBadge = (status) => {
   }
 };
 
-const columns = (handleEdit, handleDetails, handleDelete, handleReceive, handleCancel) => [
+const columns = (handleDownload, handleDetails, handleDelete, handleReceive, handleCancel) => [
   {
     accessorKey: 'orderId',
     header: 'Nº PEDIDO',
@@ -106,10 +106,10 @@ const columns = (handleEdit, handleDetails, handleDelete, handleReceive, handleC
             variant="ghost"
             size="icon"
             className="h-8 w-8 text-orange-500 hover:bg-orange-50"
-            title="Editar Pedido"
-            onClick={() => handleEdit(row.original)}
+            title="Descargar Pedido"
+            onClick={() => handleDownload(row.original)}
           >
-            <FileText className="h-4 w-4" />
+            <DownloadIcon className="h-4 w-4" />
           </Button>
 
           <Button

@@ -107,8 +107,8 @@ const columns = (handleEdit, handleHistory, handleDelete) => [
   },
 
   {
-    accessorKey: 'desc',
-    header: 'DESCRIPCIÓN',
+    accessorKey: 'name',
+    header: 'NOMBRE DEL PRODUCTO',
     cell: info => info.getValue(),
   },
 

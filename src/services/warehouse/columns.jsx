@@ -26,7 +26,29 @@ const columns = (handleEdit, handleHistory, handleDelete) => [
   {
     accessorKey: 'type',
     header: 'Tipo',
-    cell: info => <span className="font-mono text-xs">{info.getValue()}</span>,
+    cell: ({ row }) => {
+      const type = row.original.type;
+
+      // MAQUINARIA
+      if (type === 'Maquinaria') {
+        return (
+          <Badge className="bg-yellow-500 hover:bg-yellow-600 text-black">
+            Maquinaria
+          </Badge>
+        );
+      }
+
+      return (
+        <Badge className="bg-white hover:bg-gray-100 text-gray-800 border border-gray-300 shadow-sm">
+          Repuesto
+        </Badge>
+      );
+    },
+  },
+  {
+    accessorKey: 'name',
+    header: 'NOMBRE DEL PRODUCTO',
+    cell: info => info.getValue(),
     enableColumnFilter: true,
   },
   {
@@ -78,6 +100,9 @@ const columns = (handleEdit, handleHistory, handleDelete) => [
         >
           <History className="h-4 w-4" />
         </Button>
+
+
+
       </div>
     ),
   }

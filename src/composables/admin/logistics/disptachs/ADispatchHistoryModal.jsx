@@ -131,7 +131,7 @@ const ADispatchHistoryModal = ({ open, setOpen, history }) => {
                     <User className="h-3.5 w-3.5 text-muted-foreground mt-0.5" />
                     <div className="truncate">
                       <p className="text-[10px] text-muted-foreground">Preparado por</p>
-                      <p className="text-xs truncate">{item.prepared_by_id || 'N/A'}</p>
+                      <p className="text-xs truncate">{item.prepared_by_name || item.prepared_by_id || 'N/A'}</p>
                     </div>
                   </div>
 

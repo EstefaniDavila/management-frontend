@@ -11,4 +11,12 @@ export default defineConfig({
       "@composables": fileURLToPath(new URL('./src/composables', import.meta.url)),
     },
   },
+  server: {
+    proxy: {
+      '/api': {
+        target: 'http://localhost:3000',
+        changeOrigin: true,
+      }
+    }
+  }
 })

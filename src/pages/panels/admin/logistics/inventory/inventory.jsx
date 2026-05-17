@@ -16,6 +16,7 @@ import DeleteProductModal from '@/composables/admin/logistics/inventory/modals/D
 import useCrud from '@/hooks/useCrud';
 import useEntityMutation from '@/hooks/useEntityMutation';
 import { useAuth } from '@/providers/UserContext';
+import axios from 'axios';
 
 const Inventory = () => {
   const [products, setProducts] = useState([]);
@@ -48,7 +49,7 @@ const Inventory = () => {
 
         return {
           id: item.code,
-          desc: item.name,
+          name: item.name,
           type: isVehicle ? "Maquinaria" : "Repuesto",
 
           inventoryValue: isVehicle
@@ -125,42 +126,33 @@ const Inventory = () => {
     );
   };
 
+
   const handleUpdateProduct = async (productData) => {
-    try {
-      const productId = selectedProduct._original?.id || selectedProduct.id;
+    const productId = selectedProduct._original?.id;
+    if (!productId) return;
 
-      console.log("ID del producto a actualizar:", productId);
-      console.log("Datos a enviar:", productData);
+    const formData = new FormData();
+    formData.append('name', productData.name);
+    formData.append('description', productData.description || '');
+    formData.append('base_price', productData.base_price);
+    formData.append('active', productData.active);
 
-      if (!productId) {
-        alert("Error: No se pudo identificar el producto");
-        return;
-      }
-
-      productMutation.mutate(
-        {
-          action: 'update',
-          id: productId,
-          entity: productData,
-          endpoint: `/api/v1/admin/products/${productId}`
-        },
-        {
-          onSuccess: (response) => {
-            console.log("Respuesta exitosa:", response);
-            fetchProducts();
-            handleCloseModal();
-          },
-          onError: (error) => {
-
-          }
-        }
-      );
-    } catch (error) {
-      console.error("Error:", error);
-      alert("Error al actualizar el producto");
+    if (productData.product_images_attributes) {
+      productData.product_images_attributes.forEach((img, index) => {
+        if (img.id) formData.append(`product_images_attributes[${index}][id]`, img.id);
+        formData.append(`product_images_attributes[${index}][url]`, img.url);
+      });
     }
-  };
 
+    productMutation.mutate({
+      action: 'update',
+      id: productId,
+      entity: formData,  // ✅ FormData → el hook lo pasa directo
+      endpoint: `/api/v1/admin/products/${productId}`
+    }, {
+      onSuccess: () => { fetchProducts(); handleCloseModal(); }
+    });
+  };
   const handleDeleteProduct = async (product) => {
     console.log("Eliminando producto:", product);
     productMutation.mutate(
@@ -189,11 +181,12 @@ const Inventory = () => {
   return (
     <div className="px-4 py-4 md:px-6 w-full">
       <div className="max-w-[1600px] mx-auto flex flex-col gap-4">
-
         <h1 className="text-base font-semibold tracking-tight text-foreground">
-          Inventory — Parts & Machinery
+          Inventario — Maquinaria y Repuestos
         </h1>
-
+        <p className="text-sm text-muted-foreground max-w-[850px] leading-relaxed">
+          Visualiza, filtra y gestiona el inventario de maquinaria y repuestos, incluyendo su disponibilidad, ubicación, estado actual y valores base.
+        </p>
         <div className="flex flex-wrap gap-2">
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
@@ -229,7 +222,7 @@ const Inventory = () => {
             onClick={() => handleOpenModal('create')}
             className="ml-auto"
           >
-            + Nuevo Producto
+            + Registrar Producto
           </Button>
         </div>
 
