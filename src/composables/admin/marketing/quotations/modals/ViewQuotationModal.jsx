@@ -20,6 +20,7 @@ const statusColor = {
   web_request:  'bg-indigo-100 text-indigo-800',
   approved:     'bg-green-100 text-green-800',
   rejected:     'bg-red-100 text-red-800',
+  pending_area_review: 'bg-orange-100 text-orange-800 border border-orange-200',
 }
 
 const ViewQuotationModal = ({ isOpen, handleClose, quotation }) => {

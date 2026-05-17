@@ -1,7 +1,7 @@
 import React from 'react'
 import { Badge } from '@/components/ui/badge'
 import GeneralTooltip from '@/helpers/generalTooltip'
-import { TbEye, TbSend, TbCheck, TbX, TbArrowForward } from 'react-icons/tb'
+import { TbEye, TbSend, TbCheck, TbX, TbArrowForward, TbMessage } from 'react-icons/tb'
 
 const typeLabel = {
   machinery_sale: 'Venta Maquinaria',
@@ -17,6 +17,9 @@ const statusColor = {
   pending:          'bg-yellow-100 text-yellow-800 border border-yellow-200',
   approved:         'bg-green-100 text-green-800 border border-green-200',
   rejected:         'bg-red-100 text-red-800 border border-red-200',
+  pending_area_review: 'bg-orange-100 text-orange-800 border border-orange-200',
+  client_approved:  'bg-teal-100 text-teal-800 border border-teal-200',
+  client_rejected:  'bg-rose-100 text-rose-800 border border-rose-200',
 }
 
 const statusLabel = {
@@ -26,6 +29,9 @@ const statusLabel = {
   pending:          'Pendiente',
   approved:         'Aprobada',
   rejected:         'Rechazada',
+  pending_area_review: 'En Área...',
+  client_approved:  'Aprobada por Cliente',
+  client_rejected:  'Rechazada por Cliente',
 }
 
 const statusTooltip = {
@@ -35,9 +41,12 @@ const statusTooltip = {
   pending:          'Cotización web pendiente de validación y aprobación',
   approved:         'Cotización aprobada',
   rejected:         'Cotización rechazada',
+  pending_area_review: 'Cotización en revisión técnica por el área especializada',
+  client_approved:  'Cotización aprobada por el cliente; lista para el Gerente',
+  client_rejected:  'Cotización rechazada por el cliente',
 }
 
-const columns = (handleView, handleSend, handleApprove, handleReject, handleSendToArea) => [
+const columns = (handleView, handleSend, handleApprove, handleReject, handleSendToArea, handleSendToClient) => [
   {
     accessorKey: 'code',
     header: 'Código',
@@ -122,10 +131,11 @@ const columns = (handleView, handleSend, handleApprove, handleReject, handleSend
             triggerContent={<span className="bg-blue-500 text-white rounded-full p-1"><TbEye size={18}/></span>}
             onClick={() => handleView(row.original)}
           />
-          {(status === 'draft' || status === 'pending') && (
+          {/* DRAFT/PENDING: Lógica de botones según tipo y estado del área */}
+          {(status === 'draft' || status === 'pending' || status === 'pending_area_review') && (
             isRentalOrMaint ? (
-              // Si es alquiler/mantenimiento, y aún no ha sido revisada por área técnica:
               !has_completed_area_request ? (
+                // Área aún no ha revisado: mostrar "Enviar a Área" si no hay solicitud pendiente
                 !pending_area_request && (
                   <GeneralTooltip
                     content="Enviar a Área Especializada"
@@ -134,21 +144,29 @@ const columns = (handleView, handleSend, handleApprove, handleReject, handleSend
                   />
                 )
               ) : (
-                // Si ya fue completada por el área técnica:
+                // Área ya completó: mostrar botón "Enviar al Cliente"
                 <GeneralTooltip
-                  content="Enviar como solicitud al Gerente"
-                  triggerContent={<span className="bg-purple-500 text-white rounded-full p-1"><TbSend size={18}/></span>}
-                  onClick={() => handleSend(row.original.id)}
+                  content="Enviar Cotización al Cliente"
+                  triggerContent={<span className="bg-emerald-600 hover:bg-emerald-700 text-white rounded-full p-1"><TbMessage size={18}/></span>}
+                  onClick={() => handleSendToClient && handleSendToClient(row.original.id)}
                 />
               )
             ) : (
-              // Para ventas estándar
+              // Ventas estándar: enviar al cliente primero
               <GeneralTooltip
-                content="Enviar como solicitud al Gerente"
-                triggerContent={<span className="bg-purple-500 text-white rounded-full p-1"><TbSend size={18}/></span>}
-                onClick={() => handleSend(row.original.id)}
+                content="Enviar Cotización al Cliente"
+                triggerContent={<span className="bg-emerald-600 hover:bg-emerald-700 text-white rounded-full p-1"><TbMessage size={18}/></span>}
+                onClick={() => handleSendToClient && handleSendToClient(row.original.id)}
               />
             )
+          )}
+          {/* CLIENT APPROVED: el cliente ya aprobó - asesor puede enviarla al gerente para la aprobación final */}
+          {status === 'client_approved' && (
+            <GeneralTooltip
+              content="Enviar al Gerente para Aprobación"
+              triggerContent={<span className="bg-purple-500 text-white rounded-full p-1"><TbSend size={18}/></span>}
+              onClick={() => handleSend(row.original.id)}
+            />
           )}
           {/* Simula o realiza aprobación/rechazo de cotizaciones */}
           {(status === 'pending' || status === 'sent') && (
@@ -161,7 +179,7 @@ const columns = (handleView, handleSend, handleApprove, handleReject, handleSend
               <GeneralTooltip
                 content={status === 'pending' ? "Rechazar cotización" : "Simular: Cliente rechaza"}
                 triggerContent={<span className="bg-red-500 text-white rounded-full p-1"><TbX size={18}/></span>}
-                onClick={() => handleReject(row.original.id)}
+                onClick={() => handleReject(row.original)}
               />
             </>
           )}

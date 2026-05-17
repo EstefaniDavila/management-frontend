@@ -5,9 +5,9 @@ import columns from '@/services/advisor/quotations/columns'
 const AdvisorQuotationsTable = ({
   data, fetchData, pagination, setPagination, totalPages,
   search, setSearch, searchFields, setSearchFields,
-  onView, onSend, onApprove, onReject, onSendToArea,
+  onView, onSend, onApprove, onReject, onSendToArea, onSendToClient,
 }) => {
-  const cols = useMemo(() => columns(onView, onSend, onApprove, onReject, onSendToArea), [onView, onSend, onApprove, onReject, onSendToArea])
+  const cols = useMemo(() => columns(onView, onSend, onApprove, onReject, onSendToArea, onSendToClient), [onView, onSend, onApprove, onReject, onSendToArea, onSendToClient])
   return (
     <DataTable
       columns={cols} data={data} fetchData={fetchData}

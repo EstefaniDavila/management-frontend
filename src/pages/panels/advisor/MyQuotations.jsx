@@ -154,27 +154,44 @@ const MyQuotations = () => {
   // y el cliente aprueba a través del manager o un portal.
   // Dejaremos los mock de approve/reject por si se usan para testing:
   const handleApprove = (q) => {
+    const nextStatus = q.status === 'sent' ? 'client_approved' : 'approved'
     quotationMutation.mutate({
       action: 'update',
       id: q.id,
-      entity: { status: 'approved' }, // simulado si no hay endpoint específico en advisor
+      entity: { status: nextStatus },
       endpoint: `/api/v1/advisor/quotations/${q.id}`
     }, {
       onSuccess: () => {
         fetchQuotations()
-        if (q.quotation_type === 'machinery_sale' || q.quotation_type === 'parts_sale') {
+        if ((q.quotation_type === 'machinery_sale' || q.quotation_type === 'parts_sale') && nextStatus === 'approved') {
           createFromQuotation({ ...q, code: q.code, equipment: q.equipment, document: '' })
         }
       }
     })
   }
   
-  const handleReject = (id) => {
+  const handleSendToClient = async (id) => {
+    try {
+      const backend_host = import.meta.env.VITE_BACKEND_HOST
+      await fetch(`${backend_host}/api/v1/advisor/quotations/${id}/send_to_client`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${localStorage.getItem('access-token')}` }
+      })
+      alert('\u2705 Cotización enviada al cliente exitosamente')
+      fetchQuotations()
+    } catch (e) {
+      console.error(e)
+      alert('Error al enviar al cliente')
+    }
+  }
+
+  const handleReject = (q) => {
+    const nextStatus = q.status === 'sent' ? 'client_rejected' : 'rejected'
     quotationMutation.mutate({
       action: 'update',
-      id,
-      entity: { status: 'rejected' },
-      endpoint: `/api/v1/advisor/quotations/${id}`
+      id: q.id,
+      entity: { status: nextStatus },
+      endpoint: `/api/v1/advisor/quotations/${q.id}`
     }, {
       onSuccess: () => fetchQuotations()
     })
@@ -207,6 +224,7 @@ const MyQuotations = () => {
             onApprove={handleApprove}
             onReject={handleReject}
             onSendToArea={handleOpenSendToArea}
+            onSendToClient={handleSendToClient}
           />
         </div>
       </div>
