@@ -25,7 +25,11 @@ const TableWorkOrders = ({ handleOpenModal, data, fetchData, pagination, setPagi
     handleOpenModal('show', workOrder)
   }
   const handleBuild = (workOrder) => {
-    navigate(`/work-orders/${workOrder.id}`)
+    navigate(`/work-orders/${workOrder.code}`, {
+      state: {
+        workOrder,
+      }
+    })
   }
 
   const columnsWithActions = useMemo(() => columns(handleShow, handleBuild))

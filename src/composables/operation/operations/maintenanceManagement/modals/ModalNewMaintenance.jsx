@@ -8,6 +8,7 @@ import { MdForklift } from "react-icons/md";
 import ComboBox from '@/components/custom/dan_combobox'
 import { Select, SelectContent, SelectGroup, SelectItem, SelectLabel, SelectTrigger, SelectValue} from "@/components/ui/select"
 import useFetchClients from '@/composables/operation/operations/maintenanceManagement/hooks/useFetchClients'
+import useFetchVehicles from '../hooks/useFetchVehicles'
 
 
 const ModalNewMaintenance = ({ isOpen, handleClose }) =>{
@@ -31,11 +32,15 @@ const ModalNewMaintenance = ({ isOpen, handleClose }) =>{
   const [searchFields, setSearchFields] = useState([""])
   const searchParams = {search, fields: searchFields.join(',') }
   const { data: clientsData } = useFetchClients(pagination, searchParams)
+  const { data: vehiclesData } = useFetchVehicles(pagination, searchParams)
   const clientsOptions = clientsData?.rows?.map((client) => ({
     value: client.id,
     label: client.business_name
   })) || []
-
+  const vehiclesOptions = vehiclesData?.rows?.map((vehicle) => ({
+    value: vehicle.id,
+    label: vehicle.serial
+  })) || []
   const handleSubmit = async() => {
     mutation.mutate(
       { action: 'create', entity: formData, endpoint: '/api/v1/manager/maintenances' },
@@ -159,10 +164,19 @@ const ModalNewMaintenance = ({ isOpen, handleClose }) =>{
                 </div>
               </div>
             </div>
+            <div>
+              <label className='block text-sm font-medium py-2'>Vehiculo</label>
+              <ComboBox
+                options={vehiclesOptions}
+                placeholder="Elige un vehículo..."
+                onChange={(option) => handleChange({ target: { name: "enterprise_vehicle_id", value: option.value } }, setFormData, onChangeExtra)}
+              />
+            </div>
             <br />
             <div className="flex justify-end">
               <Button type="button" onClick={handleClose}className="mr-4">Cancelar</Button>
               <Button type="submit" className="bg-green-500 text-black hover:bg-green-600">Guardar</Button>
+              <Button type="button" onClick={handlePrint}className="mr-4">Print</Button>
             </div>
           </form>
         </Modal>

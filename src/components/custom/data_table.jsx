@@ -51,7 +51,8 @@ const DataTable = ({ columns, data, fetchData, pagination, setPagination, search
     maintenance_type: 'Tipo de Mantenimiento',
     technician: 'Técnico',
     date: 'Fecha',
-    customer: "Cliente"
+    customer: "Cliente",
+    scheduled_date: "Fecha Programada"
   };
 
   const table = useReactTable({

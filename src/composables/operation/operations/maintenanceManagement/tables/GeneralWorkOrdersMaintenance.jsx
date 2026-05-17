@@ -10,7 +10,7 @@ const TableWorkOrdersMaintenance = ({ handleOpenModal, data, fetchData, paginati
     try {
       await mutateAsync({
         action: 'delete',
-        endpoint: `api/v1/admin/work_orders/${id}`
+        endpoint: `/api/v1/manager/work_orders/${id}`
       })
     } catch (error) {
       console.error("Error deleting work order:", error)
@@ -37,7 +37,7 @@ const TableWorkOrdersMaintenance = ({ handleOpenModal, data, fetchData, paginati
       setSearch={setSearch}
       searchFields={searchFields}
       setSearchFields={setSearchFields}
-      searchableFields={["code", "scheduled_date", "status", "maintenance_type"]}
+      searchableFields={["code", "scheduled_date", "status"]}
     />
   )
 }

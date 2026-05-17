@@ -3,7 +3,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { TbPlus } from 'react-icons/tb';
 import TableMaintenanceManagement from '@/composables/operation/operations/maintenanceManagement/tables/GeneralMaintenanceManagement';
-import ModalNewMaintenance from '@/composables/admin/operations/maintenance/modals/ModalNewMaintenance';
+import ModalNewMaintenance from '@/composables/operation/operations/maintenanceManagement/modals/ModalNewMaintenance';
 import useFetchMaintenances from '@/composables/operation/operations/maintenanceManagement/hooks/useFetchMaintenances';
 
 

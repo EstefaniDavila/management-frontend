@@ -19,7 +19,6 @@ import ResetPassword from '../app/login/ResetPassword'
 import { useAuth } from '../providers/UserContext'
 const Routes = () => {
   const {  user, authTokens } = useAuth('')
-  console.log("User in Routes.jsx:", user)
 
 const roleRouter = {
   Admin:        adminRoutes,       // Administrador - acceso total

@@ -1,19 +1,35 @@
 import React from 'react'
 import GeneralTooltip from '@/helpers/generalTooltip'
-import { TbEdit } from 'react-icons/tb'
 import { Eye } from 'lucide-react';
 import { GiNotebook } from "react-icons/gi";
 import { Badge } from '@/components/ui/badge';
 
 const typeColorVariants = {
-  Pendiente: 'bg-gray-200 text-gray-800',
-  Completado: 'bg-green-300 text-green-800',
-  "En proceso": 'bg-yellow-200 text-yellow-800',
-  hidden: 'bg-red-200 text-red-800',
-  visible: 'bg-blue-200 text-blue-800'
+  OPEN: 'bg-green-300 text-green-800',
+  IN_PROGRESS: 'bg-yellow-200 text-yellow-800',
+  CLOSED: 'bg-red-200 text-red-800',
+  DRAFT: 'bg-blue-200 text-blue-800'
 }
 
-const columns = (handleShow, handleBuild) => [
+const statusVariants = {
+  EXECUTION: "EJECUCIÓN",
+  DIAGNOSTIVE: "DIAGNOSTICO",
+  SUPERVISION: "SUPERVISION",
+}
+
+const formatDate = (dateString) => {
+  if (!dateString) return "-"
+  return new Date(dateString).toLocaleDateString("es-PE", {
+    day: "2-digit",
+    month: "2-digit",
+    year: "numeric",
+    hour: "2-digit",
+    minute: "2-digit",
+    hour12: false,
+  })
+}
+
+const columns = (handleShow, handleBuild, handleResume) => [
   {
     accessorKey: 'code',
     header: 'Código',
@@ -21,21 +37,21 @@ const columns = (handleShow, handleBuild) => [
     enableColumnFilter: true,
   },
   {
-    accessorKey: 'customer',
+    accessorFn: row => row.maintenance?.client?.business_name,
     header: 'Cliente',
     cell: info => info.getValue(),
     enableColumnFilter: true,
   },
   {
-    accessorKey: 'equipment',
+    accessorFn: row => row.maintenance?.enterprise_vehicle?.product?.name,
     header: 'Equipo',
     cell: info => info.getValue(),
     enableColumnFilter: true,
   },
   {
-    accessorKey: 'type',
-    header: 'Tipo de Mantenimiento',
-    cell: info => info.getValue(),
+    accessorKey: 'work_order_type',
+    header: 'Tipo de Orden de Trabajo',
+    cell: info => statusVariants[info.getValue()] || info.getValue(),
     enableColumnFilter: true,
   },
   {
@@ -53,15 +69,9 @@ const columns = (handleShow, handleBuild) => [
     enableColumnFilter: true,
   },
   {
-    accessorKey: 'date',
-    header: 'Fecha de Creacion',
-    cell: info => info.getValue(),
-    enableColumnFilter: true,
-  },
-  {
     accessorKey: 'scheduled_date',
     header: 'Fecha Programada',
-    cell: info => info.getValue(),
+    cell: info => formatDate(info.getValue()),
     enableColumnFilter: true,
   },
   {
@@ -71,7 +81,7 @@ const columns = (handleShow, handleBuild) => [
 
     return (
       <div className='flex space-x-4'>
-        {status === "Pendiente" && (
+        {["OPEN", "IN_PROGRESS"].includes(status) && (
           <GeneralTooltip
             content='Procesar Mantenimiento'
             triggerContent={
@@ -82,7 +92,7 @@ const columns = (handleShow, handleBuild) => [
             onClick={()=> handleBuild(row?.original, 'edit')}
           />
         )}
-        {status === "Completado" && (
+        {status === "OPEN" && (
           <GeneralTooltip
             content='Revisar Mantenimiento'
             triggerContent={
@@ -93,15 +103,17 @@ const columns = (handleShow, handleBuild) => [
             onClick={()=> handleShow(row?.original, 'edit')}
           />
         )}
-        {/* <GeneralTooltip
-          content='Eliminar Categoria'
-          triggerContent={
-            <span className='bg-red-500 text-white rounded-full p-1'>
-              <TbTrash size={20}/>
-            </span>
-          }
-          onClick={()=> handleDelete(row?.original.id)}
-        /> */}
+        {status === "CLOSED" && (
+          <GeneralTooltip
+            content='Resumen Orden de Trabajo'
+            triggerContent={
+              <span className='bg-red-500 text-white rounded-full p-1'>
+                <Eye size={20}/>
+              </span>
+            }
+            onClick={()=> handleResume(row?.original, 'resume')}
+          />
+        )}
       </div>
     )
   },

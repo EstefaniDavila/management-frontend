@@ -3,14 +3,14 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { TbPlus } from 'react-icons/tb';
 import TableWorkOrdersMaintenance from '@/composables/operation/operations/maintenanceManagement/tables/GeneralWorkOrdersMaintenance';
-import ModalNewMaintenance from '@/composables/admin/operations/maintenance/modals/ModalNewMaintenance';
+import ModalNewWorkOrder from '@/composables/operation/operations/maintenanceManagement/modals/ModalNewWorkOrder';
+import ModalUpdateWorkOrder from '@/composables/operation/operations/maintenanceManagement/modals/ModalUpdateWorkOrder';
 import useFetchWorkOrdersByMaintenance from '@/composables/operation/operations/maintenanceManagement/hooks/useFetchWorkOrdersByMaintenance';
 import { useParams } from 'react-router-dom'
 
 
 const MaintenanceDetail = () => {
   const { id } = useParams()
-  console.log("Maintenance ID:", id) // Agrega este log para verificar el valor de maintenanceId
   const [typeModal, setTypeModal] = useState("")
   const [workOrder, setWorkOrder] = useState(null)
   const [isModalOpen, setIsModalOpen] = useState(false)
@@ -49,7 +49,7 @@ const MaintenanceDetail = () => {
               onClick={() => handleOpenModal("new")}
               className="bg-green-300 text-black hover:bg-green-600 justify-start"
             >
-              <TbPlus /> Crear Mantenimiento
+              <TbPlus /> Crear Orden de Trabajo
             </Button>
             <TableWorkOrdersMaintenance
               handleOpenModal={handleOpenModal}
@@ -68,21 +68,22 @@ const MaintenanceDetail = () => {
         </Card>
       </div>
       {typeModal === 'new' && (
-        <ModalNewMaintenance
+        <ModalNewWorkOrder
           isOpen={isModalOpen}
           handleClose={handleCloseModal}
           typeModal={typeModal}
           fetchData={refetchWorkOrders}
+          maintenance_id={id}
         />
       )}
-      {/* {typeModal === 'edit' && (
-        <ModalUpdateCategory
+      {typeModal === 'edit' && (
+        <ModalUpdateWorkOrder
           isOpen={isModalOpen}
           handleClose={handleCloseModal}
-          category={category}
-          fetchData={refetchCategories}
+          workOrder={workOrder}
+          fetchData={refetchWorkOrders}
         />
-      )} */}
+      )}
     </>
   )
 }

@@ -50,6 +50,7 @@ const Modal = ({ open, setOpen, size, title, children, callBack, description }) 
                   type="button"
                   onClick={(e) => handleSubmit(e)}
                   variant="success"
+                  className="bg-green-400 text-black hover:bg-green-600"
                 >
                   Guardar
                 </Button>

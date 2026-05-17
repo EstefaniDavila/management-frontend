@@ -36,9 +36,9 @@ const columns = (handleBuild) => [
     enableColumnFilter: true,
   },
   {
-    accessorKey: 'equipment',
+    accessorFn: row => row.enterprise_vehicle?.serial,
     header: 'Equipo',
-    cell: info => info.getValue(),
+    cell: info => info.getValue() || 'Sin equipo',
     enableColumnFilter: true,
   },
   {

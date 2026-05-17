@@ -74,7 +74,7 @@ export default function Calendar() {
       <FullCalendar
         locale={esLocale}
         plugins={[dayGridPlugin, timeGridPlugin, interactionPlugin]}
-        initialView="timeGridWeek" // 🔥 agenda tipo técnico
+        initialView="timeGridWeek"
         selectable={true}
         editable={true}
         events={events}
