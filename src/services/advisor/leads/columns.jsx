@@ -59,7 +59,14 @@ const columns = (handleView, handleConvert, currentAdvisor) => [
   {
     accessorKey: 'description',
     header: 'Descripción',
-    cell: info => <span className="text-xs text-muted-foreground line-clamp-1">{info.getValue()}</span>,
+    cell: info => {
+      const val = info.getValue() || ''
+      const words = val.split(/\s+/)
+      if (words.length > 30) {
+        return <span className="text-xs text-muted-foreground">{words.slice(0, 30).join(' ') + '...'}</span>
+      }
+      return <span className="text-xs text-muted-foreground">{val}</span>
+    },
     enableColumnFilter: false,
   },
   {
