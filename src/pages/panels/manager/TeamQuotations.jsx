@@ -147,12 +147,20 @@ const TeamQuotations = () => {
                 </p>
               </div>
 
-              {/* Botón único: Aprobación Final → genera la orden operativa */}
-              {(q.status === 'pending_approval' || q.status === 'client_approved' || q.status === 'approved_internally' || q.status === 'sent') && (
+              {/* Aprobación Final → genera la orden operativa */}
+              {(q.status === 'pending_approval' || q.status === 'client_approved' || q.status === 'approved_internally') && (
                 <div className="flex gap-2 shrink-0">
                   <Button size="sm" className="bg-emerald-700 hover:bg-emerald-800 text-white" onClick={() => handleFinalApprove(q.id)}>
                     <TbCheck size={14} className="mr-1"/> Aprobación Final → Orden
                   </Button>
+                  <Button size="sm" variant="outline" onClick={() => handleReject(q.id)}>
+                    <TbX size={14} className="mr-1"/> Rechazar
+                  </Button>
+                </div>
+              )}
+              {/* Para los demás estados activos (ej. sent): solo puede rechazar */}
+              {q.status === 'sent' && (
+                <div className="flex gap-2 shrink-0">
                   <Button size="sm" variant="outline" onClick={() => handleReject(q.id)}>
                     <TbX size={14} className="mr-1"/> Rechazar
                   </Button>
