@@ -1,4 +1,4 @@
-import React, { useState } from 'react'
+import React, { useState, useEffect } from 'react'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { TbPlus, TbCheck, TbAlertTriangle } from 'react-icons/tb'
@@ -8,65 +8,7 @@ import {
   TrendingUpIcon, UsersIcon, FileTextIcon,
 } from 'lucide-react'
 import RegisterActionModal from '@/composables/admin/general-management/modals/RegisterActionModal'
-
-// ── Fake data ──────────────────────────────────────────────
-
-const areaMetrics = [
-  {
-    area:    'Marketing & Sales',
-    icon:    ShoppingCartIcon,
-    color:   'text-blue-500',
-    bg:      'bg-blue-50 dark:bg-blue-950/20',
-    border:  'border-blue-500/30',
-    metrics: [
-      { label: 'Cotizaciones este mes', value: 12,           icon: FileTextIcon    },
-      { label: 'Órdenes completadas',   value: 8,            icon: CheckCircleIcon },
-      { label: 'Clientes activos',      value: 24,           icon: UsersIcon       },
-      { label: 'Ingresos del mes',      value: 'S/ 445,000', icon: TrendingUpIcon  },
-    ],
-    status: 'good',
-  },
-  {
-    area:    'Logística & Almacén',
-    icon:    PackageIcon,
-    color:   'text-yellow-500',
-    bg:      'bg-yellow-50 dark:bg-yellow-950/20',
-    border:  'border-yellow-500/30',
-    metrics: [
-      { label: 'Productos en stock',    value: 148,  icon: PackageIcon       },
-      { label: 'Stock bajo',            value: 5,    icon: AlertTriangleIcon },
-      { label: 'Proveedores activos',   value: 12,   icon: UsersIcon         },
-      { label: 'Despachos este mes',    value: 34,   icon: TrendingUpIcon    },
-    ],
-    status: 'warning',
-  },
-  {
-    area:    'Producción & Operaciones',
-    icon:    WrenchIcon,
-    color:   'text-green-500',
-    bg:      'bg-green-50 dark:bg-green-950/20',
-    border:  'border-green-500/30',
-    metrics: [
-      { label: 'Mantenimientos activos',    value: 7,  icon: WrenchIcon        },
-      { label: 'Pendientes',                value: 3,  icon: AlertTriangleIcon },
-      { label: 'Completados este mes',      value: 18, icon: CheckCircleIcon   },
-      { label: 'Equipos en mantenimiento',  value: 4,  icon: PackageIcon       },
-    ],
-    status: 'good',
-  },
-]
-
-const fakeAlerts = [
-  { id: 1, area: 'Logística & Almacén',        description: 'Stock mínimo alcanzado: Filtro aceite 1R-0750',      level: 'high',   date: '2026-04-18', resolved: false },
-  { id: 2, area: 'Producción & Operaciones',   description: 'Mantenimiento preventivo vencido: Excavadora CAT 320', level: 'medium', date: '2026-04-17', resolved: false },
-  { id: 3, area: 'Marketing & Sales',          description: '3 cotizaciones sin respuesta hace más de 5 días',    level: 'low',    date: '2026-04-15', resolved: false },
-  { id: 4, area: 'Logística & Almacén',        description: 'Proveedor Volvo Parts SAC sin actividad 30 días',    level: 'low',    date: '2026-04-14', resolved: true  },
-]
-
-const fakeActions = [
-  { id: 1, area: 'Logística & Almacén',      action: 'Emitir orden de compra para repuestos críticos', responsible: 'Carlos Mendoza', date: '2026-04-20', status: 'Pendiente',  alert_ref: 1 },
-  { id: 2, area: 'Producción & Operaciones', action: 'Programar mantenimiento urgente CAT 320',        responsible: 'Pedro Gómez',    date: '2026-04-19', status: 'En proceso', alert_ref: 2 },
-]
+import useCrud from '@/hooks/useCrud'
 
 // ── Helpers ────────────────────────────────────────────────
 
@@ -92,13 +34,51 @@ const areaStatusIcon = {
   bad:     <XCircleIcon className="size-5 text-red-500" />,
 }
 
+const iconMap = {
+  ShoppingCartIcon, PackageIcon, WrenchIcon,
+  AlertTriangleIcon, CheckCircleIcon, XCircleIcon,
+  TrendingUpIcon, UsersIcon, FileTextIcon
+}
+
 // ── Componente ─────────────────────────────────────────────
 
 const AreaControl = () => {
-  const [alerts, setAlerts]     = useState(fakeAlerts)
-  const [actions, setActions]   = useState(fakeActions)
+  const { getModel } = useCrud('/api/v1/admin/area_control')
+  
+  const [areaMetrics, setAreaMetrics] = useState([])
+  const [alerts, setAlerts]     = useState([])
+  const [actions, setActions]   = useState([])
   const [isActionOpen, setIsActionOpen] = useState(false)
   const [selectedAlert, setSelectedAlert] = useState(null)
+  const [loading, setLoading] = useState(true)
+
+  useEffect(() => {
+    const fetchAreaControlData = async () => {
+      try {
+        const response = await getModel('')
+        const rawMetrics = response.area_metrics || response.areaMetrics || []
+        
+        // Map icon strings to actual Icon components
+        const mappedMetrics = rawMetrics.map(area => ({
+          ...area,
+          icon: iconMap[area.icon] || PackageIcon,
+          metrics: area.metrics?.map(m => ({
+            ...m,
+            icon: iconMap[m.icon] || FileTextIcon
+          })) || []
+        }))
+
+        setAreaMetrics(mappedMetrics)
+        setAlerts(response.alerts || [])
+        setActions(response.actions || [])
+      } catch (error) {
+        console.error("Error fetching area control data:", error)
+      } finally {
+        setLoading(false)
+      }
+    }
+    fetchAreaControlData()
+  }, [])
 
   const handleResolve = (id) =>
     setAlerts(prev => prev.map(a => a.id === id ? { ...a, resolved: true } : a))
@@ -147,6 +127,10 @@ const AreaControl = () => {
   const handleCompleteAction = (id) =>
     setActions(prev => prev.map(a => a.id === id ? { ...a, status: 'Completado' } : a))
 
+  if (loading) {
+    return <div className="p-8 text-center text-muted-foreground">Cargando métricas de áreas...</div>
+  }
+
   return (
     <>
       <div className="flex flex-col gap-8">
@@ -154,7 +138,7 @@ const AreaControl = () => {
         {/* Título */}
         <div>
           <h1 className="text-lg font-semibold">Control de Áreas</h1>
-          <p className="text-sm text-muted-foreground">Supervisión del desempeño y gestión de alertas por área</p>
+          <p className="text-sm text-muted-foreground">Supervisión del desempeño y gestión de alertas por área en tiempo real</p>
         </div>
 
         {/* Tarjetas por área */}
