@@ -46,7 +46,7 @@ const Quotations = () => {
         document: item.client_document || '-',
         equipment: 'Consultar items', 
         quotation_type: item.quotation_type || 'machinery_sale',
-        advisor: `Asesor ${item.advisor_id || ''}`,
+        advisor: item.advisor_name || 'Sin asignar',
         amount: item.total || item.subtotal || 0,
         date: item.created_at,
         status: item.status,
