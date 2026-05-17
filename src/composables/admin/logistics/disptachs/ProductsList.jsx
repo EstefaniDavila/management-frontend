@@ -138,7 +138,9 @@ const ProductsList = ({
                 >
                     <option value="">-- Seleccionar producto --</option>
                     {availableProducts.map(p => (
-                        <option key={p.id} value={p.id}>{p.code} - {p.name}</option>
+                        <option key={p.id} value={p.id}>
+                            {p.product_type === 'vehicle' ? '🚗 Vehículo' : '🔧 Repuesto'} - {p.name}
+                        </option>
                     ))}
                 </select>
 

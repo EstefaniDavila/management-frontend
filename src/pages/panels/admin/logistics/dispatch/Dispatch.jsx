@@ -37,8 +37,11 @@ const DispatchManagement = () => {
       const historyOrders = [];
 
       data.forEach(item => {
-        const estadoLabel = item.status === 'delivered' ? 'Entregado' :
-          item.status === 'in_transit' ? 'En Tránsito' : 'Pendiente';
+        const estadoLabel =
+          item.status === 'delivered' ? 'Entregado' :
+            item.status === 'dispatched' ? 'En Tránsito' :
+              item.status === 'pending' ? 'Pendiente' :
+                item.status === 'cancelled' ? 'Cancelado' : 'Desconocido';
 
         const mappedItem = {
           id: item.id,
@@ -66,6 +69,20 @@ const DispatchManagement = () => {
     } catch (error) {
       console.error("Error al cargar despachos:", error);
     }
+
+    const mappedItem = {
+      id: item.id,
+      code: item.code,
+      status: item.status,
+      fecha: new Date(item.created_at).toLocaleString(),
+      ordenId: item.sales_order_id || item.rental_id || 'N/A',
+      estado: estadoLabel,
+      prepared_by_id: item.prepared_by_id,
+      prepared_by_name: item.prepared_by?.full_name || item.prepared_by?.email || 'Desconocido',
+      dispatched_at: item.dispatched_at ? new Date(item.dispatched_at).toLocaleString() : 'N/A',
+      delivered_at: item.delivered_at ? new Date(item.delivered_at).toLocaleString() : 'N/A',
+      _original: item
+    };
   };
 
   useEffect(() => {
@@ -91,8 +108,11 @@ const DispatchManagement = () => {
     fecha: selectedOrder.fecha
   } : null;
 
-  const totalEntregados = dispatchHistory.filter(h => h.estado === "Entregado").length;
-  const totalEnTransito = dispatchHistory.filter(h => h.estado === "En Tránsito").length;
+
+
+  const totalEntregados = dispatchHistory.filter(h => h.status === 'delivered').length;
+  const totalEnTransito = dispatchHistory.filter(h => h.status === 'dispatched').length;
+  const totalPendientes = pending.length;
 
   return (
     <>
@@ -101,7 +121,6 @@ const DispatchManagement = () => {
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
             <div className="flex flex-col gap-2">
               <h1 className="text-2xl font-bold tracking-tight flex items-center gap-2">
-                <Truck className="h-6 w-6 text-primary" />
                 DESPACHOS PENDIENTES
               </h1>
               <p className="text-muted-foreground text-sm">
@@ -158,7 +177,9 @@ const DispatchManagement = () => {
                 <CardHeader className="pb-2 flex flex-row items-center justify-between space-y-0">
                   <CardTitle className="text-sm font-bold">{item.code}</CardTitle>
                   <Badge variant="outline">
-                    Pendiente
+                    {item.status === 'pending' ? 'Pendiente' :
+                      item.status === 'dispatched' ? 'En Tránsito' :
+                        item.status === 'delivered' ? 'Entregado' : 'Cancelado'}
                   </Badge>
                 </CardHeader>
 
@@ -203,7 +224,7 @@ const DispatchManagement = () => {
       <AGenerateDispatchModal
         open={showDispatchModal}
         setOpen={setShowDispatchModal}
-        //onConfirm={handleConfirmDispatch}
+        onConfirm={handleConfirmDispatch}
         orderData={orderDataForModal}
       />
 

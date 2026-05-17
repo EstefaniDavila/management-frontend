@@ -15,6 +15,7 @@ const OrdersSuppliersReviewTable = ({
     handleOpenModal,
     onReceiveOrder,
     onCancelOrder,
+    handleDownloadGuide,
 }) => {
 
     const handleDetails = useCallback((order) => {
@@ -30,8 +31,8 @@ const OrdersSuppliersReviewTable = ({
     }, [onCancelOrder]);
 
     const columnsWithActions = useMemo(() =>
-        columns(handleDetails, handleReceive, handleCancel),
-        [handleDetails, handleReceive, handleCancel]
+        columns(handleDetails, handleReceive, handleCancel, handleDownloadGuide),
+        [handleDetails, handleReceive, handleCancel, handleDownloadGuide]
     );
 
     return (

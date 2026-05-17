@@ -1,7 +1,7 @@
 import React from 'react';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { Eye, CheckCircle, XCircle } from 'lucide-react';
+import { Eye, CheckCircle, XCircle, Download as DownloadIcon } from 'lucide-react';
 
 const getOrderStatusBadge = (status) => {
     switch (status) {
@@ -20,7 +20,7 @@ const getOrderStatusBadge = (status) => {
     }
 };
 
-const columns = (handleDetails, handleReceive, handleCancel) => [
+const columns = (handleDetails, handleReceive, handleCancel, handleDownloadGuide) => [
     {
         accessorKey: 'orderId',
         header: 'Nº PEDIDO',
@@ -94,7 +94,18 @@ const columns = (handleDetails, handleReceive, handleCancel) => [
                     >
                         <XCircle className="h-4 w-4" />
                     </Button>
+
+
                 )}
+                <Button
+                    variant="ghost"
+                    size="icon"
+                    className="h-8 w-8 text-orange-500 hover:bg-orange-50"
+                    title="Descargar Pedido"
+                    onClick={() => handleDownloadGuide(row.original)}
+                >
+                    <DownloadIcon className="h-4 w-4" />
+                </Button>
             </div>
         ),
     }

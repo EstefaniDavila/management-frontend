@@ -15,16 +15,23 @@ const OrdersSuppliersTable = ({
   handleOpenModal,
   handleDeleteOrder,
   handleReceiveOrder,
-  handleCancelOrder
+  handleCancelOrder,
+  handleDownloadGuide
 }) => {
 
-  const handleEdit = (order) => handleOpenModal('edit', order);
+  const handleDownload = (order) => {
+    if (handleDownloadGuide) {
+      handleDownloadGuide(order);
+    } else {
+      console.warn("handleDownloadGuide no está definida");
+    }
+  };
   const handleDelete = (order) => handleDeleteOrder ? handleDeleteOrder(order._original) : handleOpenModal('delete', order);
   const handleDetails = (order) => handleOpenModal('details', order);
 
   const columnsWithActions = useMemo(() =>
-    columns(handleEdit, handleDetails, handleDelete, handleReceiveOrder, handleCancelOrder),
-    [handleEdit, handleDelete, handleDetails, handleReceiveOrder, handleCancelOrder]
+    columns(handleDownload, handleDetails, handleDelete, handleReceiveOrder, handleCancelOrder),
+    [handleDownload, handleDelete, handleDetails, handleReceiveOrder, handleCancelOrder]
   );
 
   return (

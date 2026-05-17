@@ -6,7 +6,6 @@ import { useAuth } from '@/providers/UserContext';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
-import { Checkbox } from '@/components/ui/checkbox';
 import {
     Select,
     SelectContent,
@@ -37,6 +36,9 @@ const CreateNewOrderModal = ({ open, setOpen, onSave, suppliers, initialSupplier
         ]
     });
 
+    const [supplierProducts, setSupplierProducts] = useState([]);
+    const [loadingProducts, setLoadingProducts] = useState(false);
+
     useEffect(() => {
         if (user?.id) {
             setFormData(prev => ({
@@ -53,7 +55,6 @@ const CreateNewOrderModal = ({ open, setOpen, onSave, suppliers, initialSupplier
                 supplier_id: initialSupplierId.toString()
             }));
         } else if (!open) {
-
             setFormData({
                 supplier_id: '',
                 requested_by_id: user?.id || '',
@@ -63,25 +64,48 @@ const CreateNewOrderModal = ({ open, setOpen, onSave, suppliers, initialSupplier
                     { ui_id: Date.now(), product_id: '', product_nombre: '', quantity: 1, unit_cost: 0, subtotal: 0 }
                 ]
             });
+            setSupplierProducts([]);
         }
     }, [initialSupplierId, open, user?.id]);
 
-    const [productos, setProductos] = useState([]);
-    const { getModel } = useCrud('/api/v1/admin/products');
-
     useEffect(() => {
-        const fetchProducts = async () => {
+        const fetchSupplierProducts = async () => {
+            if (!formData.supplier_id) {
+                setSupplierProducts([]);
+                return;
+            }
+
+            setLoadingProducts(true);
             try {
-                const response = await getModel();
-                const productsArray = response.data || (Array.isArray(response) ? response : []);
-                setProductos(productsArray);
+                const response = await fetch(`/api/v1/admin/suppliers/${formData.supplier_id}/supplier_products`);
+                const data = await response.json();
+                const mappedProducts = data.map(sp => ({
+                    id: sp.product.id,
+                    name: sp.product.name,
+                    code: sp.product.code,
+                    base_price: parseFloat(sp.unit_cost),
+                    supplier_code: sp.supplier_code,
+                    supplier_product_id: sp.id
+                }));
+
+                setSupplierProducts(mappedProducts);
+
+                setFormData(prev => ({
+                    ...prev,
+                    purchase_order_items_attributes: [
+                        { ui_id: Date.now(), product_id: '', product_nombre: '', quantity: 1, unit_cost: 0, subtotal: 0 }
+                    ]
+                }));
             } catch (error) {
-                console.error("Error fetching products:", error);
+                console.error("Error fetching supplier products:", error);
+                setSupplierProducts([]);
+            } finally {
+                setLoadingProducts(false);
             }
         };
-        fetchProducts();
-    }, []);
 
+        fetchSupplierProducts();
+    }, [formData.supplier_id]);
     const handleInputChange = (field, value) => {
         setFormData(prev => ({
             ...prev,
@@ -150,6 +174,7 @@ const CreateNewOrderModal = ({ open, setOpen, onSave, suppliers, initialSupplier
             alert('Por favor complete todos los productos seleccionados');
             return;
         }
+
         const cleanedItemsAttributes = formData.purchase_order_items_attributes.map(item => ({
             product_id: item.product_id,
             quantity: item.quantity,
@@ -164,8 +189,8 @@ const CreateNewOrderModal = ({ open, setOpen, onSave, suppliers, initialSupplier
 
         cleanedItemsAttributes.forEach((item, index) => {
             payload.append(`purchase_order_items_attributes[${index}][product_id]`, item.product_id);
-            payload.append(`purchase_order_items_attributes][${index}][quantity`, item.quantity);
-            payload.append(`purchase_order_items_attributes][${index}][unit_cost`, item.unit_cost);
+            payload.append(`purchase_order_items_attributes[${index}][quantity]`, item.quantity);
+            payload.append(`purchase_order_items_attributes[${index}][unit_cost]`, item.unit_cost);
         });
 
         await onSave(payload);
@@ -179,6 +204,7 @@ const CreateNewOrderModal = ({ open, setOpen, onSave, suppliers, initialSupplier
                 { ui_id: Date.now(), product_id: '', product_nombre: '', quantity: 1, unit_cost: 0, subtotal: 0 }
             ]
         });
+        setSupplierProducts([]);
     };
 
     return (
@@ -191,7 +217,6 @@ const CreateNewOrderModal = ({ open, setOpen, onSave, suppliers, initialSupplier
             callBack={handleSubmit}
         >
             <div className="flex flex-col gap-4 py-4 max-h-[60vh] overflow-y-auto px-1">
-                {/* Información del Pedido */}
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div className="space-y-2">
                         <Label htmlFor="supplier_id">Proveedor *</Label>
@@ -230,7 +255,6 @@ const CreateNewOrderModal = ({ open, setOpen, onSave, suppliers, initialSupplier
                     </div>
                 </div>
 
-                {/* Productos */}
                 <div className="space-y-3">
                     <div className="flex justify-between items-center">
                         <Label>Productos *</Label>
@@ -240,11 +264,23 @@ const CreateNewOrderModal = ({ open, setOpen, onSave, suppliers, initialSupplier
                             size="sm"
                             onClick={addProduct}
                             className="gap-1"
+                            disabled={!formData.supplier_id || supplierProducts.length === 0}
                         >
                             <Plus className="h-4 w-4" />
                             Agregar Producto
                         </Button>
                     </div>
+                    {formData.supplier_id && supplierProducts.length === 0 && !loadingProducts && (
+                        <div className="text-center p-4 bg-yellow-50 text-yellow-600 rounded-lg text-sm">
+                            Este proveedor no tiene productos registrados en el catálogo.
+                        </div>
+                    )}
+
+                    {loadingProducts && (
+                        <div className="text-center p-4 text-muted-foreground">
+                            Cargando productos del proveedor...
+                        </div>
+                    )}
 
                     <div className="border rounded-lg overflow-hidden">
                         <div className="overflow-x-auto">
@@ -265,19 +301,20 @@ const CreateNewOrderModal = ({ open, setOpen, onSave, suppliers, initialSupplier
                                                 <Select
                                                     value={item.product_id}
                                                     onValueChange={(value) => {
-                                                        const selected = productos.find(p => p.id === value);
+                                                        const selected = supplierProducts.find(p => p.id === value);
                                                         if (selected) {
-                                                            selectProduct(index, selected.id, selected.name, selected.base_price ? parseFloat(selected.base_price) : 0);
+                                                            selectProduct(index, selected.id, selected.name, selected.base_price);
                                                         }
                                                     }}
+                                                    disabled={!formData.supplier_id || supplierProducts.length === 0}
                                                 >
                                                     <SelectTrigger className="h-8">
-                                                        <SelectValue placeholder="Seleccionar" />
+                                                        <SelectValue placeholder="Seleccionar producto" />
                                                     </SelectTrigger>
                                                     <SelectContent>
-                                                        {productos.map((prod) => (
+                                                        {supplierProducts.map((prod) => (
                                                             <SelectItem key={prod.id} value={prod.id}>
-                                                                {prod.name} - ${parseFloat(prod.base_price || 0).toFixed(2)}
+                                                                {prod.name} - ${prod.base_price.toFixed(2)}
                                                             </SelectItem>
                                                         ))}
                                                     </SelectContent>
@@ -290,6 +327,7 @@ const CreateNewOrderModal = ({ open, setOpen, onSave, suppliers, initialSupplier
                                                     value={item.quantity}
                                                     onChange={(e) => handleProductChange(index, 'quantity', parseInt(e.target.value) || 0)}
                                                     className="h-8 text-center"
+                                                    disabled={!item.product_id}
                                                 />
                                             </TableCell>
                                             <TableCell>
@@ -298,8 +336,9 @@ const CreateNewOrderModal = ({ open, setOpen, onSave, suppliers, initialSupplier
                                                     min="0"
                                                     step="0.01"
                                                     value={item.unit_cost}
-                                                    onChange={(e) => handleProductChange(index, 'unit_cost', parseFloat(e.target.value) || 0)}
-                                                    className="h-8 text-right"
+                                                    readOnly
+                                                    className="h-8 text-right bg-muted"
+
                                                 />
                                             </TableCell>
                                             <TableCell className="text-right font-medium">
@@ -324,7 +363,6 @@ const CreateNewOrderModal = ({ open, setOpen, onSave, suppliers, initialSupplier
                         </div>
                     </div>
 
-                    {/* Total */}
                     <div className="flex justify-end p-4 bg-muted/30 rounded-lg">
                         <div className="text-right">
                             <p className="text-sm text-muted-foreground">Total del Pedido</p>

@@ -70,12 +70,13 @@ const WarehouseInventory = () => {
 
         return {
           id: item.code,
-          desc: item.name,
-          type: isVehicle ? "maquinaria" : "repuesto",
+          name: item.name,
+          desc: item.description || "Sin descripción",
+          type: isVehicle ? "Maquinaria" : "Repuesto",
           stock: isVehicle ? '-' : (item.spare_part?.stock || 0),
           loc: isVehicle
             ? (item.vehicle?.location || 'No asignado')
-            : (item.spare_part?.category || 'No asignado'),
+            : (item.spare_part?.location || 'Caterpillar'),
           status: getProductStatus(item),
           product_type: item.product_type,
           _original: item,
@@ -181,9 +182,9 @@ const WarehouseInventory = () => {
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent>
-              <DropdownMenuItem onClick={() => setFilterType("todos")}>All</DropdownMenuItem>
-              <DropdownMenuItem onClick={() => setFilterType("maquinaria")}>Machinery</DropdownMenuItem>
-              <DropdownMenuItem onClick={() => setFilterType("repuesto")}>Parts</DropdownMenuItem>
+              <DropdownMenuItem onClick={() => setFilterType("todos")}>Todos</DropdownMenuItem>
+              <DropdownMenuItem onClick={() => setFilterType("maquinaria")}>Maquinaria</DropdownMenuItem>
+              <DropdownMenuItem onClick={() => setFilterType("repuesto")}>Repuestos</DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
 

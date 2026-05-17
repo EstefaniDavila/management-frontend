@@ -13,16 +13,18 @@ const UpdateProductModal = ({ open, setOpen, onSave, productToEdit }) => {
     active: true
   });
 
+  const [imageUrl, setImageUrl] = useState('')
+  const [existingImage, setExistingImage] = useState(null)
+
   useEffect(() => {
     if (productToEdit && open) {
-      console.log("Producto a editar:", productToEdit); // Para debugging
+      console.log("Producto a editar:", productToEdit);
 
-      // Extraer valores según la estructura del padre
+      const realProduct = productToEdit._original || productToEdit;
       const code = productToEdit.id || productToEdit.code || '';
       const name = productToEdit.desc || productToEdit.name || '';
       const description = productToEdit._original?.description || productToEdit.description || '';
 
-      // Limpiar el precio (quitar $ y convertir a número)
       let basePrice = 0;
       if (productToEdit.base_price) {
         if (typeof productToEdit.base_price === 'string') {
@@ -32,7 +34,6 @@ const UpdateProductModal = ({ open, setOpen, onSave, productToEdit }) => {
         }
       }
 
-      // Determinar estado activo
       const active = productToEdit.state === 'ACTIVO' || productToEdit.active === true;
 
       setFormData({
@@ -42,6 +43,10 @@ const UpdateProductModal = ({ open, setOpen, onSave, productToEdit }) => {
         base_price: basePrice,
         active: active
       });
+
+      const existingImg = realProduct.product_images?.[0]
+      setExistingImage(existingImg || null)
+      setImageUrl(existingImg?.url || '')
     }
   }, [productToEdit, open]);
 
@@ -66,10 +71,14 @@ const UpdateProductModal = ({ open, setOpen, onSave, productToEdit }) => {
       active: formData.active
     };
 
-    console.log("Enviando desde modal:", JSON.stringify(productData, null, 2));
+    if (imageUrl.trim() !== '') {
+      productData.product_images_attributes = existingImage
+        ? [{ id: existingImage.id, url: imageUrl }]
+        : [{ url: imageUrl }]
+    }
+
     await onSave(productData);
   };
-
   return (
     <Modal
       open={open}
@@ -80,7 +89,7 @@ const UpdateProductModal = ({ open, setOpen, onSave, productToEdit }) => {
       callBack={handleActionSave}
     >
       <div className="grid gap-5 py-5">
-        {/* Código - Solo lectura */}
+
         <div className="space-y-2">
           <Label htmlFor="code" className="text-sm font-semibold text-gray-700">
             Código
@@ -96,7 +105,6 @@ const UpdateProductModal = ({ open, setOpen, onSave, productToEdit }) => {
           <p className="text-xs text-gray-500">El código no se puede modificar</p>
         </div>
 
-        {/* Nombre */}
         <div className="space-y-2">
           <Label htmlFor="name" className="text-sm font-semibold text-gray-700">
             Nombre <span className="text-red-500">*</span>
@@ -111,7 +119,6 @@ const UpdateProductModal = ({ open, setOpen, onSave, productToEdit }) => {
           />
         </div>
 
-        {/* Descripción y Precio en grid */}
         <div className="grid grid-cols-2 gap-4">
           <div className="space-y-2">
             <Label htmlFor="description" className="text-sm font-semibold text-gray-700">
@@ -147,7 +154,19 @@ const UpdateProductModal = ({ open, setOpen, onSave, productToEdit }) => {
           </div>
         </div>
 
-        {/* Estado con botones mejorados */}
+        {/* Campo de imagen */}
+        <div className="space-y-2">
+          <Label className="text-sm font-semibold text-gray-700">
+            URL de la imagen
+          </Label>
+          <Input
+            placeholder="https://ejemplo.com/nueva-imagen.jpg"
+            value={imageUrl}
+            onChange={(e) => setImageUrl(e.target.value)}
+            className="border-gray-300 focus:border-blue-500 focus:ring-blue-500"
+          />
+        </div>
+
         <div className="space-y-2">
           <Label className="text-sm font-semibold text-gray-700">Estado del Producto</Label>
           <div className="flex gap-3 bg-gray-50 p-1 rounded-lg border border-gray-200">

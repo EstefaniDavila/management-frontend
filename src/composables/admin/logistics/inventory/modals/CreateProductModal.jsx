@@ -61,6 +61,7 @@ const CreateProductModal = ({ open, setOpen, onSave, currentUserId }) => {
   const [vehicleModels, setVehicleModels] = useState([])
   const [vehicleTypes, setVehicleTypes] = useState([])
   const [sparePartCategories, setSparePartCategories] = useState([])
+  const [imageUrl, setImageUrl] = useState('')
 
   const { getModel: getVehicleModels } = useCrud('/api/v1/admin/vehicle_models')
   const { getModel: getVehicleTypes } = useCrud('/api/v1/admin/vehicle_types')
@@ -160,6 +161,10 @@ const CreateProductModal = ({ open, setOpen, onSave, currentUserId }) => {
         payload.append('updated_by_id', currentUserId)
       }
 
+      if (imageUrl && imageUrl.trim() !== '') {
+        payload.append('product_images_attributes[0][url]', imageUrl)
+      }
+
       if (productType === 'vehicle') {
         Object.entries(data.vehicle).forEach(([key, value]) => {
           if (value !== undefined && value !== '') {
@@ -176,6 +181,7 @@ const CreateProductModal = ({ open, setOpen, onSave, currentUserId }) => {
 
       await onSave(payload)
       reset()
+      setImageUrl('')
       setOpen(false)
     } catch (error) {
       console.error('Error creating product:', error)
@@ -247,6 +253,20 @@ const CreateProductModal = ({ open, setOpen, onSave, currentUserId }) => {
                   sparePartCategories={sparePartCategories}
                 />
               </TabsContent>
+            </div>
+
+            <div className="mb-4">
+              <label className="block text-sm font-medium mb-1">URL de la imagen</label>
+              <input
+                type="text"
+                className="w-full border rounded-md p-2"
+                placeholder="https://ejemplo.com/imagen.jpg"
+                value={imageUrl}
+                onChange={(e) => setImageUrl(e.target.value)}
+              />
+              <p className="text-xs text-muted-foreground mt-1">
+                Ingrese una URL de imagen para el producto (opcional)
+              </p>
             </div>
           </Tabs>
         </div>

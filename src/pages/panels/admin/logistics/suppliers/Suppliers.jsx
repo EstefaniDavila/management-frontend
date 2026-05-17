@@ -9,14 +9,6 @@ import CreateNewOrderModal from '@/composables/admin/logistics/ordersSuppliers/m
 import useCrud from '@/hooks/useCrud';
 import useEntityMutation from '@/hooks/useEntityMutation';
 
-const suppliersMock = [
-  { id: 1, nombre: "Maquinarias S.A." },
-  { id: 2, nombre: "Repuestos Industriales Ltda." },
-  { id: 3, nombre: "Equipos Pesados SpA" },
-  { id: 4, nombre: "Insumos Mineros" },
-  { id: 5, nombre: "Logística Express" },
-];
-
 const Suppliers = () => {
   const [proveedores, setProveedores] = useState([]);
   const [pagination, setPagination] = useState({ pageIndex: 0, pageSize: 10 });
@@ -138,8 +130,8 @@ const Suppliers = () => {
               onClick={() => handleOpenModal('new')}
             >
               <Plus className="h-4 w-4" /> NUEVO PROVEEDOR
-
             </Button>
+
           </div>
           <div className="w-full bg-card rounded-xl border shadow-sm overflow-hidden">
             <div className="p-4">

@@ -27,6 +27,16 @@ const columns = (handleViewDetails, handleCreateOrder) => [
     cell: info => <div className="min-w-[120px]">{info.getValue() || '—'}</div>,
   },
   {
+    accessorKey: 'direccion',
+    header: 'DIRECCIÓN',
+    cell: info => <div className="min-w-[120px]">{info.getValue() || '—'}</div>,
+  },
+  {
+    accessorKey: 'ciudad',
+    header: 'CIUDAD',
+    cell: info => <div className="min-w-[120px]">{info.getValue() || '—'}</div>,
+  },
+  {
     accessorKey: 'telefono',
     header: 'TELÉFONO',
     cell: info => <div className="min-w-[100px]">{info.getValue()}</div>,
