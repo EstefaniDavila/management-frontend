@@ -6,7 +6,6 @@ import { useAuth } from '@/providers/UserContext';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
-import { Checkbox } from '@/components/ui/checkbox';
 import {
     Select,
     SelectContent,
@@ -24,7 +23,7 @@ import {
 } from '@/components/ui/table';
 import { Plus, Trash2 } from 'lucide-react';
 
-const CreateNewOrderModal = ({ open, setOpen, onSave, suppliers }) => {
+const CreateNewOrderModal = ({ open, setOpen, onSave, suppliers, initialSupplierId }) => {
     const { user } = useAuth();
 
     const [formData, setFormData] = useState({
@@ -37,6 +36,9 @@ const CreateNewOrderModal = ({ open, setOpen, onSave, suppliers }) => {
         ]
     });
 
+    const [supplierProducts, setSupplierProducts] = useState([]);
+    const [loadingProducts, setLoadingProducts] = useState(false);
+
     useEffect(() => {
         if (user?.id) {
             setFormData(prev => ({
@@ -46,22 +48,64 @@ const CreateNewOrderModal = ({ open, setOpen, onSave, suppliers }) => {
         }
     }, [user?.id]);
 
-    const [productos, setProductos] = useState([]);
-    const { getModel } = useCrud('/api/v1/admin/products');
+    useEffect(() => {
+        if (initialSupplierId && open) {
+            setFormData(prev => ({
+                ...prev,
+                supplier_id: initialSupplierId.toString()
+            }));
+        } else if (!open) {
+            setFormData({
+                supplier_id: '',
+                requested_by_id: user?.id || '',
+                expected_date: '',
+                notes: '',
+                purchase_order_items_attributes: [
+                    { ui_id: Date.now(), product_id: '', product_nombre: '', quantity: 1, unit_cost: 0, subtotal: 0 }
+                ]
+            });
+            setSupplierProducts([]);
+        }
+    }, [initialSupplierId, open, user?.id]);
 
     useEffect(() => {
-        const fetchProducts = async () => {
+        const fetchSupplierProducts = async () => {
+            if (!formData.supplier_id) {
+                setSupplierProducts([]);
+                return;
+            }
+
+            setLoadingProducts(true);
             try {
-                const response = await getModel();
-                const productsArray = response.data || (Array.isArray(response) ? response : []);
-                setProductos(productsArray);
+                const response = await fetch(`/api/v1/admin/suppliers/${formData.supplier_id}/supplier_products`);
+                const data = await response.json();
+                const mappedProducts = data.map(sp => ({
+                    id: sp.product.id,
+                    name: sp.product.name,
+                    code: sp.product.code,
+                    base_price: parseFloat(sp.unit_cost),
+                    supplier_code: sp.supplier_code,
+                    supplier_product_id: sp.id
+                }));
+
+                setSupplierProducts(mappedProducts);
+
+                setFormData(prev => ({
+                    ...prev,
+                    purchase_order_items_attributes: [
+                        { ui_id: Date.now(), product_id: '', product_nombre: '', quantity: 1, unit_cost: 0, subtotal: 0 }
+                    ]
+                }));
             } catch (error) {
-                console.error("Error fetching products:", error);
+                console.error("Error fetching supplier products:", error);
+                setSupplierProducts([]);
+            } finally {
+                setLoadingProducts(false);
             }
         };
-        fetchProducts();
-    }, []);
 
+        fetchSupplierProducts();
+    }, [formData.supplier_id]);
     const handleInputChange = (field, value) => {
         setFormData(prev => ({
             ...prev,
@@ -130,6 +174,7 @@ const CreateNewOrderModal = ({ open, setOpen, onSave, suppliers }) => {
             alert('Por favor complete todos los productos seleccionados');
             return;
         }
+
         const cleanedItemsAttributes = formData.purchase_order_items_attributes.map(item => ({
             product_id: item.product_id,
             quantity: item.quantity,
@@ -144,14 +189,14 @@ const CreateNewOrderModal = ({ open, setOpen, onSave, suppliers }) => {
 
         cleanedItemsAttributes.forEach((item, index) => {
             payload.append(`purchase_order_items_attributes[${index}][product_id]`, item.product_id);
-            payload.append(`purchase_order_items_attributes][${index}][quantity`, item.quantity);
-            payload.append(`purchase_order_items_attributes][${index}][unit_cost`, item.unit_cost);
+            payload.append(`purchase_order_items_attributes[${index}][quantity]`, item.quantity);
+            payload.append(`purchase_order_items_attributes[${index}][unit_cost]`, item.unit_cost);
         });
 
         await onSave(payload);
 
         setFormData({
-            supplier_id: '',
+            supplier_id: initialSupplierId ? initialSupplierId.toString() : '',
             requested_by_id: user?.id || '',
             expected_date: '',
             notes: '',
@@ -159,6 +204,7 @@ const CreateNewOrderModal = ({ open, setOpen, onSave, suppliers }) => {
                 { ui_id: Date.now(), product_id: '', product_nombre: '', quantity: 1, unit_cost: 0, subtotal: 0 }
             ]
         });
+        setSupplierProducts([]);
     };
 
     return (
@@ -171,11 +217,10 @@ const CreateNewOrderModal = ({ open, setOpen, onSave, suppliers }) => {
             callBack={handleSubmit}
         >
             <div className="flex flex-col gap-4 py-4 max-h-[60vh] overflow-y-auto px-1">
-                {/* Información del Pedido */}
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div className="space-y-2">
                         <Label htmlFor="supplier_id">Proveedor *</Label>
-                        <Select onValueChange={(value) => handleInputChange('supplier_id', value)}>
+                        <Select value={formData.supplier_id} onValueChange={(value) => handleInputChange('supplier_id', value)}>
                             <SelectTrigger>
                                 <SelectValue placeholder="Seleccione un proveedor" />
                             </SelectTrigger>
@@ -210,7 +255,6 @@ const CreateNewOrderModal = ({ open, setOpen, onSave, suppliers }) => {
                     </div>
                 </div>
 
-                {/* Productos */}
                 <div className="space-y-3">
                     <div className="flex justify-between items-center">
                         <Label>Productos *</Label>
@@ -220,11 +264,23 @@ const CreateNewOrderModal = ({ open, setOpen, onSave, suppliers }) => {
                             size="sm"
                             onClick={addProduct}
                             className="gap-1"
+                            disabled={!formData.supplier_id || supplierProducts.length === 0}
                         >
                             <Plus className="h-4 w-4" />
                             Agregar Producto
                         </Button>
                     </div>
+                    {formData.supplier_id && supplierProducts.length === 0 && !loadingProducts && (
+                        <div className="text-center p-4 bg-yellow-50 text-yellow-600 rounded-lg text-sm">
+                            Este proveedor no tiene productos registrados en el catálogo.
+                        </div>
+                    )}
+
+                    {loadingProducts && (
+                        <div className="text-center p-4 text-muted-foreground">
+                            Cargando productos del proveedor...
+                        </div>
+                    )}
 
                     <div className="border rounded-lg overflow-hidden">
                         <div className="overflow-x-auto">
@@ -245,19 +301,20 @@ const CreateNewOrderModal = ({ open, setOpen, onSave, suppliers }) => {
                                                 <Select
                                                     value={item.product_id}
                                                     onValueChange={(value) => {
-                                                        const selected = productos.find(p => p.id === value);
+                                                        const selected = supplierProducts.find(p => p.id === value);
                                                         if (selected) {
-                                                            selectProduct(index, selected.id, selected.name, selected.base_price ? parseFloat(selected.base_price) : 0);
+                                                            selectProduct(index, selected.id, selected.name, selected.base_price);
                                                         }
                                                     }}
+                                                    disabled={!formData.supplier_id || supplierProducts.length === 0}
                                                 >
                                                     <SelectTrigger className="h-8">
-                                                        <SelectValue placeholder="Seleccionar" />
+                                                        <SelectValue placeholder="Seleccionar producto" />
                                                     </SelectTrigger>
                                                     <SelectContent>
-                                                        {productos.map((prod) => (
+                                                        {supplierProducts.map((prod) => (
                                                             <SelectItem key={prod.id} value={prod.id}>
-                                                                {prod.name} - ${parseFloat(prod.base_price || 0).toFixed(2)}
+                                                                {prod.name} - ${prod.base_price.toFixed(2)}
                                                             </SelectItem>
                                                         ))}
                                                     </SelectContent>
@@ -270,6 +327,7 @@ const CreateNewOrderModal = ({ open, setOpen, onSave, suppliers }) => {
                                                     value={item.quantity}
                                                     onChange={(e) => handleProductChange(index, 'quantity', parseInt(e.target.value) || 0)}
                                                     className="h-8 text-center"
+                                                    disabled={!item.product_id}
                                                 />
                                             </TableCell>
                                             <TableCell>
@@ -278,8 +336,9 @@ const CreateNewOrderModal = ({ open, setOpen, onSave, suppliers }) => {
                                                     min="0"
                                                     step="0.01"
                                                     value={item.unit_cost}
-                                                    onChange={(e) => handleProductChange(index, 'unit_cost', parseFloat(e.target.value) || 0)}
-                                                    className="h-8 text-right"
+                                                    readOnly
+                                                    className="h-8 text-right bg-muted"
+
                                                 />
                                             </TableCell>
                                             <TableCell className="text-right font-medium">
@@ -304,7 +363,6 @@ const CreateNewOrderModal = ({ open, setOpen, onSave, suppliers }) => {
                         </div>
                     </div>
 
-                    {/* Total */}
                     <div className="flex justify-end p-4 bg-muted/30 rounded-lg">
                         <div className="text-right">
                             <p className="text-sm text-muted-foreground">Total del Pedido</p>

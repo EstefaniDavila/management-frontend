@@ -13,18 +13,26 @@ const OrdersSuppliersReviewTable = ({
     searchFields,
     setSearchFields,
     handleOpenModal,
-    onConfirmOrder,
+    onReceiveOrder,
+    onCancelOrder,
+    handleDownloadGuide,
 }) => {
 
     const handleDetails = useCallback((order) => {
         handleOpenModal('details', order);
     }, [handleOpenModal]);
-    const handleConfirmReception = useCallback((order, isConforme) => {
-        onConfirmOrder(order, isConforme, '');
-    }, [onConfirmOrder]);
+
+    const handleReceive = useCallback((order) => {
+        onReceiveOrder(order);
+    }, [onReceiveOrder]);
+
+    const handleCancel = useCallback((order) => {
+        onCancelOrder(order);
+    }, [onCancelOrder]);
+
     const columnsWithActions = useMemo(() =>
-        columns(handleDetails, handleConfirmReception),
-        [handleDetails, handleConfirmReception]
+        columns(handleDetails, handleReceive, handleCancel, handleDownloadGuide),
+        [handleDetails, handleReceive, handleCancel, handleDownloadGuide]
     );
 
     return (

@@ -2,18 +2,15 @@ import React, { useState, useEffect } from 'react';
 import Modal from '@/components/custom/modal';
 import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
-import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import {
   Package, Pencil, TrendingUp, TrendingDown, Bell, History, Truck, DollarSign
 } from 'lucide-react';
-import AlertStockModal from './AlertStockModal/AlertStockModal';
+
 import useCrud from '@/hooks/useCrud';
 import { useAuth } from '@/providers/UserContext';
 
 const HistoryProductModal = ({ open, setOpen, product }) => {
-  const [isEditing, setIsEditing] = useState(false);
-  const [showAlertModal, setShowAlertModal] = useState(false);
   const [isMobile, setIsMobile] = useState(false);
   const [movements, setMovements] = useState([]);
 
@@ -52,18 +49,18 @@ const HistoryProductModal = ({ open, setOpen, product }) => {
       const sparePart = allSpareParts.find(sp => sp.product_id === productId);
       const sparePartId = sparePart?.id;
 
-      console.log('🔍 productId:', productId);
-      console.log('🔍 sparePart encontrado:', sparePart);
-      console.log('🔍 spare_part_id a filtrar:', sparePartId);
-      console.log('📦 Todos los movimientos:', allMovements.length);
+      console.log('productId:', productId);
+      console.log('sparePart encontrado:', sparePart);
+      console.log('spare_part_id a filtrar:', sparePartId);
+      console.log('Todos los movimientos:', allMovements.length);
 
       const filteredMovements = allMovements.filter(m => m.spare_part_id === sparePartId);
 
-      console.log('✅ Movimientos filtrados:', filteredMovements.length);
+      console.log('Movimientos filtrados:', filteredMovements.length);
 
       if (filteredMovements.length === 0) {
-        console.warn('⚠️ No se encontraron movimientos para spare_part_id:', sparePartId);
-        console.log('📋 Lista de spare_part_ids disponibles:', [...new Set(allMovements.map(m => m.spare_part_id))]);
+        console.warn('No se encontraron movimientos para spare_part_id:', sparePartId);
+        console.log('Lista de spare_part_ids disponibles:', [...new Set(allMovements.map(m => m.spare_part_id))]);
       }
 
       const formattedMovements = filteredMovements.map(m => {
@@ -109,95 +106,12 @@ const HistoryProductModal = ({ open, setOpen, product }) => {
               <Package className="h-5 w-5 text-primary" />
               <span className="truncate text-base sm:text-lg">Historial: {productDetails.desc || productDetails.name || productDetails.id}</span>
             </div>
-            <Button
-              variant="outline"
-              size="xs"
-              onClick={() => setIsEditing(!isEditing)}
-              className="w-full sm:w-auto h-8 text-xs gap-1"
-            >
-              <Pencil className="h-3 w-3" />
-              {isEditing ? "Cancelar" : "Editar Info"}
-            </Button>
           </div>
         }
         description={`ID: ${productDetails.id}`}
         callBack={() => setOpen(false)}
       >
         <div className="flex flex-col h-full max-h-[75vh] space-y-4 overflow-y-auto">
-
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 bg-muted/30 p-3 sm:p-4 rounded-xl border shadow-sm">
-            <div className="space-y-2">
-              <Label className="text-[10px] font-bold uppercase text-muted-foreground flex items-center gap-1">
-                Existencias
-              </Label>
-              <div className="space-y-1">
-                {isEditing ? (
-                  <div className="flex flex-col sm:grid sm:grid-cols-3 gap-1">
-                    <Input type="number" placeholder="Min" defaultValue={productDetails.stockMin} className="h-8 px-1 text-xs" />
-                    <Input type="number" placeholder="Actual" defaultValue={productDetails.stock} className="h-8 px-1 text-xs border-primary" />
-                    <Input type="number" placeholder="Max" defaultValue={productDetails.stockMax} className="h-8 px-1 text-xs" />
-                  </div>
-                ) : (
-                  <div>
-                    <p className="text-xl sm:text-2xl font-bold leading-none">{productDetails.stock || 0}</p>
-                    <span className="text-[9px] sm:text-[10px] text-muted-foreground italic block mt-1">
-                      Mín: {productDetails.stockMin} / Máx: {productDetails.stockMax}
-                    </span>
-                  </div>
-                )}
-              </div>
-            </div>
-
-            <div className="space-y-2">
-              <Label className="text-[10px] font-bold uppercase text-muted-foreground">Logística</Label>
-              <div className="space-y-1">
-                {isEditing ? (
-                  <Input defaultValue={productDetails.loc} className="h-8 text-xs" />
-                ) : (
-                  <>
-                    <p className="text-xs sm:text-sm font-medium flex items-center gap-1 truncate">
-                      📍 {productDetails.loc || 'Almacén Principal'}
-                    </p>
-                    <Badge className="text-[10px] h-5 bg-green-500/10 text-green-600 border-green-200">
-                      Operativo
-                    </Badge>
-                  </>
-                )}
-              </div>
-            </div>
-
-            <div className="space-y-2">
-              <Label className="text-[10px] font-bold uppercase text-muted-foreground flex items-center gap-1">
-                <Truck className="h-3 w-3" /> Proveedor
-              </Label>
-              <div className="space-y-1">
-                {isEditing ? (
-                  <Input defaultValue={productDetails.proveedor} className="h-8 text-xs" />
-                ) : (
-                  <>
-                    <p className="text-xs sm:text-sm font-medium truncate">{productDetails.proveedor}</p>
-                    <p className="text-[9px] sm:text-[10px] text-muted-foreground">Última entrega: -</p>
-                  </>
-                )}
-              </div>
-            </div>
-
-            <div className="space-y-2">
-              <Label className="text-[10px] font-bold uppercase text-muted-foreground flex items-center gap-1">
-                <DollarSign className="h-3 w-3" /> Valor
-              </Label>
-              <div className="space-y-1">
-                {isEditing ? (
-                  <Input type="number" step="0.01" defaultValue={productDetails.precio} className="h-8 text-xs" />
-                ) : (
-                  <p className="text-lg sm:text-xl font-bold text-primary">
-                    ${productDetails.precio?.toFixed(2)}
-                  </p>
-                )}
-              </div>
-            </div>
-          </div>
-
           <div className="flex-1 overflow-hidden flex flex-col gap-3">
             <h3 className="text-xs font-bold flex items-center gap-1 text-muted-foreground uppercase tracking-widest">
               <History className="h-3 w-3" /> Registro de Movimientos
@@ -248,24 +162,8 @@ const HistoryProductModal = ({ open, setOpen, product }) => {
               </table>
             </div>
           </div>
-
-          <div className="flex justify-end pt-2 sticky bottom-0 bg-background py-2">
-            <Button
-              variant="outline"
-              className="w-full sm:w-auto gap-2 border-amber-200 bg-amber-50 text-amber-700 hover:bg-amber-100 h-9 text-xs font-semibold"
-              onClick={() => setShowAlertModal(true)}
-            >
-              <Bell className="h-3 w-3" /> Gestionar Alertas de Stock Bajo
-            </Button>
-          </div>
         </div>
       </Modal>
-
-      <AlertStockModal
-        open={showAlertModal}
-        setOpen={setShowAlertModal}
-        productName={productDetails.desc || productDetails.name}
-      />
     </>
   );
 };

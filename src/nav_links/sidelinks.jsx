@@ -1,4 +1,4 @@
-import { adminLinks }    from "./customSideLinks/admin"
+import { adminLinks } from "./customSideLinks/admin"
 import { areaManagerLinks } from "./customSideLinks/areaManagerLinks"
 import { advisorLinks } from "./customSideLinks/advisorLinks"
 import { techLinks } from "./customSideLinks/techLinks"
