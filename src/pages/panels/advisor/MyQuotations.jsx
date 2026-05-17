@@ -8,10 +8,24 @@ import { Badge } from '@/components/ui/badge'
 import { useAuth } from '@/providers/UserContext'
 import ViewQuotationModal from '@/composables/admin/marketing/quotations/modals/ViewQuotationModal'
 
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog"
+import { Label } from "@/components/ui/label"
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
+import { Textarea } from "@/components/ui/textarea"
+import { Button } from "@/components/custom/button"
+
 const MyQuotations = () => {
   const [searchParams] = useSearchParams()
   const { user } = useAuth()
   const { getModel } = useCrud('/api/v1/advisor/quotations')
+  const { insertModel: insertAreaRequest } = useCrud('/api/v1/advisor/area_requests')
   const quotationMutation = useEntityMutation({ entityName: 'quotation' })
   const { createFromQuotation } = useSales()
 
@@ -22,6 +36,15 @@ const MyQuotations = () => {
   const [selected, setSelected] = useState(null)
   const [totalPages, setTotalPages] = useState(0)
   const [isLoading, setIsLoading] = useState(true)
+
+  // Send to Area modal states
+  const [isSendToAreaOpen, setIsSendToAreaOpen] = useState(false)
+  const [selectedQuotationForArea, setSelectedQuotationForArea] = useState(null)
+  const [areaRequestFormData, setAreaRequestFormData] = useState({
+    area: 'Logística',
+    name: 'Completar Cotización',
+    description: ''
+  })
 
   const openQuotationId = searchParams.get('openQuotationId')
 
@@ -64,6 +87,8 @@ const MyQuotations = () => {
         items: item.items || [],
         date: item.created_at,
         status: item.status,
+        has_completed_area_request: item.has_completed_area_request,
+        pending_area_request: item.pending_area_request,
         _original: item
       }))
 
@@ -90,6 +115,35 @@ const MyQuotations = () => {
     }, {
       onSuccess: () => fetchQuotations()
     })
+  }
+
+  const handleOpenSendToArea = (q) => {
+    setSelectedQuotationForArea(q)
+    setAreaRequestFormData({
+      area: q.quotation_type === 'rental' ? 'Logística' : 'Operaciones',
+      name: 'Completar Cotización',
+      description: `Por favor, revisar disponibilidad de la máquina para la cotización de ${q.quotation_type === 'rental' ? 'Alquiler' : 'Mantenimiento'}, revisar estado técnico y definir precio unitario sugerido.`
+    })
+    setIsSendToAreaOpen(true)
+  }
+
+  const handleSendToAreaSubmit = async () => {
+    if (!selectedQuotationForArea) return
+    try {
+      await insertAreaRequest({
+        area_request: {
+          quotation_id: selectedQuotationForArea.id,
+          area: areaRequestFormData.area,
+          name: areaRequestFormData.name,
+          description: areaRequestFormData.description
+        }
+      })
+      setIsSendToAreaOpen(false)
+      setSelectedQuotationForArea(null)
+      fetchQuotations()
+    } catch (e) {
+      console.error(e)
+    }
   }
 
   // En la nueva API, el asesor envía a revisión (send_for_approval),
@@ -148,6 +202,7 @@ const MyQuotations = () => {
             onSend={handleSend}
             onApprove={handleApprove}
             onReject={handleReject}
+            onSendToArea={handleOpenSendToArea}
           />
         </div>
       </div>
@@ -157,6 +212,67 @@ const MyQuotations = () => {
         handleClose={() => setSelected(null)}
         quotation={selected}
       />
+
+      <Dialog open={isSendToAreaOpen} onOpenChange={setIsSendToAreaOpen}>
+        <DialogContent className="sm:max-w-[425px]">
+          <DialogHeader>
+            <DialogTitle className="text-black dark:text-white">Enviar a Área Especializada</DialogTitle>
+            <DialogDescription>
+              Solicita al equipo de Logística u Operaciones que complete los datos de esta cotización de alquiler o mantenimiento.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="grid gap-4 py-4 text-black dark:text-white">
+            <div className="grid grid-cols-4 items-center gap-4">
+              <Label htmlFor="toArea" className="text-right text-xs">
+                Área Destino
+              </Label>
+              <Select value={areaRequestFormData.area} onValueChange={(v) => setAreaRequestFormData({...areaRequestFormData, area: v})}>
+                <SelectTrigger className="col-span-3 text-black dark:text-white">
+                  <SelectValue placeholder="Selecciona el área" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="Logística">Logística (Sugerido para Alquileres)</SelectItem>
+                  <SelectItem value="Operaciones">Operaciones (Sugerido para Mantenimiento)</SelectItem>
+                  <SelectItem value="Comercial">Comercial</SelectItem>
+                  <SelectItem value="Técnico">Técnico</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="grid grid-cols-4 items-center gap-4">
+              <Label htmlFor="reqType" className="text-right text-xs">
+                Tipo
+              </Label>
+              <Select value={areaRequestFormData.name} onValueChange={(v) => setAreaRequestFormData({...areaRequestFormData, name: v})}>
+                <SelectTrigger className="col-span-3 text-black dark:text-white">
+                  <SelectValue placeholder="Tipo de solicitud" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="Completar Cotización">Completar Cotización</SelectItem>
+                  <SelectItem value="Revisión Técnica">Revisión Técnica</SelectItem>
+                  <SelectItem value="Actualización Datos">Actualización Datos</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="grid grid-cols-4 items-start gap-4">
+              <Label htmlFor="reqDescription" className="text-right pt-2 text-xs">
+                Detalle / Notas
+              </Label>
+              <Textarea
+                id="reqDescription"
+                value={areaRequestFormData.description}
+                onChange={(e) => setAreaRequestFormData({...areaRequestFormData, description: e.target.value})}
+                placeholder="Indica qué campos o datos específicos requieres que completen..."
+                className="col-span-3 text-black dark:text-white bg-white"
+              />
+            </div>
+          </div>
+          <DialogFooter>
+            <Button onClick={handleSendToAreaSubmit} className="bg-indigo-600 hover:bg-indigo-700 text-white">
+              Enviar Solicitud
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   )
 }

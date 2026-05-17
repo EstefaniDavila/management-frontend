@@ -230,7 +230,7 @@ const ViewLeadModal = ({ isOpen, handleClose, lead }) => {
 
         <SheetMultiStepFooter className="mt-auto pt-6 border-t bg-background flex justify-between items-center w-full">
           <Button variant="outline" onClick={handleClose}>Cerrar</Button>
-          {lead && lead.quotation_id && (
+          {lead && lead.quotation_id && user && user.roleable_type !== 'Manager' && (
             <Button
               onClick={handleGoToQuotation}
               className="bg-green-600 hover:bg-green-700 text-white flex items-center gap-2"

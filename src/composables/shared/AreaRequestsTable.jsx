@@ -58,6 +58,15 @@ export default function AreaRequestsTable({ currentArea, role }) {
     description: ''
   })
 
+  // Reply States
+  const [isReplyOpen, setIsReplyOpen] = useState(false)
+  const [selectedRequestForReply, setSelectedRequestForReply] = useState(null)
+  const [replyFormData, setReplyFormData] = useState({
+    machine_ready: 'true',
+    unit_price: '',
+    notes: ''
+  })
+
   const fetchRequests = async () => {
     try {
       const res = await getModel('?pageSize=1000')
@@ -89,6 +98,27 @@ export default function AreaRequestsTable({ currentArea, role }) {
       await insertModel({ area_request: formData })
       setIsDialogOpen(false)
       setFormData({ quotation_id: '', area: '', name: '', description: '' })
+      fetchRequests()
+    } catch (e) {
+      console.error(e)
+    }
+  }
+  const handleReplySubmit = async () => {
+    if (!selectedRequestForReply) return
+    try {
+      await updateModel(
+        { 
+          area_request: { 
+            notes: replyFormData.notes,
+            machine_ready: replyFormData.machine_ready === 'true',
+            unit_price: replyFormData.unit_price ? parseFloat(replyFormData.unit_price) : undefined
+          } 
+        }, 
+        `/api/v1/admin/area_requests/${selectedRequestForReply.id}/reply`
+      )
+      setIsReplyOpen(false)
+      setSelectedRequestForReply(null)
+      setReplyFormData({ machine_ready: 'true', unit_price: '', notes: '' })
       fetchRequests()
     } catch (e) {
       console.error(e)
@@ -203,6 +233,63 @@ export default function AreaRequestsTable({ currentArea, role }) {
             </DialogFooter>
           </DialogContent>
         </Dialog>
+
+        <Dialog open={isReplyOpen} onOpenChange={setIsReplyOpen}>
+          <DialogContent className="sm:max-w-[425px]">
+            <DialogHeader>
+              <DialogTitle className="text-black dark:text-white">Responder Solicitud de Área</DialogTitle>
+              <DialogDescription>
+                Completa los datos técnicos, define el costo final de la cotización y determina la disponibilidad de la máquina.
+              </DialogDescription>
+            </DialogHeader>
+            <div className="grid gap-4 py-4 text-black dark:text-white">
+              <div className="grid grid-cols-4 items-center gap-4">
+                <Label htmlFor="machineReady" className="text-right text-xs">
+                  Máquina Lista
+                </Label>
+                <Select value={replyFormData.machine_ready} onValueChange={(v) => setReplyFormData({...replyFormData, machine_ready: v})}>
+                  <SelectTrigger className="col-span-3 text-black dark:text-white">
+                    <SelectValue placeholder="Selecciona disponibilidad" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="true">Sí, máquina lista/disponible</SelectItem>
+                    <SelectItem value="false">No disponible actualmente</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+              <div className="grid grid-cols-4 items-center gap-4">
+                <Label htmlFor="unitPrice" className="text-right text-xs">
+                  Precio (S/)
+                </Label>
+                <Input
+                  id="unitPrice"
+                  type="number"
+                  placeholder="Ej: 1500"
+                  value={replyFormData.unit_price}
+                  onChange={(e) => setReplyFormData({...replyFormData, unit_price: e.target.value})}
+                  className="col-span-3 text-black dark:text-white bg-white"
+                />
+              </div>
+              <div className="grid grid-cols-4 items-start gap-4">
+                <Label htmlFor="replyNotes" className="text-right pt-2 text-xs">
+                  Observaciones
+                </Label>
+                <Textarea
+                  id="replyNotes"
+                  value={replyFormData.notes}
+                  onChange={(e) => setReplyFormData({...replyFormData, notes: e.target.value})}
+                  placeholder="Detalles del estado de la máquina, observaciones técnicas..."
+                  className="col-span-3 text-black dark:text-white bg-white"
+                />
+              </div>
+            </div>
+            <DialogFooter>
+              <Button onClick={handleReplySubmit} className="bg-green-600 hover:bg-green-700 text-white">
+                Enviar Respuesta
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
       </div>
 
       <div className="flex flex-col md:flex-row gap-4 items-center justify-between">
@@ -267,19 +354,14 @@ export default function AreaRequestsTable({ currentArea, role }) {
                       <Button variant="ghost" size="icon">
                         <EyeIcon className="h-4 w-4" />
                       </Button>
-                      {(rolePath === 'admin' || rolePath === 'manager') && req.status !== 'completed' && (
+                       {(rolePath === 'admin' || rolePath === 'manager') && req.status !== 'completed' && (
                         <Button 
                           variant="ghost" 
                           size="icon" 
                           className="text-green-600 hover:text-green-700 hover:bg-green-100"
-                          onClick={async () => {
-                            try {
-                              // Solo Admin tiene reply, pero probamos
-                              await updateModel({ area_request: { notes: 'Aprobado/Revisado' } }, `/api/v1/admin/area_requests/${req.id}/reply`)
-                              fetchRequests()
-                            } catch (e) {
-                              console.error(e)
-                            }
+                          onClick={() => {
+                            setSelectedRequestForReply(req)
+                            setIsReplyOpen(true)
                           }}
                         >
                           <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>
