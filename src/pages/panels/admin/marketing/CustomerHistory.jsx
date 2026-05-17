@@ -27,8 +27,14 @@ const CustomerHistory = () => {
       }
 
       const response = await getModel(`?${params.toString()}`)
-      const clientsArray = response.clients || response.data || []
-      
+      const getStaticRubro = (name) => {
+        const n = (name || '').toLowerCase();
+        if (n.includes('minera') || n.includes('minero') || n.includes('cristobal') || n.includes('horizonte') || n.includes('andes')) return 'mineria';
+        if (n.includes('cargo') || n.includes('trans') || n.includes('logistica')) return 'transporte';
+        if (n.includes('energia') || n.includes('power') || n.includes('electric')) return 'energia';
+        return 'construccion';
+      }
+
       const formattedData = clientsArray.map(item => ({
         id: item.id,
         code: item.code || '-',
@@ -38,10 +44,10 @@ const CustomerHistory = () => {
         contact_name: item.contact_name || '',
         phone: item.phone || '',
         email: item.email || '',
-        type: item.client_category || 'General',
+        type: getStaticRubro(item.business_name || item.contact_name),
         address: item.address || '',
         status: item.status || 'active',
-        priority: item.client_category || 'CP',
+        priority: 'NC', // Todos son nuevos ("Cliente Nuevo"), no CP
         tracking: [],
         _original: item
       }))

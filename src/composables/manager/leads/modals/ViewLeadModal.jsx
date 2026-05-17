@@ -6,7 +6,8 @@ import {
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
-import { BuildingIcon, UserIcon, MailIcon, PhoneIcon, CalendarIcon, TagIcon, Star } from 'lucide-react'
+import { BuildingIcon, UserIcon, MailIcon, PhoneIcon, CalendarIcon, TagIcon, Star, FileText } from 'lucide-react'
+import { useNavigate } from 'react-router-dom'
 import { useAuth } from '@/providers/UserContext'
 import axios from 'axios'
 
@@ -36,9 +37,28 @@ const statusLabel = {
 }
 
 const ViewLeadModal = ({ isOpen, handleClose, lead }) => {
+  const navigate = useNavigate()
   const { user } = useAuth()
   const [priority, setPriority] = useState('NC')
   const [isSaving, setIsSaving] = useState(false)
+
+  const handleGoToQuotation = () => {
+    if (!lead || !lead.quotation_id) return
+    const cleanCompanyName = lead.company ? lead.company.split(' (')[0] : lead.name
+    const queryParams = new URLSearchParams()
+    queryParams.append('search', cleanCompanyName)
+    queryParams.append('openQuotationId', lead.quotation_id)
+
+    let redirectPath = '/advisor/quotations'
+    if (window.location.pathname.includes('/manager')) {
+      redirectPath = '/manager/quotations'
+    } else if (window.location.pathname.includes('/admin')) {
+      redirectPath = '/admin/marketing/quotations'
+    }
+    
+    handleClose()
+    navigate(`${redirectPath}?${queryParams.toString()}`)
+  }
 
   useEffect(() => {
     if (lead) {
@@ -208,8 +228,17 @@ const ViewLeadModal = ({ isOpen, handleClose, lead }) => {
 
         </div>
 
-        <SheetMultiStepFooter className="mt-auto pt-6 border-t bg-background">
+        <SheetMultiStepFooter className="mt-auto pt-6 border-t bg-background flex justify-between items-center w-full">
           <Button variant="outline" onClick={handleClose}>Cerrar</Button>
+          {lead && lead.quotation_id && (
+            <Button
+              onClick={handleGoToQuotation}
+              className="bg-green-600 hover:bg-green-700 text-white flex items-center gap-2"
+            >
+              <FileText className="h-4 w-4" />
+              Ver Cotización
+            </Button>
+          )}
         </SheetMultiStepFooter>
 
       </SheetMultiStepContent>
