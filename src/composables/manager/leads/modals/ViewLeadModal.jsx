@@ -221,7 +221,7 @@ const ViewLeadModal = ({ isOpen, handleClose, lead }) => {
             <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground mb-3">
               Descripción de la Solicitud
             </p>
-            <p className="text-sm leading-relaxed border rounded-lg p-4 bg-muted/30">
+            <p className="text-sm leading-relaxed border rounded-lg p-4 bg-muted/30 whitespace-pre-line">
               {lead.description || 'Sin notas adicionales.'}
             </p>
           </div>

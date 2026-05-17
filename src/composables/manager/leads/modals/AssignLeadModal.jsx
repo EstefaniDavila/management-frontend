@@ -79,7 +79,7 @@ const AssignLeadModal = ({ isOpen, handleClose, lead, onAssign }) => {
               {/* Descripción aparte porque puede ser larga */}
               <div className="flex flex-col gap-0.5">
                 <span className="text-xs text-muted-foreground">Descripción</span>
-                <p className="text-sm leading-relaxed border rounded-lg p-3 bg-muted/30">
+                <p className="text-sm leading-relaxed border rounded-lg p-3 bg-muted/30 whitespace-pre-line">
                   {lead.description}
                 </p>
               </div>
