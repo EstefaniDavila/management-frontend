@@ -2,52 +2,43 @@ import React, { useState } from 'react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Plus, Package, Truck, CheckCircle2 } from 'lucide-react'
-import EquipmentRentalTable from '@/composables/operation/operations/equipmentRental/tables/EquipmentRentalTable'
-import CreateRentalModal from '@/composables/operation/operations/equipmentRental/modals/CreateRentalModal'
-import DeliveryReportModal from '@/composables/operation/operations/equipmentRental/modals/DeliveryReportModal'
+import TableRentals from '@/composables/operation/operations/equipmentRental/tables/EquipmentRentalTable'
+import useFetchRentals from '@/composables/operation/operations/equipmentRental/hooks/useFetchRentals'
+import ModalNewRental from '@/composables/operation/operations/equipmentRental/modals/ModalNewRental'
+import ModalNewDispatch from '@/composables/operation/operations/equipmentRental/modals/ModalNewDispatch'
+import { useAuth } from '@/providers/UserContext'
 
 export default function EquipmentRental() {
-  const [rentals, setRentals] = useState([
-    {
-      id: 'REN-0042',
-      customer: 'Minera Los Andes',
-      equipment: 'Excavadora CAT 320 (CAT-001)',
-      deliveryDate: '2026-05-01T08:00',
-      status: 'Entregada',
-      notes: 'Entregada en campamento minero.'
-    },
-    {
-      id: 'REN-0045',
-      customer: 'Constructora Horizonte',
-      equipment: 'Volquete Volvo A40 (VOL-002)',
-      deliveryDate: '2026-05-15T10:00',
-      status: 'Pendiente',
-      notes: 'Requiere operador por los primeros 3 días.'
-    }
-  ])
+  const { user } = useAuth()
+  const [typeModal, setTypeModal] = useState("")
+  const [rental, setRental] = useState(null)
+  const [isModalOpen, setIsModalOpen] = useState(false)
+  const [pagination, setPagination] = useState({
+    pageIndex: 0,
+    pageSize: 10
+  })
+  const [search, setSearch] = useState("")
+  const [searchFields, setSearchFields] = useState(["code,name"])
 
-  // Pagination & Search states for the table
-  const [pagination, setPagination] = useState({ pageIndex: 0, pageSize: 10 })
-  const [search, setSearch] = useState('')
-  
-  // Modals state
-  const [isCreateModalOpen, setIsCreateModalOpen] = useState(false)
-  const [selectedRental, setSelectedRental] = useState(null)
-  const [isReportModalOpen, setIsReportModalOpen] = useState(false)
+  const searchParams = {search, fields: searchFields.join(',') }
+  const { data: rentalsData, refetch: refetchRentals } = useFetchRentals(pagination, searchParams)
+  const totalPages = Math.ceil((rentalsData?.rowCount || 0 )/ pagination.pageSize) || 0
 
-  const handleSaveRental = (newRental) => {
-    setRentals(prev => [newRental, ...prev])
+  const activeRentals = rentalsData?.rows.length || 0
+  const pendingDeliveries = rentalsData?.rows.filter(r => r.status === 'PENDING').length || 0
+  const delivered = rentalsData?.rows.filter(r => r.status === 'DELIVERED').length || 0
+
+  const handleOpenModal = (type, data = null) => {
+    setIsModalOpen(true)
+    setTypeModal(type)
+    setRental(data)
   }
 
-  const handleOpenReport = (rental) => {
-    setSelectedRental(rental)
-    setIsReportModalOpen(true)
+  const handleCloseModal = () => {
+    setIsModalOpen(false)
+    setTypeModal('')
+    setRental(null)
   }
-
-  // Calculate metrics
-  const activeRentals = rentals.length
-  const pendingDeliveries = rentals.filter(r => r.status === 'Pendiente').length
-  const delivered = rentals.filter(r => r.status === 'Entregada').length
 
   return (
     <div className="flex flex-col gap-6 w-full max-w-7xl mx-auto p-4 md:p-6">
@@ -59,7 +50,7 @@ export default function EquipmentRental() {
             Gestiona la entrega y disponibilidad de máquinas para alquiler.
           </p>
         </div>
-        <Button onClick={() => setIsCreateModalOpen(true)} className="gap-2">
+        <Button onClick={() => handleOpenModal("new")} className="gap-2">
           <Plus className="h-4 w-4" /> Nueva Renta
         </Button>
       </div>
@@ -105,31 +96,47 @@ export default function EquipmentRental() {
           <CardTitle className="text-lg">Registro de Entregas</CardTitle>
         </CardHeader>
         <CardContent className="p-0">
-          <EquipmentRentalTable 
-            data={rentals}
-            fetchData={async () => {}}
+          <TableRentals
+            handleOpenModal={handleOpenModal}
+            fetchData={refetchRentals}
+            data={rentalsData?.rows || []}
             pagination={pagination}
-            setPagination={setPagination}
+            setRental={setRental}
+            setTypeModal={setTypeModal}
+            totalPages={totalPages}
             search={search}
             setSearch={setSearch}
-            totalPages={1}
-            onOpenReport={handleOpenReport}
+            searchFields={searchFields}
+            setSearchFields={setSearchFields}
           />
         </CardContent>
       </Card>
-
-      {/* Modals */}
-      <CreateRentalModal 
-        isOpen={isCreateModalOpen} 
-        onClose={() => setIsCreateModalOpen(false)} 
-        onSave={handleSaveRental}
-      />
-
-      <DeliveryReportModal 
-        isOpen={isReportModalOpen} 
-        onClose={() => setIsReportModalOpen(false)} 
-        rental={selectedRental}
-      />
+      {typeModal === 'new' && (
+        <ModalNewRental
+          isOpen={isModalOpen}
+          handleClose={handleCloseModal}
+          typeModal={typeModal}
+          fetchData={refetchRentals}
+        />
+      )}
+      {/* {typeModal === 'edit' && (
+        <ModalNewMaintenance
+          isOpen={isModalOpen}
+          handleClose={handleCloseModal}
+          typeModal={typeModal}
+          fetchData={refetchRentals}
+        />
+      )} */}
+      {typeModal === 'deliver' && (
+        <ModalNewDispatch
+          isOpen={isModalOpen}
+          handleClose={handleCloseModal}
+          typeModal={typeModal}
+          fetchData={refetchRentals}
+          rental={rental}
+          user={user}
+        />
+      )}
     </div>
   )
 }

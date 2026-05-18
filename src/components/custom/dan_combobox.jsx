@@ -15,6 +15,7 @@ const ComboBox = ({
   options = [],
   placeholder = "Select option...",
   onChange,
+  value
 }) => {
   const [open, setOpen] = React.useState(false);
   const [query, setQuery] = React.useState("");
@@ -88,6 +89,16 @@ const ComboBox = ({
       setSelectedIndex(0);
     }
   }, [open, selected, filteredOptions]);
+
+  React.useEffect(() => {
+    if (value && options.length > 0) {
+      const selectedOption = options.find(
+        (option) => option.value === value
+      );
+
+      setSelected(selectedOption || null);
+    }
+  }, [value, options]);
 
   return (
     <div ref={containerRef} className="relative ">

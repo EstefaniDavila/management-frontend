@@ -32,6 +32,12 @@ const operationRoutes = [
             }),
           },
           {
+            path: "maintenances/:id",
+            lazy: async () => ({
+              Component: (await import('../../pages/panels/operation/operations/maintenanceManagement/MaintenanceDetail')).default,
+            }),
+          },
+          {
             path: "equipment-rental",
             lazy: async () => ({
               Component: (await import('../../pages/panels/operation/operations/equipmentRental/EquipmentRental')).default,

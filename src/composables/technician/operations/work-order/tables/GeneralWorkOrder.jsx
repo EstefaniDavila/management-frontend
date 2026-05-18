@@ -25,7 +25,11 @@ const TableWorkOrders = ({ handleOpenModal, data, fetchData, pagination, setPagi
     handleOpenModal('show', workOrder)
   }
   const handleBuild = (workOrder) => {
-    navigate(`/work-orders/${workOrder.id}`)
+    navigate(`/work-orders/${workOrder.code}`, {
+      state: {
+        workOrder,
+      }
+    })
   }
 
   const columnsWithActions = useMemo(() => columns(handleShow, handleBuild))
@@ -42,7 +46,7 @@ const TableWorkOrders = ({ handleOpenModal, data, fetchData, pagination, setPagi
       setSearch={setSearch}
       searchFields={searchFields}
       setSearchFields={setSearchFields}
-      searchableFields={["code", "equipment", "maintenance_type", "customer", "date", "status"]}
+      searchableFields={["code", "client", "work_order_type", "status"]}
     />
   )
 }

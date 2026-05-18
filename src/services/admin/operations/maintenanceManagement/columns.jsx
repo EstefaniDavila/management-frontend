@@ -6,14 +6,23 @@ import { GiNotebook } from "react-icons/gi";
 import { Badge } from '@/components/ui/badge';
 
 const typeColorVariants = {
-  Pendiente: 'bg-gray-200 text-gray-800',
-  Completado: 'bg-green-300 text-green-800',
-  "En proceso": 'bg-yellow-200 text-yellow-800',
-  hidden: 'bg-red-200 text-red-800',
-  visible: 'bg-blue-200 text-blue-800'
+  PENDING: 'bg-gray-400 text-gray-800',
+  COMPLETED: 'bg-green-300 text-green-800',
+  IN_PROGRESS: 'bg-yellow-200 text-yellow-800',
+  // DIAGNOSTICATED: 'bg-red-200 text-red-800',
+  DIAGNOSTICATED: 'bg-blue-200 text-blue-800'
 }
 
-const columns = (handleCreate) => [
+const formatDate = (dateString) => {
+  if (!dateString) return "-"
+  return new Date(dateString).toLocaleDateString("es-PE", {
+    day: "2-digit",
+    month: "2-digit",
+    year: "numeric",
+  })
+}
+
+const columns = (handleBuild) => [
   {
     accessorKey: 'code',
     header: 'Código',
@@ -21,15 +30,15 @@ const columns = (handleCreate) => [
     enableColumnFilter: true,
   },
   {
-    accessorKey: 'customer',
+    accessorFn: row => row.client?.business_name,
     header: 'Cliente',
-    cell: info => info.getValue(),
+    cell: info => info.getValue() || 'Sin cliente',
     enableColumnFilter: true,
   },
   {
-    accessorKey: 'equipment',
+    accessorFn: row => row.enterprise_vehicle?.serial,
     header: 'Equipo',
-    cell: info => info.getValue(),
+    cell: info => info.getValue() || 'Sin equipo',
     enableColumnFilter: true,
   },
   {
@@ -39,15 +48,9 @@ const columns = (handleCreate) => [
     enableColumnFilter: true,
   },
   {
-    accessorKey: 'technician',
-    header: 'Técnico',
-    cell: info => info.getValue(),
-    enableColumnFilter: true,
-  },
-  {
-    accessorKey: 'date',
+    accessorKey: 'scheduled_at',
     header: 'Fecha',
-    cell: info => info.getValue(),
+    cell: info => formatDate(info.getValue()),
     enableColumnFilter: true,
   },
   {
@@ -71,7 +74,7 @@ const columns = (handleCreate) => [
 
     return (
       <div className='flex space-x-4'>
-        {status === "Pendiente" && (
+        {["PENDING", "IN_PROGRESS", "DIAGNOSTICATED"].includes(status) && (
           <GeneralTooltip
             content='Procesar Mantenimiento'
             triggerContent={
@@ -79,7 +82,7 @@ const columns = (handleCreate) => [
                 <GiNotebook size={20}/>
               </span>
             }
-            onClick={()=> handleCreate()}
+            onClick={()=> handleBuild(row?.original)}
           />
         )}
         {/* <GeneralTooltip
