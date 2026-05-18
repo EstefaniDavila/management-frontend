@@ -45,7 +45,7 @@ const LeadRequests = () => {
 
       const response = await getModel(`?${params.toString()}`)
       const leadsArray = response.leads || (Array.isArray(response) ? response : [])
-      
+
       const formattedData = leadsArray.map(item => ({
         id: item.id,
         name: item.name,
@@ -81,7 +81,7 @@ const LeadRequests = () => {
 
   const refetchData = () => fetchLeads()
 
-  const handleView    = (lead) => { setSelected(lead); setIsViewOpen(true) }
+  const handleView = (lead) => { setSelected(lead); setIsViewOpen(true) }
   const handleConvert = (lead) => {
     const cleanCompanyName = lead.company ? lead.company.split(' (')[0] : lead.name
     const queryParams = new URLSearchParams()
@@ -100,7 +100,6 @@ const LeadRequests = () => {
           <p className="text-xs text-muted-foreground">Solicitudes asignadas a ti para gestionar</p>
         </div>
 
-        {/* Filtros rápidos estilo Cards */}
         <div className="grid grid-cols-2 md:grid-cols-5 gap-3 my-1">
           {[
             { id: null, label: 'Todos', desc: 'Ver todo', countColor: 'text-gray-500 bg-gray-100', border: 'border-gray-200' },
@@ -114,11 +113,10 @@ const LeadRequests = () => {
               <button
                 key={card.label}
                 onClick={() => setSelectedPriority(card.id)}
-                className={`flex flex-col text-left p-3 rounded-xl border transition-all duration-300 ${card.border} ${
-                  isSelected 
-                    ? 'bg-blue-600 border-blue-600 text-white shadow-md font-semibold' 
+                className={`flex flex-col text-left p-3 rounded-xl border transition-all duration-300 ${card.border} ${isSelected
+                    ? 'bg-blue-600 border-blue-600 text-white shadow-md font-semibold'
                     : 'bg-card hover:bg-muted/50 hover:shadow-sm'
-                }`}
+                  }`}
               >
                 <div className="flex justify-between items-center w-full mb-1">
                   <span className={`text-[10px] font-bold px-1.5 py-0.5 rounded ${isSelected ? 'bg-white/20 text-white' : card.countColor}`}>
