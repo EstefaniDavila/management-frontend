@@ -21,7 +21,6 @@ const Maintenance = () => {
   const searchParams = {search, fields: searchFields.join(',') }
   const { data: maintenancesData, refetch: refetchMaintenances } = useFetchMaintenances(pagination, searchParams)
   const totalPages = Math.ceil((maintenancesData?.rowCount || 0 )/ pagination.pageSize) || 0
-  console.log("Maintenances Data:", maintenancesData)
 
   const handleOpenModal = (type, data = null) => {
     setIsModalOpen(true)

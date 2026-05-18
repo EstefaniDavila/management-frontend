@@ -5,6 +5,8 @@ import { TbPlus } from 'react-icons/tb';
 import TableWorkOrdersMaintenance from '@/composables/operation/operations/maintenanceManagement/tables/GeneralWorkOrdersMaintenance';
 import ModalNewWorkOrder from '@/composables/operation/operations/maintenanceManagement/modals/ModalNewWorkOrder';
 import ModalUpdateWorkOrder from '@/composables/operation/operations/maintenanceManagement/modals/ModalUpdateWorkOrder';
+import ModalShowDiagnostive from '@/composables/operation/operations/maintenanceManagement/modals/ModalShowDiagnostive';
+import ModalShowActions from '@/composables/operation/operations/maintenanceManagement/modals/ModalShowActions';
 import useFetchWorkOrdersByMaintenance from '@/composables/operation/operations/maintenanceManagement/hooks/useFetchWorkOrdersByMaintenance';
 import { useParams } from 'react-router-dom'
 
@@ -24,7 +26,6 @@ const MaintenanceDetail = () => {
   const searchParams = {search, fields: searchFields.join(',') }
   const { data: workOrdersData, refetch: refetchWorkOrders } = useFetchWorkOrdersByMaintenance(pagination, searchParams, id)
   const totalPages = Math.ceil((workOrdersData?.rowCount || 0 )/ pagination.pageSize) || 0
-
   const handleOpenModal = (type, data = null) => {
     setIsModalOpen(true)
     setTypeModal(type)
@@ -82,6 +83,20 @@ const MaintenanceDetail = () => {
           handleClose={handleCloseModal}
           workOrder={workOrder}
           fetchData={refetchWorkOrders}
+        />
+      )}
+      {typeModal === 'show_diagnosis' && (
+        <ModalShowDiagnostive
+          isOpen={isModalOpen}
+          handleClose={handleCloseModal}
+          workOrder={workOrder}
+        />
+      )}
+      {typeModal === 'show_actions' && (
+        <ModalShowActions
+          isOpen={isModalOpen}
+          handleClose={handleCloseModal}
+          workOrder={workOrder}
         />
       )}
     </>

@@ -46,7 +46,7 @@ const TableWorkOrders = ({ handleOpenModal, data, fetchData, pagination, setPagi
       setSearch={setSearch}
       searchFields={searchFields}
       setSearchFields={setSearchFields}
-      searchableFields={["code", "equipment", "maintenance_type", "customer", "date", "status"]}
+      searchableFields={["code", "client", "work_order_type", "status"]}
     />
   )
 }

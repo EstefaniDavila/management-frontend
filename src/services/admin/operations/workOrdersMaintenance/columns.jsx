@@ -2,6 +2,7 @@ import React from 'react'
 import GeneralTooltip from '@/helpers/generalTooltip'
 import { TbEdit } from 'react-icons/tb'
 import { TbTrash } from 'react-icons/tb'
+import { Eye } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 
 const typeColorVariants = {
@@ -21,7 +22,7 @@ const formatDate = (dateString) => {
   })
 }
 
-const columns = (handleDelete, handleUpdate) => [
+const columns = (handleDelete, handleUpdate, handleShowDiagnosis, handleShowActions) => [
   {
     accessorKey: 'code',
     header: 'Código',
@@ -63,7 +64,7 @@ const columns = (handleDelete, handleUpdate) => [
   {
   header: 'Acciones',
   cell: ({ row }) => {
-    const status = row?.original?.status
+    const type = row?.original?.work_order_type
 
     return (
       <div className='flex space-x-4'>
@@ -85,6 +86,28 @@ const columns = (handleDelete, handleUpdate) => [
           }
           onClick={()=> handleDelete(row?.original.id)}
         />
+        {type === "DIAGNOSTIVE" && (
+          <GeneralTooltip
+            content='Mostrar Diagnóstico'
+            triggerContent={
+              <span className='bg-green-500 text-white rounded-full p-1'>
+                <Eye size={20}/>
+              </span>
+            }
+            onClick={() => handleShowDiagnosis(row?.original)}
+          />
+        )}
+        {["SUPERVISION", "EXECUTION"].includes(type) && (
+          <GeneralTooltip
+            content='Mostrar Acciones'
+            triggerContent={
+              <span className='bg-green-500 text-white rounded-full p-1'>
+                <Eye size={20}/>
+              </span>
+            }
+            onClick={() => handleShowActions(row?.original)}
+          />
+        )}
       </div>
     )
   },

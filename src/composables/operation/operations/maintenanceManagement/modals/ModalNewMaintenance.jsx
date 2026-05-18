@@ -47,9 +47,6 @@ const ModalNewMaintenance = ({ isOpen, handleClose }) =>{
       handleClose(),
     )
   }
-  const handlePrint = () => {
-    console.log("Mantenimiento Ah subir", formData)
-  }
 
   const onChangeExtra = (name, value) => {
   }
@@ -176,7 +173,6 @@ const ModalNewMaintenance = ({ isOpen, handleClose }) =>{
             <div className="flex justify-end">
               <Button type="button" onClick={handleClose}className="mr-4">Cancelar</Button>
               <Button type="submit" className="bg-green-500 text-black hover:bg-green-600">Guardar</Button>
-              <Button type="button" onClick={handlePrint}className="mr-4">Print</Button>
             </div>
           </form>
         </Modal>

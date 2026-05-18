@@ -23,7 +23,19 @@ const TableWorkOrdersMaintenance = ({ handleOpenModal, data, fetchData, paginati
     handleOpenModal('edit', workOrder)
   }
 
-  const columnsWithActions = useMemo(() => columns(handleDelete, handleUpdate), [])
+  const handleShowDiagnosis = (workOrder) => {
+    setWorkOrder(workOrder)
+    setTypeModal('show_diagnosis')
+    handleOpenModal('show_diagnosis', workOrder)
+  }
+
+  const handleShowActions = (workOrder) => {
+    setWorkOrder(workOrder)
+    setTypeModal('show_actions')
+    handleOpenModal('show_actions', workOrder)
+  }
+
+  const columnsWithActions = useMemo(() => columns(handleDelete, handleUpdate, handleShowDiagnosis, handleShowActions), [])
 
   return (
     <DataTable

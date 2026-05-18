@@ -54,7 +54,8 @@ const DataTable = ({ columns, data, fetchData, pagination, setPagination, search
     customer: "Cliente",
     scheduled_date: "Fecha Programada",
     action: "Acción",
-    description: "Descripción"
+    description: "Descripción",
+    work_order_type: "Tipo de Orden de Trabajo",
   };
 
   const table = useReactTable({

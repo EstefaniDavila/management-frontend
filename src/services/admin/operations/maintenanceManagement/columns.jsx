@@ -9,8 +9,8 @@ const typeColorVariants = {
   PENDING: 'bg-gray-400 text-gray-800',
   COMPLETED: 'bg-green-300 text-green-800',
   IN_PROGRESS: 'bg-yellow-200 text-yellow-800',
-  hidden: 'bg-red-200 text-red-800',
-  visible: 'bg-blue-200 text-blue-800'
+  // DIAGNOSTICATED: 'bg-red-200 text-red-800',
+  DIAGNOSTICATED: 'bg-blue-200 text-blue-800'
 }
 
 const formatDate = (dateString) => {
@@ -74,7 +74,7 @@ const columns = (handleBuild) => [
 
     return (
       <div className='flex space-x-4'>
-        {status === "PENDING" && (
+        {["PENDING", "IN_PROGRESS", "DIAGNOSTICATED"].includes(status) && (
           <GeneralTooltip
             content='Procesar Mantenimiento'
             triggerContent={

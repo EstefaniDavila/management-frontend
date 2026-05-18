@@ -73,7 +73,7 @@ const ModalNewWorkOrder = ({ isOpen, handleClose, maintenance_id }) =>{
               </Select>
             </div>
             <div>
-              <label className='block text-sm font-medium py-2'>Tipo de Orden de Trabajo</label>
+              <label className='block text-sm font-medium py-2'>Estado de orden de trabajo</label>
               <Select
                 value={formData.status}
                 onValueChange={(value) =>
