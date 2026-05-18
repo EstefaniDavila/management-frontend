@@ -12,12 +12,34 @@ import {
   Search,
   CheckCircle,
   Clock,
-  XCircle
+  XCircle,
+  Send
 } from 'lucide-react';
+import useEntityMutation from '@/hooks/useEntityMutation';
 
-const ADispatchHistoryModal = ({ open, setOpen, history }) => {
+const ADispatchHistoryModal = ({ open, setOpen, history, onRefresh }) => {
   const [searchTerm, setSearchTerm] = useState('');
   const [filterEstado, setFilterEstado] = useState('todos');
+
+
+  const dispatchMutation = useEntityMutation({ entityName: 'dispatch_order' });
+
+  const handleMarkAsDelivered = async (orderId) => {
+    try {
+      await dispatchMutation.mutateAsync({
+        action: 'update',
+        endpoint: `/api/v1/admin/dispatch_orders/${orderId}/deliver`,
+        entity: {}
+      });
+
+
+      if (onRefresh) onRefresh();
+
+    } catch (error) {
+      console.error('Error al marcar como entregado:', error);
+      alert('Error al marcar el despacho como entregado');
+    }
+  };
 
   const filteredHistory = history.filter(item => {
     const codeMatch = String(item.code || '').toLowerCase().includes(searchTerm.toLowerCase());
@@ -151,6 +173,20 @@ const ADispatchHistoryModal = ({ open, setOpen, history }) => {
                     </div>
                   </div>
                 </div>
+
+                {/* ← Botón para En Tránsito */}
+                {item.estado === 'En Tránsito' && (
+                  <div className="mt-3 flex justify-end">
+                    <Button
+                      size="sm"
+                      className="gap-2 bg-green-600 hover:bg-green-700"
+                      onClick={() => handleMarkAsDelivered(item.id)}
+                    >
+                      <CheckCircle className="h-3 w-3" />
+                      Confirmar Salida de Almacén
+                    </Button>
+                  </div>
+                )}
               </div>
             ))}
           </div>

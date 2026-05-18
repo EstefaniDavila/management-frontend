@@ -140,7 +140,6 @@ const PurchaseOrderHistory = () => {
   };
 
   const handleReceiveOrder = (order) => {
-    if (!window.confirm("¿Estás seguro de marcar esta orden como recibida/entregada?")) return;
 
     orderMutation.mutate(
       {
