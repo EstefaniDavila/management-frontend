@@ -51,6 +51,7 @@ const DispatchManagement = () => {
           ordenId: item.sales_order_id || item.rental_id || 'N/A',
           estado: estadoLabel,
           prepared_by_id: item.prepared_by_id,
+          prepared_by_name: item.prepared_by?.full_name || item.prepared_by?.email || 'Desconocido',
           dispatched_at: item.dispatched_at ? new Date(item.dispatched_at).toLocaleString() : 'N/A',
           delivered_at: item.delivered_at ? new Date(item.delivered_at).toLocaleString() : 'N/A',
           _original: item
@@ -69,22 +70,7 @@ const DispatchManagement = () => {
     } catch (error) {
       console.error("Error al cargar despachos:", error);
     }
-
-    const mappedItem = {
-      id: item.id,
-      code: item.code,
-      status: item.status,
-      fecha: new Date(item.created_at).toLocaleString(),
-      ordenId: item.sales_order_id || item.rental_id || 'N/A',
-      estado: estadoLabel,
-      prepared_by_id: item.prepared_by_id,
-      prepared_by_name: item.prepared_by?.full_name || item.prepared_by?.email || 'Desconocido',
-      dispatched_at: item.dispatched_at ? new Date(item.dispatched_at).toLocaleString() : 'N/A',
-      delivered_at: item.delivered_at ? new Date(item.delivered_at).toLocaleString() : 'N/A',
-      _original: item
-    };
   };
-
   useEffect(() => {
     fetchDispatches();
   }, []);
@@ -233,6 +219,7 @@ const DispatchManagement = () => {
         open={showHistoryModal}
         setOpen={setShowHistoryModal}
         history={dispatchHistory}
+        onRefresh={fetchDispatches}
       />
     </>
   )
