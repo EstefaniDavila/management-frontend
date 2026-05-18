@@ -10,7 +10,7 @@ export const techLinks = [
   {
     title: "Home",
     href: "/",
-    icon: House ,
+    icon: House,
     area: "Production & Operations",
   },
   {
@@ -25,12 +25,6 @@ export const techLinks = [
     icon: WrenchIcon,
     area: "Production & Operations",
   },
-  // {
-  //   title: "Diagnosticos",
-  //   href: "/diagnosis",
-  //   icon: WrenchIcon,
-  //   area: "Production & Operations",
-  // },
   {
     title: "Settings",
     href: "/settings",

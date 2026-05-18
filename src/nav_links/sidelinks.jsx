@@ -8,21 +8,21 @@ import { operationLinks } from "./customSideLinks/operationLinks"
 import { logisticCoordinatorLinks } from "./customSideLinks/logisticsCoordinator"
 
 const roleLinks = {
-  Admin:            adminLinks,
-  Advisor:          advisorLinks,   // Asesor comercial
-  Technician:       techLinks,
-  Warehouseman:     warehouseLinks, // Almacenero
-  Customer:         customerLinks,
-  LogisticsUser:    logisticCoordinatorLinks, // Coordinador logistico
+  Admin: adminLinks,
+  Advisor: advisorLinks,   // Asesor comercial
+  Technician: techLinks,
+  Warehouseman: warehouseLinks, // Almacenero
+  Customer: customerLinks,
+  LogisticsUser: logisticCoordinatorLinks, // Coordinador logistico
 }
 
 const managerLinks = {
-  operations:   operationLinks,
-  sales:        areaManagerLinks,
-  comercial:    areaManagerLinks,
-  Comercial:    areaManagerLinks,
-  operaciones:  operationLinks,
-  Operaciones:  operationLinks,
+  operations: operationLinks,
+  sales: areaManagerLinks,
+  comercial: areaManagerLinks,
+  Comercial: areaManagerLinks,
+  operaciones: operationLinks,
+  Operaciones: operationLinks,
 }
 
 export const getSidelinks = () => {

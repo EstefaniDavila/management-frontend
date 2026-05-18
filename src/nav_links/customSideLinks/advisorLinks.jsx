@@ -13,40 +13,34 @@ export const advisorLinks = [
     title: "Solicitudes",
     href: "/area-requests",
     icon: MessageSquareIcon,
-    area: "Marketing & Sales",
-  },
-  {
-    title: "Dashboard",
-    href: "/advisor",
-    icon: LayoutDashboardIcon,
-    area: "Marketing & Sales",
+    area: "Solicitudess",
   },
 
   {
     title: "Mis Leads",
     href: "/advisor/leads",
     icon: ClockIcon,
-    area: "Marketing & Sales",
+    area: "Marketing",
   },
 
   {
     title: "Mis Cotizaciones",
     href: "/advisor/quotations",
     icon: FileTextIcon,
-    area: "Marketing & Sales",
+    area: "Marketing",
   },
 
-  {
-    title: "Mis Clientes",
-    href: "/advisor/clients",
-    icon: UsersIcon,
-    area: "Marketing & Sales",
-  },
+  // {
+  //   title: "Mis Clientes",
+  //   href: "/advisor/clients",
+  //   icon: UsersIcon,
+  //   area: "Marketing & Sales",
+  // },
 
   {
     title: "Settings",
     href: "/settings",
     icon: SettingsIcon,
-    area: null,
+    area: "Configuración",
   },
 ]

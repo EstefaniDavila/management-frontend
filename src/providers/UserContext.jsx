@@ -109,8 +109,8 @@ export const UserProvider = ({ children }) => {
 
           setAuthTokens(tokens)
           authTokensRef.current = tokens
-          setUser(jwtDecode(accessToken))
-          userRef.current = jwtDecode(accessToken)
+          setUser(user)
+          userRef.current = user
 
           localStorage.setItem('authTokens', JSON.stringify(tokens))
           localStorage.setItem('user', JSON.stringify(user))
@@ -190,7 +190,8 @@ export const UserProvider = ({ children }) => {
           }
 
           authTokensRef.current = tokens
-          userRef.current = jwtDecode(accessToken)
+          setUser(data.user)
+          userRef.current = data.user
 
           localStorage.setItem('authTokens', JSON.stringify(tokens))
           localStorage.setItem('user', JSON.stringify(data.user))

@@ -14,19 +14,9 @@ import {
 import { GalleryVerticalEndIcon } from "lucide-react"
 import { getSidelinks } from "../nav_links/sidelinks"
 
-const AREAS = [
-  "General Management",
-  "Marketing & Sales",
-  "Logistics & Warehouse",
-  "Production & Operations",
-]
+
 
 const data = {
-  user: {
-    name: "shadcn",
-    email: "m@example.com",
-    avatar: "/avatars/shadcn.jpg",
-  },
   teams: [
     { name: "Acme Inc", logo: <GalleryVerticalEndIcon />, plan: "Enterprise" },
   ],
@@ -35,13 +25,23 @@ const data = {
 export function AppSidebar({ ...props }) {
   const sidelinks = getSidelinks()
 
+  const dynamicAreas = React.useMemo(() => {
+    const areas = []
+    sidelinks.forEach((link) => {
+      if (link.area && !areas.includes(link.area)) {
+        areas.push(link.area)
+      }
+    })
+    return areas
+  }, [sidelinks])
+
   return (
     <Sidebar collapsible="icon" {...props}>
       <SidebarHeader>
         <TeamSwitcher teams={data.teams} />
       </SidebarHeader>
       <SidebarContent>
-        {AREAS.map((area) => {
+        {dynamicAreas.map((area) => {
           const items = sidelinks.filter((l) => l.area === area)
           if (!items.length) return null
           return <NavSection key={area} label={area} items={items} />
@@ -53,7 +53,7 @@ export function AppSidebar({ ...props }) {
         />
       </SidebarContent>
       <SidebarFooter>
-        <NavUser user={data.user} />
+        <NavUser />
       </SidebarFooter>
       <SidebarRail />
     </Sidebar>
