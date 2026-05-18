@@ -23,12 +23,12 @@ export const adminLinks = [
     icon: BarChart3Icon,
     area: "General Management",
   },
-  {
-    title: "Area Control",
-    href: "/area-control",
-    icon: BuildingIcon,
-    area: "General Management",
-  },
+  // {
+  //   title: "Area Control",
+  //   href: "/area-control",
+  //   icon: BuildingIcon,
+  //   area: "General Management",
+  // },
   {
     title: "Solicitudes",
     href: "/area-requests",
