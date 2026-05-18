@@ -13,7 +13,7 @@ export const advisorLinks = [
     title: "Solicitudes",
     href: "/area-requests",
     icon: MessageSquareIcon,
-    area: "Marketing & Sales",
+    area: "Solicitudess",
   },
 
   {
@@ -27,7 +27,7 @@ export const advisorLinks = [
     title: "Mis Cotizaciones",
     href: "/advisor/quotations",
     icon: FileTextIcon,
-    area: "Sales",
+    area: "Marketing",
   },
 
   // {
