@@ -10,7 +10,7 @@ import {
 const initialForm = {
   business_name: '', document_type: 'RUC', document_number: '',
   contact_name: '', phone: '', email: '',
-  address: '', type: '', status: 'active'
+  address: '', client_category: '', status: 'active'
 }
 
 const CreateCustomerModal = ({ isOpen, handleClose, onCreate }) => {
@@ -21,7 +21,7 @@ const CreateCustomerModal = ({ isOpen, handleClose, onCreate }) => {
     const e = {}
     if (!formData.business_name) e.business_name = 'Razón social obligatoria'
     if (!formData.document_number) e.document_number = 'Documento obligatorio'
-    if (!formData.type) e.type = 'Rubro obligatorio'
+    if (!formData.client_category) e.client_category = 'Rubro obligatorio'
     if (formData.email && !/\S+@\S+\.\S+/.test(formData.email)) e.email = 'Email inválido'
     setErrors(e)
     return Object.keys(e).length === 0
@@ -131,8 +131,8 @@ const CreateCustomerModal = ({ isOpen, handleClose, onCreate }) => {
           <div className="flex flex-col gap-1">
             <label className="text-sm font-medium">Rubro *</label>
             <Select
-              value={formData.type}
-              onValueChange={val => handleSelectChange('type', val, setFormData, onChangeExtra)}
+              value={formData.client_category}
+              onValueChange={val => handleSelectChange('client_category', val, setFormData, onChangeExtra)}
             >
               <SelectTrigger><SelectValue placeholder="Seleccionar..." /></SelectTrigger>
               <SelectContent>
@@ -142,7 +142,7 @@ const CreateCustomerModal = ({ isOpen, handleClose, onCreate }) => {
                 <SelectItem value="energia">Energía</SelectItem>
               </SelectContent>
             </Select>
-            {errors.type && <span className="text-xs text-red-500">{errors.type}</span>}
+            {errors.client_category && <span className="text-xs text-red-500">{errors.client_category}</span>}
           </div>
 
           {/* Dirección */}

@@ -1,17 +1,41 @@
-import React, { useMemo } from 'react'
-import { useLeads } from '@/providers/advisor/LeadsContext'
-import { useAdvisorQuotations } from '@/providers/advisor/AdvisorQuotationsContext'
+import React, { useState, useEffect, useMemo } from 'react'
 import { DollarSignIcon, FileTextIcon, UsersIcon, TargetIcon, TrendingUpIcon } from 'lucide-react'
+import { useAuth } from '@/providers/UserContext'
+import useCrud from '@/hooks/useCrud'
 
-const CURRENT_ADVISOR = 'Juan Pérez'
-const META_MENSUAL    = 500000
+const META_MENSUAL = 500000
 
 const AdvisorDashboard = () => {
-  const { leads } = useLeads()
-  const { advisorQuotations } = useAdvisorQuotations()
+  const { user } = useAuth()
+  const { getModel: getLeads } = useCrud('/api/v1/advisor/leads')
+  const { getModel: getQuotations } = useCrud('/api/v1/advisor/quotations')
 
-  const myLeads      = leads.filter(l => l.assigned_to === CURRENT_ADVISOR)
-  const myQuotations = advisorQuotations.filter(q => q.advisor === CURRENT_ADVISOR)
+  const [myLeads, setMyLeads] = useState([])
+  const [myQuotations, setMyQuotations] = useState([])
+
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        const params = new URLSearchParams()
+        params.append('pageSize', '1000') // fetch all for metrics
+        if (user?.roleable?.id) {
+          params.append('advisor_id', user.roleable.id)
+        }
+
+        const [leadsRes, quotesRes] = await Promise.all([
+          getLeads(`?${params.toString()}`),
+          getQuotations(`?${params.toString()}`)
+        ])
+        setMyLeads(leadsRes.leads || [])
+        setMyQuotations(quotesRes.quotations || [])
+      } catch (error) {
+        console.error("Error fetching dashboard data:", error)
+      }
+    }
+    fetchData()
+  }, [])
+
+  const currentAdvisorName = user?.full_name || 'Asesor'
 
   const metrics = useMemo(() => {
     const approved     = myQuotations.filter(q => q.status === 'approved')
@@ -32,7 +56,7 @@ const AdvisorDashboard = () => {
     <div className="flex flex-col gap-6">
       <div>
         <h1 className="text-base font-semibold">Mi Panel Comercial</h1>
-        <p className="text-xs text-muted-foreground">Bienvenido, {CURRENT_ADVISOR} — aquí está tu resumen del mes</p>
+        <p className="text-xs text-muted-foreground">Bienvenido, {currentAdvisorName} — aquí está tu resumen del mes</p>
       </div>
 
       {/* KPIs */}

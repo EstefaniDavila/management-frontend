@@ -1,23 +1,86 @@
-import React, { useState } from 'react'
-import { useLeads } from '@/providers/advisor/LeadsContext'
+import React, { useState, useEffect } from 'react'
 import TeamLeadsTable from '@/composables/manager/leads/tables/TeamLeadsTable'
 import AssignLeadModal from '@/composables/manager/leads/modals/AssignLeadModal'
 import ViewLeadModal from '@/composables/manager/leads/modals/ViewLeadModal'
+import useCrud from '@/hooks/useCrud'
+import useEntityMutation from '@/hooks/useEntityMutation'
 
 const TeamLeads = () => {
-  const { leads, assignLead } = useLeads()
+  const { getModel } = useCrud('/api/v1/manager/leads')
+  const leadMutation = useEntityMutation({ entityName: 'lead' })
 
+  const [leads, setLeads] = useState([])
   const [pagination, setPagination]     = useState({ pageIndex: 0, pageSize: 10 })
   const [search, setSearch]             = useState('')
-  const [searchFields, setSearchFields] = useState(['company'])
+  const [searchFields, setSearchFields] = useState(['name', 'email', 'company'])
   const [selected, setSelected]         = useState(null)
   const [isAssignOpen, setIsAssignOpen] = useState(false)
   const [isViewOpen, setIsViewOpen]     = useState(false)
+  const [totalPages, setTotalPages]     = useState(0)
+  const [isLoading, setIsLoading]       = useState(true)
 
-  const totalPages = Math.ceil(leads.length / pagination.pageSize)
+  const fetchLeads = async () => {
+    try {
+      setIsLoading(true)
+      const params = new URLSearchParams()
+      params.append('page', pagination.pageIndex + 1)
+      params.append('pageSize', pagination.pageSize)
+      if (search) {
+        params.append('search_params', search)
+        params.append('search_fields', searchFields.join(','))
+      }
+
+      const response = await getModel(`?${params.toString()}`)
+      const leadsArray = response.leads || []
+      
+      const formattedData = leadsArray.map(item => ({
+        id: item.id,
+        name: item.name,
+        email: item.email,
+        phone: item.phone,
+        company: item.client_name || item.source || 'Sin empresa',
+        request_type: item.type || 'machinery_sale',
+        description: item.notes,
+        status: item.status,
+        priority: item.priority,
+        assigned_to: (item.assigned_to_name && item.assigned_to_name !== 'Por Asignar') ? item.assigned_to_name : null,
+        quotation_id: item.quotation_id,
+        quotation_items: item.quotation_items || [],
+        created_at: item.created_at,
+        _original: item
+      }))
+
+      setLeads(formattedData)
+      setTotalPages(response.total_pages || Math.ceil(formattedData.length / pagination.pageSize))
+    } catch (error) {
+      console.error("Error al cargar leads del equipo:", error)
+    } finally {
+      setIsLoading(false)
+    }
+  }
+
+  useEffect(() => {
+    fetchLeads()
+  }, [pagination.pageIndex, pagination.pageSize, search])
+
+  const refetchData = () => fetchLeads()
 
   const handleView   = (lead) => { setSelected(lead); setIsViewOpen(true)  }
   const handleAssign = (lead) => { setSelected(lead); setIsAssignOpen(true) }
+
+  const handleSaveAssign = (leadId, advisorId) => {
+    leadMutation.mutate({
+      action: 'update',
+      id: leadId,
+      endpoint: `/api/v1/manager/leads/${leadId}/assign/${advisorId}`
+    }, {
+      onSuccess: () => {
+        refetchData()
+        setIsAssignOpen(false)
+        setSelected(null)
+      }
+    })
+  }
 
   return (
     <>
@@ -43,7 +106,7 @@ const TeamLeads = () => {
           <div className="p-4">
             <TeamLeadsTable
               data={leads}
-              fetchData={() => {}}
+              fetchData={refetchData}
               pagination={pagination}
               setPagination={setPagination}
               totalPages={totalPages}
@@ -65,11 +128,12 @@ const TeamLeads = () => {
         lead={selected}
       />
 
+      {/* Asegúrate de que AssignLeadModal reciba onAssign=(leadId, advisorId) => ... */}
       <AssignLeadModal
         isOpen={isAssignOpen}
         handleClose={() => { setIsAssignOpen(false); setSelected(null) }}
         lead={selected}
-        onAssign={assignLead}
+        onAssign={handleSaveAssign}
       />
     </>
   )

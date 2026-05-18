@@ -1,51 +1,84 @@
 import React, { useState, useEffect } from 'react'
-import Modal from '@/components/custom/modal' 
+import Modal from '@/components/custom/modal'
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
-import { 
-  Select, 
-  SelectContent, 
-  SelectItem, 
-  SelectTrigger, 
-  SelectValue 
-} from "@/components/ui/select"
 
 const UpdateProductModal = ({ open, setOpen, onSave, productToEdit }) => {
 
   const [formData, setFormData] = useState({
-    codigo: '',
-    desc: '',
-    stock: 0,
-    loc: '',
-    type: 'repuesto'
+    code: '',
+    name: '',
+    description: '',
+    base_price: 0,
+    active: true
   });
+
+  const [imageUrl, setImageUrl] = useState('')
+  const [existingImage, setExistingImage] = useState(null)
 
   useEffect(() => {
     if (productToEdit && open) {
+      console.log("Producto a editar:", productToEdit);
+
+      const realProduct = productToEdit._original || productToEdit;
+      const code = productToEdit.id || productToEdit.code || '';
+      const name = productToEdit.desc || productToEdit.name || '';
+      const description = productToEdit._original?.description || productToEdit.description || '';
+
+      let basePrice = 0;
+      if (productToEdit.base_price) {
+        if (typeof productToEdit.base_price === 'string') {
+          basePrice = parseFloat(productToEdit.base_price.replace('$', '')) || 0;
+        } else {
+          basePrice = parseFloat(productToEdit.base_price) || 0;
+        }
+      }
+
+      const active = productToEdit.state === 'ACTIVO' || productToEdit.active === true;
+
       setFormData({
-        codigo: productToEdit.id || productToEdit.codigo || '', 
-        desc: productToEdit.desc || '',
-        stock: productToEdit.stock || 0,
-        loc: productToEdit.loc || '',
-        type: productToEdit.type || 'repuesto'
+        code: code,
+        name: name,
+        description: description,
+        base_price: basePrice,
+        active: active
       });
+
+      const existingImg = realProduct.product_images?.[0]
+      setExistingImage(existingImg || null)
+      setImageUrl(existingImg?.url || '')
     }
   }, [productToEdit, open]);
 
   const handleChange = (e) => {
-    const { name, value } = e.target;
-    setFormData(prev => ({ ...prev, [name]: value }));
+    const { name, value, type } = e.target;
+    setFormData(prev => ({
+      ...prev,
+      [name]: type === 'number' ? parseFloat(value) || 0 : value
+    }));
   };
 
   const handleActionSave = async () => {
-    if (!formData.codigo || !formData.desc) {
-      alert("Código y Descripción son obligatorios");
+    if (!formData.name) {
+      alert("El nombre es obligatorio");
       return;
     }
-   
-    await onSave(formData);
-  };
 
+    const productData = {
+      name: formData.name,
+      description: formData.description,
+      base_price: formData.base_price,
+      active: formData.active
+    };
+
+    if (imageUrl.trim() !== '') {
+      productData.product_images_attributes = existingImage
+        ? [{ id: existingImage.id, url: imageUrl }]
+        : [{ url: imageUrl }]
+    }
+
+    await onSave(productData);
+  };
   return (
     <Modal
       open={open}
@@ -55,66 +88,126 @@ const UpdateProductModal = ({ open, setOpen, onSave, productToEdit }) => {
       size="md"
       callBack={handleActionSave}
     >
-      <div className="grid gap-4 py-5">
-        <div className="flex flex-col gap-2">
-          <Label htmlFor="codigo">Código *</Label>
-          <Input 
-            id="codigo" 
-            name="codigo" 
-            placeholder="Ej: 1R-0750" 
-            value={formData.codigo}
-            onChange={handleChange}
+      <div className="grid gap-5 py-5">
+
+        <div className="space-y-2">
+          <Label htmlFor="code" className="text-sm font-semibold text-gray-700">
+            Código
+          </Label>
+          <Input
+            id="code"
+            name="code"
+            value={formData.code}
+            disabled
+            readOnly
+            className="bg-gray-100 border-gray-200 text-gray-600 cursor-not-allowed"
           />
+          <p className="text-xs text-gray-500">El código no se puede modificar</p>
         </div>
 
-        <div className="flex flex-col gap-2">
-          <Label htmlFor="desc">Descripción *</Label>
-          <Input 
-            id="desc" 
-            name="desc" 
-            placeholder="Nombre del producto" 
-            value={formData.desc}
+        <div className="space-y-2">
+          <Label htmlFor="name" className="text-sm font-semibold text-gray-700">
+            Nombre <span className="text-red-500">*</span>
+          </Label>
+          <Input
+            id="name"
+            name="name"
+            placeholder="Nombre del producto"
+            value={formData.name}
             onChange={handleChange}
+            className="border-gray-300 focus:border-blue-500 focus:ring-blue-500"
           />
         </div>
 
         <div className="grid grid-cols-2 gap-4">
-          <div className="flex flex-col gap-2">
-            <Label htmlFor="stock">Stock *</Label>
-            <Input 
-              id="stock" 
-              name="stock" 
-              type="number" 
-              value={formData.stock}
+          <div className="space-y-2">
+            <Label htmlFor="description" className="text-sm font-semibold text-gray-700">
+              Descripción
+            </Label>
+            <Input
+              id="description"
+              name="description"
+              placeholder="Opcional"
+              value={formData.description}
               onChange={handleChange}
+              className="border-gray-300 focus:border-blue-500 focus:ring-blue-500"
             />
           </div>
-          <div className="flex flex-col gap-2">
-            <Label htmlFor="loc">Ubicación *</Label>
-            <Input 
-              id="loc" 
-              name="loc" 
-              placeholder="Estante / Zona" 
-              value={formData.loc}
-              onChange={handleChange}
-            />
+
+          <div className="space-y-2">
+            <Label htmlFor="base_price" className="text-sm font-semibold text-gray-700">
+              Precio Base <span className="text-red-500">*</span>
+            </Label>
+            <div className="relative">
+              <span className="absolute left-3 top-2 text-gray-500 font-medium">$</span>
+              <Input
+                id="base_price"
+                name="base_price"
+                type="number"
+                step="0.01"
+                placeholder="0.00"
+                value={formData.base_price}
+                onChange={handleChange}
+                className="pl-7 border-gray-300 focus:border-blue-500 focus:ring-blue-500"
+              />
+            </div>
           </div>
         </div>
 
-        <div className="flex flex-col gap-2">
-          <Label>Tipo de Producto</Label>
-          <Select 
-            value={formData.type}
-            onValueChange={(val) => setFormData({...formData, type: val})}
-          >
-            <SelectTrigger>
-              <SelectValue placeholder="Seleccione tipo" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="repuesto">Repuesto</SelectItem>
-              <SelectItem value="maquinaria">Maquinaria</SelectItem>
-            </SelectContent>
-          </Select>
+        {/* Campo de imagen */}
+        <div className="space-y-2">
+          <Label className="text-sm font-semibold text-gray-700">
+            URL de la imagen
+          </Label>
+          <Input
+            placeholder="https://ejemplo.com/nueva-imagen.jpg"
+            value={imageUrl}
+            onChange={(e) => setImageUrl(e.target.value)}
+            className="border-gray-300 focus:border-blue-500 focus:ring-blue-500"
+          />
+        </div>
+
+        <div className="space-y-2">
+          <Label className="text-sm font-semibold text-gray-700">Estado del Producto</Label>
+          <div className="flex gap-3 bg-gray-50 p-1 rounded-lg border border-gray-200">
+            <button
+              type="button"
+              onClick={() => setFormData({ ...formData, active: true })}
+              className={`
+                flex-1 py-2.5 px-4 rounded-md font-medium text-sm transition-all duration-200
+                ${formData.active
+                  ? 'bg-white text-green-700 shadow-sm border border-green-200'
+                  : 'text-gray-500 hover:text-gray-700 hover:bg-white/50'
+                }
+              `}
+            >
+              <span className="inline-flex items-center gap-2">
+                <span className={`w-2 h-2 rounded-full ${formData.active ? 'bg-green-500' : 'bg-gray-400'}`}></span>
+                Activo
+              </span>
+            </button>
+            <button
+              type="button"
+              onClick={() => setFormData({ ...formData, active: false })}
+              className={`
+                flex-1 py-2.5 px-4 rounded-md font-medium text-sm transition-all duration-200
+                ${!formData.active
+                  ? 'bg-white text-red-700 shadow-sm border border-red-200'
+                  : 'text-gray-500 hover:text-gray-700 hover:bg-white/50'
+                }
+              `}
+            >
+              <span className="inline-flex items-center gap-2">
+                <span className={`w-2 h-2 rounded-full ${!formData.active ? 'bg-red-500' : 'bg-gray-400'}`}></span>
+                Inactivo
+              </span>
+            </button>
+          </div>
+          <p className="text-xs text-gray-500 mt-1">
+            {formData.active
+              ? "✓ El producto estará disponible para cotizaciones y ventas"
+              : "✗ El producto no aparecerá en el catálogo activo"}
+          </p>
         </div>
       </div>
     </Modal>

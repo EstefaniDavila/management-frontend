@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Filter } from 'lucide-react';
 import {
@@ -13,20 +13,13 @@ import CreateProductModal from '@/composables/admin/logistics/inventory/modals/C
 import UpdateProductModal from '@/composables/admin/logistics/inventory/modals/UpdateProductModal';
 import HistoryProductModal from '@/composables/admin/logistics/inventory/modals/HistoryProduct/HistoryProductModal';
 import DeleteProductModal from '@/composables/admin/logistics/inventory/modals/DeleteProductModal';
-
-const fakeInventory = {
-  rows: [
-    { id: "1R-0750", desc: "Filtro aceite", stock: 47, loc: "Estante A", status: "OK", type: "repuesto" },
-    { id: "153-5710", desc: "Batería 12V", stock: 8, loc: "Estante B", status: "Bajo", type: "repuesto" },
-    { id: "CAT-C15", desc: "Retroexcavadora JCB 3CX", stock: 2, loc: "Zona 1", status: "OK", type: "maquinaria" },
-    { id: "9X-2012", desc: "Kit junta motor", stock: 0, loc: "Estante C", status: "AGOT", type: "repuesto" },
-    { id: "7E-7777", desc: "Volquete Volvo FMX", stock: 15, loc: "Estante A", status: "OK", type: "maquinaria" },
-  ],
-  rowCount: 47
-};
+import useCrud from '@/hooks/useCrud';
+import useEntityMutation from '@/hooks/useEntityMutation';
+import { useAuth } from '@/providers/UserContext';
+import axios from 'axios';
 
 const Inventory = () => {
-  const [products, setProducts] = useState(fakeInventory.rows);
+  const [products, setProducts] = useState([]);
   const [pagination, setPagination] = useState({ pageIndex: 0, pageSize: 10 });
   const [search, setSearch] = useState("");
   const [searchFields, setSearchFields] = useState(["id", "desc"]);
@@ -35,8 +28,75 @@ const Inventory = () => {
   const [typeModal, setTypeModal] = useState("");
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedProduct, setSelectedProduct] = useState(null);
+  const [isLoading, setIsLoading] = useState(true);
 
-  const refetchData = () => console.log("Refetching data...");
+  const { getModel } = useCrud('/api/v1/admin/products');
+  const productMutation = useEntityMutation({ entityName: 'product' });
+  const { user } = useAuth();
+
+  const fetchProducts = async () => {
+    try {
+      setIsLoading(true);
+
+      const response = await getModel();
+
+      const productsArray =
+        response.data || (Array.isArray(response) ? response : []);
+
+      const formattedData = productsArray.map((item) => {
+        const isVehicle = item.product_type === "vehicle";
+        const isSparePart = item.product_type === "spare_part";
+
+        return {
+          id: item.code,
+          name: item.name,
+          type: isVehicle ? "Maquinaria" : "Repuesto",
+
+          inventoryValue: isVehicle
+            ? item.vehicle?.status || "unknown"
+            : item.spare_part?.stock || 0,
+
+          secondaryValue: isVehicle
+            ? item.vehicle?.hours_used || 0
+            : item.spare_part?.min_stock || 0,
+
+          locationValue: isVehicle
+            ? item.vehicle?.location || "No asignado"
+            : item.spare_part?.manufacturer_brand || "No asignado",
+
+          state: item.active ? "ACTIVO" : "INACTIVO",
+
+          status:
+            isSparePart
+              ? (item.spare_part?.stock || 0) === 0
+                ? "AGOT"
+                : (item.spare_part?.stock || 0) <
+                  (item.spare_part?.min_stock || 0)
+                  ? "Bajo"
+                  : "OK"
+              : item.vehicle?.status || "available",
+
+          base_price: `$${parseFloat(item.base_price || 0).toFixed(2)}`,
+          product_type: item.product_type,
+          _original: item,
+        };
+      });
+
+      setProducts(formattedData);
+    } catch (error) {
+      console.error("Error al cargar productos:", error);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchProducts();
+  }, []);
+
+  const refetchData = () => {
+    fetchProducts();
+  };
 
   const handleOpenModal = (type, product = null) => {
     setTypeModal(type);
@@ -50,67 +110,64 @@ const Inventory = () => {
     setIsModalOpen(false);
   };
 
-  const handleSaveProduct = async (newProduct) => {
-    try {
-      console.log("Guardando producto:", newProduct);
-
-      const productToAdd = {
-        id: newProduct.codigo,
-        desc: newProduct.desc,
-        stock: parseInt(newProduct.stock),
-        loc: newProduct.loc,
-        type: newProduct.type,
-        status: "OK"
-      };
-
-      setProducts(prev => [productToAdd, ...prev]);
-
-      handleCloseModal();
-
-      alert("Producto creado exitosamente");
-
-    } catch (error) {
-      console.error("Error al guardar:", error);
-      alert("Error al crear el producto");
-    }
+  const handleSaveProduct = async (payload) => {
+    productMutation.mutate(
+      {
+        action: 'create',
+        entity: payload,
+        endpoint: '/api/v1/admin/products'
+      },
+      {
+        onSuccess: () => {
+          refetchData();
+          handleCloseModal();
+        }
+      }
+    );
   };
 
-  const handleUpdateProduct = async (updatedData) => {
-    try {
-      console.log("Datos actualizados:", updatedData);
 
-      const updatedProduct = {
-        id: updatedData.codigo,
-        desc: updatedData.desc,
-        stock: parseInt(updatedData.stock),
-        loc: updatedData.loc,
-        type: updatedData.type,
-        status: updatedData.stock == 0 ? "AGOT" : updatedData.stock < 10 ? "Bajo" : "OK"
-      };
+  const handleUpdateProduct = async (productData) => {
+    const productId = selectedProduct._original?.id;
+    if (!productId) return;
 
-      setProducts(prev =>
-        prev.map(p => p.id === selectedProduct.id ? updatedProduct : p)
-      );
+    const formData = new FormData();
+    formData.append('name', productData.name);
+    formData.append('description', productData.description || '');
+    formData.append('base_price', productData.base_price);
+    formData.append('active', productData.active);
 
-      handleCloseModal();
-      alert("Producto actualizado exitosamente");
-    } catch (error) {
-      console.error("Error al actualizar:", error);
-      alert("Error al actualizar el producto");
+    if (productData.product_images_attributes) {
+      productData.product_images_attributes.forEach((img, index) => {
+        if (img.id) formData.append(`product_images_attributes[${index}][id]`, img.id);
+        formData.append(`product_images_attributes[${index}][url]`, img.url);
+      });
     }
-  };
 
+    productMutation.mutate({
+      action: 'update',
+      id: productId,
+      entity: formData,  // ✅ FormData → el hook lo pasa directo
+      endpoint: `/api/v1/admin/products/${productId}`
+    }, {
+      onSuccess: () => { fetchProducts(); handleCloseModal(); }
+    });
+  };
   const handleDeleteProduct = async (product) => {
-    try {
-      console.log("Eliminando producto:", product);
-
-      setProducts(prev => prev.filter(p => p.id !== product.id));
-      handleCloseModal();
-
-    } catch (error) {
-      console.error("Error al eliminar:", error);
-      alert("Error al eliminar el producto");
-    }
+    console.log("Eliminando producto:", product);
+    productMutation.mutate(
+      {
+        action: 'delete',
+        id: product._original.id,
+        endpoint: `/api/v1/admin/products/${product._original.id}`
+      },
+      {
+        onSuccess: () => {
+          refetchData();
+          handleCloseModal();
+        }
+      }
+    );
   };
 
   const filteredData = products.filter(item => {
@@ -124,11 +181,12 @@ const Inventory = () => {
   return (
     <div className="px-4 py-4 md:px-6 w-full">
       <div className="max-w-[1600px] mx-auto flex flex-col gap-4">
-
         <h1 className="text-base font-semibold tracking-tight text-foreground">
-          Inventory — Parts & Machinery
+          Inventario — Maquinaria y Repuestos
         </h1>
-
+        <p className="text-sm text-muted-foreground max-w-[850px] leading-relaxed">
+          Visualiza, filtra y gestiona el inventario de maquinaria y repuestos, incluyendo su disponibilidad, ubicación, estado actual y valores base.
+        </p>
         <div className="flex flex-wrap gap-2">
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
@@ -149,13 +207,13 @@ const Inventory = () => {
             <DropdownMenuTrigger asChild>
               <Button variant="outline" size="sm" className="gap-2">
                 <Filter className="h-3.5 w-3.5" />
-                Type: {filterType}
+                Tipo: {filterType}
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent>
-              <DropdownMenuItem onClick={() => setFilterType("todos")}>All</DropdownMenuItem>
-              <DropdownMenuItem onClick={() => setFilterType("maquinaria")}>Machinery</DropdownMenuItem>
-              <DropdownMenuItem onClick={() => setFilterType("repuesto")}>Parts</DropdownMenuItem>
+              <DropdownMenuItem onClick={() => setFilterType("todos")}>Todos</DropdownMenuItem>
+              <DropdownMenuItem onClick={() => setFilterType("Maquinaria")}>Maquinaria</DropdownMenuItem>
+              <DropdownMenuItem onClick={() => setFilterType("Repuesto")}>Respuestos</DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
 
@@ -164,7 +222,7 @@ const Inventory = () => {
             onClick={() => handleOpenModal('create')}
             className="ml-auto"
           >
-            + Nuevo Producto
+            + Registrar Producto
           </Button>
         </div>
 
@@ -182,6 +240,7 @@ const Inventory = () => {
               searchFields={searchFields}
               setSearchFields={setSearchFields}
               handleOpenModal={handleOpenModal}
+              handleDeleteProduct={handleDeleteProduct}
             />
           </div>
         </div>
@@ -193,6 +252,7 @@ const Inventory = () => {
           open={isModalOpen}
           setOpen={handleCloseModal}
           onSave={handleSaveProduct}
+          currentUserId={user?.id}
         />
       )}
 
@@ -203,14 +263,6 @@ const Inventory = () => {
           setOpen={handleCloseModal}
           productToEdit={selectedProduct}
           onSave={handleUpdateProduct}
-        />
-      )}
-      {typeModal === 'delete' && (
-        <DeleteProductModal
-          open={isModalOpen}
-          setOpen={handleCloseModal}
-          product={selectedProduct}
-          onConfirm={handleDeleteProduct}
         />
       )}
       {typeModal === 'history' && (

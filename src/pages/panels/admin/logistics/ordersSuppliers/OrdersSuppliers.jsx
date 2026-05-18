@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Filter, Download } from 'lucide-react';
+import { jsPDF } from 'jspdf';
 import {
   DropdownMenu,
   DropdownMenuTrigger,
@@ -9,63 +10,20 @@ import {
 } from "@/components/ui/dropdown-menu";
 
 import OrdersSuppliersTable from '@/composables/admin/logistics/ordersSuppliers/Table/OrdersSuppliersTable';
-import ViewOrderDetailModal from '@/composables/admin/logistics/suppliers/modals/SupplierOrderModal/ViewOrderDetailModal/ViewOrderDetailModal';
-import CreateOrderModal from '@/composables/admin/logistics/ordersSuppliers/modals/CreateOrderModal';
+import CreateNewOrderModal from '@/composables/admin/logistics/ordersSuppliers/modals/CreateNewOrderModal';
+import ViewOrderDetailModal from '@/composables/admin/logistics/ordersSuppliers/modals/ViewOrderdetailsModal';
+import useCrud from '@/hooks/useCrud';
+import useEntityMutation from '@/hooks/useEntityMutation';
 import UpdateOrderModal from '@/composables/admin/logistics/ordersSuppliers/modals/UpdateOrderModal';
-import DeleteOrderModal from '@/composables/admin/logistics/ordersSuppliers/modals/DeleteOrderModal';
-const fakePurchaseOrders = {
-  rows: [
-    { 
-      orderId: "PO-2024-001", 
-      proveedor: "Maquinarias S.A.", 
-      fechaPedido: "2024-01-15", 
-      fechaEntrega: "2024-01-22", 
-      totalProductos: 15, 
-      montoTotal: 12500000, 
-      status: "ENTREGADO" 
-    },
-    { 
-      orderId: "PO-2024-002", 
-      proveedor: "Repuestos Industriales Ltda.", 
-      fechaPedido: "2024-01-20", 
-      fechaEntrega: null, 
-      totalProductos: 45, 
-      montoTotal: 3450000, 
-      status: "PENDIENTE" 
-    },
-    { 
-      orderId: "PO-2024-003", 
-      proveedor: "Equipos Pesados SpA", 
-      fechaPedido: "2024-01-25", 
-      fechaEntrega: "2024-02-01", 
-      totalProductos: 8, 
-      montoTotal: 8900000, 
-      status: "EN_TRANSITO" 
-    },
-    { 
-      orderId: "PO-2024-004", 
-      proveedor: "Insumos Mineros", 
-      fechaPedido: "2024-01-28", 
-      fechaEntrega: null, 
-      totalProductos: 120, 
-      montoTotal: 6700000, 
-      status: "CANCELADO" 
-    },
-    { 
-      orderId: "PO-2024-005", 
-      proveedor: "Logística Express", 
-      fechaPedido: "2024-02-01", 
-      fechaEntrega: "2024-02-08", 
-      totalProductos: 32, 
-      montoTotal: 2100000, 
-      status: "ENTREGADO" 
-    },
-  ],
-  rowCount: 47
-};
 
 const PurchaseOrderHistory = () => {
-  const [orders, setOrders] = useState(fakePurchaseOrders.rows);
+  const { getModel: getOrders } = useCrud('/api/v1/admin/purchase_orders');
+  const { getModel: getSuppliers } = useCrud('/api/v1/admin/suppliers');
+  const orderMutation = useEntityMutation({ entityName: 'purchase_order' });
+
+  const [orders, setOrders] = useState([]);
+  const [suppliers, setSuppliers] = useState([]);
+  const [isLoading, setIsLoading] = useState(true);
   const [pagination, setPagination] = useState({ pageIndex: 0, pageSize: 10 });
   const [search, setSearch] = useState("");
   const [searchFields, setSearchFields] = useState(["orderId", "proveedor"]);
@@ -75,7 +33,55 @@ const PurchaseOrderHistory = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedOrder, setSelectedOrder] = useState(null);
 
-  const refetchData = () => console.log("Refetching orders data...");
+  const fetchInitialData = async () => {
+    try {
+      setIsLoading(true);
+      const [ordersData, suppliersData] = await Promise.all([
+        getOrders(),
+        getSuppliers()
+      ]);
+
+      const formattedOrders = ordersData.map(order => {
+        const supplier = suppliersData.find(s => s.id === order.supplier_id);
+        const statusMap = {
+          'draft': 'PENDIENTE',
+          'completed': 'ENTREGADO',
+          'cancelled': 'CANCELADO',
+          'in_transit': 'EN_TRANSITO'
+        };
+
+        return {
+          id: order.id,
+          orderId: order.code,
+          proveedor: supplier ? supplier.business_name : 'Desconocido',
+          supplier_id: order.supplier_id,
+          fechaPedido: order.created_at,
+          fechaEntrega: order.expected_date,
+          fechaAceptada: order.received_at,
+          montoTotal: parseFloat(order.total) || 0,
+          status: statusMap[order.status] || order.status,
+          _original: order
+        };
+      });
+
+      setOrders(formattedOrders);
+      setSuppliers(suppliersData.map(s => ({
+        id: s.id,
+        nombre: s.business_name,
+        _original: s
+      })));
+    } catch (error) {
+      console.error("Error cargando los datos:", error);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  React.useEffect(() => {
+    fetchInitialData();
+  }, []);
+
+  const refetchData = () => fetchInitialData();
 
   const handleOpenModal = (type, order = null) => {
     setTypeModal(type);
@@ -89,65 +95,267 @@ const PurchaseOrderHistory = () => {
     setIsModalOpen(false);
   };
 
-  const handleSaveOrder = async (newOrder) => {
-    try {
-      console.log("Guardando pedido:", newOrder);
-
-      const orderToAdd = {
-        orderId: newOrder.orderId,
-        proveedor: newOrder.proveedor,
-        fechaPedido: newOrder.fechaPedido,
-        fechaEntrega: newOrder.fechaEntrega || null,
-        totalProductos: parseInt(newOrder.totalProductos),
-        montoTotal: parseFloat(newOrder.montoTotal),
-        status: newOrder.status
-      };
-
-      setOrders(prev => [orderToAdd, ...prev]);
-      handleCloseModal();
-      alert("Pedido creado exitosamente");
-
-    } catch (error) {
-      console.error("Error al guardar:", error);
-      alert("Error al crear el pedido");
-    }
+  const handleSaveOrder = (pedidoData) => {
+    orderMutation.mutate(
+      { action: 'create', entity: pedidoData, endpoint: '/api/v1/admin/purchase_orders' },
+      {
+        onSuccess: () => {
+          refetchData();
+          handleCloseModal();
+        }
+      }
+    );
   };
 
-  const handleUpdateOrder = async (updatedData) => {
+  const handleUpdateOrder = (updatedData) => {
+    orderMutation.mutate(
+      {
+        action: 'update',
+        entity: updatedData,
+        endpoint: `/api/v1/admin/purchase_orders/${updatedData.get ? updatedData.get('id') : updatedData.id}`,
+        id: updatedData.get ? updatedData.get('id') : updatedData.id
+      },
+      {
+        onSuccess: () => {
+          refetchData();
+          handleCloseModal();
+        }
+      }
+    );
+  };
+
+  const handleDeleteOrder = (order) => {
+    orderMutation.mutate(
+      {
+        action: 'delete',
+        endpoint: `/api/v1/admin/purchase_orders/${order.id}`,
+        id: order.id
+      },
+      {
+        onSuccess: () => {
+          refetchData();
+        }
+      }
+    );
+  };
+
+  const handleReceiveOrder = (order) => {
+
+    orderMutation.mutate(
+      {
+        action: 'update',
+        entity: {},
+        endpoint: `/api/v1/admin/purchase_orders/${order.id}/receive`,
+        id: order.id
+      },
+      {
+        onSuccess: () => {
+          refetchData();
+        }
+      }
+    );
+  };
+
+  const handleCancelOrder = (order) => {
+    orderMutation.mutate(
+      {
+        action: 'update',
+        entity: {},
+        endpoint: `/api/v1/admin/purchase_orders/${order.id}/cancel`,
+        id: order.id
+      },
+      {
+        onSuccess: () => {
+          refetchData();
+        }
+      }
+    );
+  };
+
+  const handleDownloadGuide = async (order) => {
+    console.log('1. order recibido:', order);
+    console.log('2. order.id:', order.id);
+
     try {
-      console.log("Datos actualizados:", updatedData);
+      const url = `/api/v1/admin/purchase_orders/${order.id}/download_guide`;
+      console.log('3. URL:', url);
 
-      const updatedOrder = {
-        orderId: updatedData.orderId,
-        proveedor: updatedData.proveedor,
-        fechaPedido: updatedData.fechaPedido,
-        fechaEntrega: updatedData.fechaEntrega || null,
-        totalProductos: parseInt(updatedData.totalProductos),
-        montoTotal: parseFloat(updatedData.montoTotal),
-        status: updatedData.status
-      };
+      const response = await fetch(url, { credentials: 'include' });
+      console.log('4. response.status:', response.status);
+      console.log('5. response.ok:', response.ok);
+      console.log('6. content-type:', response.headers.get('content-type'));
 
-      setOrders(prev =>
-        prev.map(o => o.orderId === selectedOrder.orderId ? updatedOrder : o)
+      const text = await response.text();
+      console.log('7. respuesta raw:', text.substring(0, 200));
+
+      if (!response.ok) throw new Error(`Error ${response.status}: ${text}`);
+
+      const data = JSON.parse(text);
+      console.log('8. data OK:', data);
+
+      const doc = new jsPDF();
+
+      const primaryColor = [30, 64, 175];
+      const grayDark = [30, 30, 30];
+      const grayMid = [100, 100, 100];
+      const grayLight = [240, 240, 240];
+
+      const pageW = doc.internal.pageSize.getWidth();
+      let y = 0;
+
+      doc.setFillColor(...primaryColor);
+      doc.rect(0, 0, pageW, 32, 'F');
+
+      doc.setTextColor(255, 255, 255);
+      doc.setFontSize(16);
+      doc.setFont('helvetica', 'bold');
+      doc.text('GUÍA DE RECEPCIÓN', 14, 13);
+
+      doc.setFontSize(9);
+      doc.setFont('helvetica', 'normal');
+      doc.text(`Código: ${data.code}`, 14, 21);
+      doc.text(
+        `Generado: ${new Date(data.generated_at).toLocaleString('es-ES')}`,
+        14, 27
       );
 
-      handleCloseModal();
-      alert("Pedido actualizado exitosamente");
-    } catch (error) {
-      console.error("Error al actualizar:", error);
-      alert("Error al actualizar el pedido");
-    }
-  };
+      const statusLabel = {
+        draft: 'PENDIENTE', completed: 'ENTREGADO',
+        cancelled: 'CANCELADO', in_transit: 'EN TRÁNSITO'
+      }[data.status] ?? data.status.toUpperCase();
 
-  const handleDeleteOrder = async (order) => {
-    try {
-      console.log("Anulando pedido:", order);
-      setOrders(prev => prev.filter(o => o.orderId !== order.orderId));
-      handleCloseModal();
-      alert("Pedido anulado exitosamente");
+      const statusColor = {
+        ENTREGADO: [34, 197, 94], PENDIENTE: [234, 179, 8],
+        CANCELADO: [239, 68, 68], 'EN TRÁNSITO': [59, 130, 246]
+      }[statusLabel] ?? [100, 100, 100];
+
+      doc.setFillColor(...statusColor);
+      doc.roundedRect(pageW - 50, 10, 36, 12, 2, 2, 'F');
+      doc.setTextColor(255, 255, 255);
+      doc.setFontSize(8);
+      doc.setFont('helvetica', 'bold');
+      doc.text(statusLabel, pageW - 32, 18, { align: 'center' });
+
+      y = 42;
+
+      const drawSection = (title, startY) => {
+        doc.setFillColor(...grayLight);
+        doc.rect(14, startY, pageW - 28, 7, 'F');
+        doc.setTextColor(...primaryColor);
+        doc.setFontSize(9);
+        doc.setFont('helvetica', 'bold');
+        doc.text(title, 17, startY + 5);
+        return startY + 12;
+      };
+
+      const drawRow = (label, value, rowY, col = 0) => {
+        const x = 14 + col * 90;
+        doc.setTextColor(...grayMid);
+        doc.setFontSize(7.5);
+        doc.setFont('helvetica', 'bold');
+        doc.text(label.toUpperCase(), x, rowY);
+        doc.setTextColor(...grayDark);
+        doc.setFont('helvetica', 'normal');
+        doc.setFontSize(9);
+        doc.text(String(value ?? '—'), x, rowY + 5);
+      };
+
+      y = drawSection('DATOS DEL PROVEEDOR', y);
+      const s = data.supplier;
+      drawRow('Razón Social', s.business_name, y, 0);
+      drawRow('RUC / Doc.', s.document_number, y, 1);
+      y += 14;
+      drawRow('Teléfono', s.phone, y, 0);
+      drawRow('Email', s.email, y, 1);
+      y += 14;
+      drawRow('Dirección', s.address, y, 0);
+      y += 16;
+
+      y = drawSection('DATOS DE LA ORDEN', y);
+      drawRow('Fecha esperada', data.expected_date ?? '—', y, 0);
+      drawRow('Fecha recepción', data.received_at
+        ? new Date(data.received_at).toLocaleDateString('es-ES') : '—', y, 1);
+      y += 14;
+      if (data.notes) {
+        drawRow('Notas', data.notes, y, 0);
+        y += 14;
+      }
+      y += 2;
+
+
+      y = drawSection('DETALLE DE PRODUCTOS', y);
+
+
+      const cols = [
+        { label: 'CÓD. PRODUCTO', x: 14, w: 38 },
+        { label: 'PRODUCTO', x: 54, w: 70 },
+        { label: 'CANT.', x: 126, w: 18 },
+        { label: 'P. UNIT.', x: 146, w: 24 },
+        { label: 'SUBTOTAL', x: 172, w: 28 },
+      ];
+
+      doc.setFillColor(...primaryColor);
+      doc.rect(14, y, pageW - 28, 8, 'F');
+      doc.setTextColor(255, 255, 255);
+      doc.setFontSize(7.5);
+      doc.setFont('helvetica', 'bold');
+      cols.forEach(c => doc.text(c.label, c.x + 2, y + 5.5));
+      y += 8;
+
+
+      data.items.forEach((item, i) => {
+        const bg = i % 2 === 0 ? [255, 255, 255] : [248, 250, 252];
+        doc.setFillColor(...bg);
+        doc.rect(14, y, pageW - 28, 8, 'F');
+        doc.setTextColor(...grayDark);
+        doc.setFontSize(8);
+        doc.setFont('helvetica', 'normal');
+
+        doc.text(item.product_code ?? '—', cols[0].x + 2, y + 5.5);
+        doc.text(
+          doc.splitTextToSize(item.product_name, cols[1].w - 4)[0],
+          cols[1].x + 2, y + 5.5
+        );
+        doc.text(String(item.quantity), cols[2].x + 2, y + 5.5);
+        doc.text(`S/ ${Number(item.unit_cost).toFixed(2)}`, cols[3].x + 2, y + 5.5);
+        doc.text(`S/ ${Number(item.subtotal).toFixed(2)}`, cols[4].x + 2, y + 5.5);
+
+        y += 8;
+      });
+
+
+      doc.setDrawColor(...primaryColor);
+      doc.setLineWidth(0.3);
+      doc.rect(14, y - (data.items.length * 8) - 8, pageW - 28, data.items.length * 8 + 8);
+      y += 4;
+
+
+      doc.setFillColor(...primaryColor);
+      doc.roundedRect(pageW - 60, y, 46, 12, 2, 2, 'F');
+      doc.setTextColor(255, 255, 255);
+      doc.setFontSize(9);
+      doc.setFont('helvetica', 'bold');
+      doc.text('TOTAL:', pageW - 57, y + 8);
+      doc.text(`S/ ${Number(data.total).toFixed(2)}`, pageW - 16, y + 8, { align: 'right' });
+      y += 20;
+
+
+      doc.setDrawColor(...grayLight);
+      doc.setLineWidth(0.5);
+      doc.line(14, y, pageW - 14, y);
+      doc.setTextColor(...grayMid);
+      doc.setFontSize(7);
+      doc.setFont('helvetica', 'italic');
+      doc.text(
+        'Documento generado automáticamente — Sistema de Gestión de Pedidos',
+        pageW / 2, y + 6, { align: 'center' }
+      );
+
+      doc.save(`guia_recepcion_${data.code}.pdf`);
+
     } catch (error) {
-      console.error("Error al anular:", error);
-      alert("Error al anular el pedido");
+      console.error('Error al descargar:', error);
+      alert(`Error al descargar la guía: ${error.message}`);
     }
   };
 
@@ -226,6 +434,10 @@ const PurchaseOrderHistory = () => {
               searchFields={searchFields}
               setSearchFields={setSearchFields}
               handleOpenModal={handleOpenModal}
+              handleDeleteOrder={handleDeleteOrder}
+              handleReceiveOrder={handleReceiveOrder}
+              handleCancelOrder={handleCancelOrder}
+              handleDownloadGuide={handleDownloadGuide}
             />
           </div>
         </div>
@@ -233,10 +445,11 @@ const PurchaseOrderHistory = () => {
       </div>
 
       {typeModal === 'create' && (
-        <CreateOrderModal
+        <CreateNewOrderModal
           open={isModalOpen}
           setOpen={handleCloseModal}
           onSave={handleSaveOrder}
+          suppliers={suppliers}
         />
       )}
 
@@ -249,31 +462,12 @@ const PurchaseOrderHistory = () => {
         />
       )}
 
-      {typeModal === 'delete' && (
-        <DeleteOrderModal
-          open={isModalOpen}
-          setOpen={handleCloseModal}
-          order={selectedOrder}
-          onConfirm={handleDeleteOrder}
-        />
-      )}
-
       {typeModal === 'details' && selectedOrder && (
         <ViewOrderDetailModal
           open={isModalOpen}
           setOpen={handleCloseModal}
-          order={{
-            oc: selectedOrder.orderId,
-            estado: selectedOrder.status === 'ENTREGADO' ? 'Completado' : selectedOrder.status,
-            fecha: selectedOrder.fechaPedido,
-            monto: selectedOrder.montoTotal,
-            metodo: 'Transferencia'
-          }}
-          supplier={{
-            nombre: selectedOrder.proveedor,
-            direccion: 'Av. Principal S/N (Registrada en BD)',
-            contacto: 'Representante de Ventas'
-          }}
+          order={selectedOrder}
+
         />
       )}
 

@@ -1,112 +1,291 @@
-import React, { useState } from 'react'
+import React, { useState, useEffect } from 'react'
+import { useForm } from 'react-hook-form'
+import { zodResolver } from '@hookform/resolvers/zod'
+import * as z from 'zod'
+import { toast } from 'sonner'
 import Modal from '@/components/custom/modal'
-import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label"
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue
-} from "@/components/ui/select"
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
+import { ProductCommonForm } from './ProductCommonForm'
+import { VehicleForm } from './VehicleForm'
+import { SparePartForm } from './SparePartForm'
+import { Button } from "@/components/ui/button"
+import { Loader2 } from "lucide-react"
+import useCrud from '@/hooks/useCrud'
 
-const CreateProductModal = ({ open, setOpen, onSave }) => {
+const commonSchema = z.object({
+  name: z.string().min(1, "El nombre es obligatorio"),
+  description: z.string().optional(),
+  base_price: z.number().positive("El precio base debe ser mayor a 0"),
+  active: z.boolean().default(true),
+})
 
-  const [formData, setFormData] = useState({
-    codigo: '',
-    desc: '',
-    stock: 0,
-    loc: '',
-    type: 'repuesto'
-  });
+const vehicleSchema = z.object({
+  vehicle_model_id: z.string().min(1, "Debe seleccionar un modelo"),
+  serial: z.string().min(1, "El número de serie es obligatorio"),
+  manufacture_year: z.number()
+    .min(1990, "El año debe ser mayor o igual a 1990")
+    .max(new Date().getFullYear(), `El año no puede superar ${new Date().getFullYear()}`),
+  hours_used: z.number().min(0, "Las horas no pueden ser negativas").default(0),
+  status: z.enum(['available', 'disabled', 'maintenance', 'sold', 'rented', 'logistic', 'inactive']),
+  price_per_hour: z.number().min(0, "El precio por hora no puede ser negativo").optional(),
+  price_per_day: z.number().min(0, "El precio por día no puede ser negativo").optional(),
+  location: z.string().optional(),
+})
 
-  const handleChange = (e) => {
-    const { name, value } = e.target;
-    setFormData(prev => ({ ...prev, [name]: value }));
-  };
+const sparePartSchema = z.object({
+  spare_part_category_id: z.string().min(1, "Debe seleccionar una categoría"),
+  part_number: z.string().min(1, "El número de parte es obligatorio"),
+  manufacturer_brand: z.string().optional(),
+  stock: z.number().min(0, "El stock no puede ser negativo"),
+  min_stock: z.number().min(0, "El stock mínimo no puede ser negativo"),
+  sale_unit: z.enum(['unidad', 'caja', 'par', 'kit']),
+  is_critical: z.boolean().default(false),
+})
 
+const getProductSchema = (type) => {
+  if (type === 'vehicle') {
+    return z.object({
+      common: commonSchema,
+      vehicle: vehicleSchema
+    })
+  }
+  return z.object({
+    common: commonSchema,
+    spare_part: sparePartSchema
+  })
+}
 
-  const handleActionSave = async () => {
-    if (!formData.codigo || !formData.desc) {
-      alert("Código y Descripción son obligatorios");
-      return;
+const CreateProductModal = ({ open, setOpen, onSave, currentUserId }) => {
+  const [productType, setProductType] = useState('spare_part')
+  const [isLoading, setIsLoading] = useState(false)
+  const [vehicleModels, setVehicleModels] = useState([])
+  const [vehicleTypes, setVehicleTypes] = useState([])
+  const [sparePartCategories, setSparePartCategories] = useState([])
+  const [imageUrl, setImageUrl] = useState('')
+
+  const { getModel: getVehicleModels } = useCrud('/api/v1/admin/vehicle_models')
+  const { getModel: getVehicleTypes } = useCrud('/api/v1/admin/vehicle_types')
+  const { getModel: getSparePartCategories } = useCrud('/api/v1/admin/spare_part_categories')
+
+  const {
+    control,
+    handleSubmit,
+    reset,
+    formState: { errors },
+    watch
+  } = useForm({
+    resolver: zodResolver(getProductSchema(productType)),
+    defaultValues: {
+      common: {
+        name: '',
+        description: '',
+        base_price: 0,
+        active: true,
+      },
+      vehicle: {
+        vehicle_model_id: '',
+        serial: '',
+        manufacture_year: new Date().getFullYear(),
+        hours_used: 0,
+        status: 'available',
+        price_per_hour: 0,
+        price_per_day: 0,
+        location: '',
+      },
+      spare_part: {
+        spare_part_category_id: '',
+        part_number: '',
+        manufacturer_brand: '',
+        stock: 0,
+        min_stock: 1,
+        sale_unit: 'unidad',
+        is_critical: false,
+      }
     }
+  })
 
-    await onSave(formData);
-  };
+  useEffect(() => {
+    if (open) {
+      loadVehicleModels()
+      loadVehicleTypes()
+      loadSparePartCategories()
+    }
+  }, [open])
+
+  const loadVehicleModels = async () => {
+    try {
+      const response = await getVehicleModels()
+      setVehicleModels(response.data || (Array.isArray(response) ? response : []))
+    } catch (error) {
+      console.error('Error loading vehicle models:', error)
+      toast.error('Error al cargar los modelos de vehículos')
+    }
+  }
+
+  const loadVehicleTypes = async () => {
+    try {
+      const response = await getVehicleTypes()
+      setVehicleTypes(response.data || (Array.isArray(response) ? response : []))
+    } catch (error) {
+      console.error('Error loading vehicle types:', error)
+      toast.error('Error al cargar los tipos de vehículos')
+    }
+  }
+
+  const loadSparePartCategories = async () => {
+    try {
+      const response = await getSparePartCategories()
+      setSparePartCategories(response.data || (Array.isArray(response) ? response : []))
+    } catch (error) {
+      console.error('Error loading spare part categories:', error)
+      toast.error('Error al cargar las categorías de repuestos')
+    }
+  }
+
+  const onSubmit = async (data) => {
+    setIsLoading(true)
+
+    try {
+      const payload = new FormData()
+
+      payload.append('product_type', productType)
+      if (data.common.code && data.common.code.trim() !== '') {
+        payload.append('code', data.common.code)
+      }
+      payload.append('name', data.common.name)
+      if (data.common.description) payload.append('description', data.common.description)
+      payload.append('base_price', data.common.base_price)
+      payload.append('active', data.common.active)
+      if (currentUserId) {
+        payload.append('created_by_id', currentUserId)
+        payload.append('updated_by_id', currentUserId)
+      }
+
+      if (imageUrl && imageUrl.trim() !== '') {
+        payload.append('product_images_attributes[0][url]', imageUrl)
+      }
+
+      if (productType === 'vehicle') {
+        Object.entries(data.vehicle).forEach(([key, value]) => {
+          if (value !== undefined && value !== '') {
+            payload.append(`vehicle_attributes[${key}]`, value)
+          }
+        })
+      } else {
+        Object.entries(data.spare_part).forEach(([key, value]) => {
+          if (value !== undefined && value !== '') {
+            payload.append(`spare_part_attributes[${key}]`, value)
+          }
+        })
+      }
+
+      await onSave(payload)
+      reset()
+      setImageUrl('')
+      setOpen(false)
+    } catch (error) {
+      console.error('Error creating product:', error)
+      toast.error('Error al preparar el producto')
+    } finally {
+      setIsLoading(false)
+    }
+  }
+
+  const handleTypeChange = (newType) => {
+    setProductType(newType)
+    reset({
+      common: watch('common'),
+      vehicle: {
+        vehicle_model_id: '',
+        serial: '',
+        manufacture_year: new Date().getFullYear(),
+        hours_used: 0,
+        status: 'available',
+        price_per_hour: 0,
+        price_per_day: 0,
+        location: '',
+      },
+      spare_part: {
+        spare_part_category_id: '',
+        part_number: '',
+        manufacturer_brand: '',
+        stock: 0,
+        min_stock: 1,
+        sale_unit: 'unidad',
+        is_critical: false,
+      }
+    })
+  }
 
   return (
     <Modal
       open={open}
       setOpen={setOpen}
-      title="Nuevo Producto"
-      description="Complete los campos para registrar el producto en el inventario."
-      size="md"
-      callBack={handleActionSave}
+      title="Crear Nuevo Producto"
+      description="Complete los campos según el tipo de producto"
+      size="2xl"
+      showFooter={false}
     >
+      <form onSubmit={handleSubmit(onSubmit)} className="flex flex-col h-[70vh] md:h-[75vh]">
+        <div className="flex-1 overflow-y-auto pr-2 pb-4 custom-scrollbar">
+          <Tabs value={productType} onValueChange={handleTypeChange} className="w-full">
+            <TabsList className="grid w-full grid-cols-2 sticky top-0 z-10 bg-background">
+              <TabsTrigger value="spare_part">Repuesto</TabsTrigger>
+              <TabsTrigger value="vehicle">Vehículo / Maquinaria</TabsTrigger>
+            </TabsList>
 
-      <div className="grid gap-4 py-5">
-        <div className="flex flex-col gap-2">
-          <Label htmlFor="codigo">Código *</Label>
-          <Input
-            id="codigo"
-            name="codigo"
-            placeholder="Ej: 1R-0750"
-            value={formData.codigo}
-            onChange={handleChange}
-          />
+            <div className="mt-6">
+              <ProductCommonForm control={control} errors={errors.common} />
+
+              <TabsContent value="vehicle" className="mt-6">
+                <VehicleForm
+                  control={control}
+                  errors={errors.vehicle}
+                  vehicleModels={vehicleModels}
+                  vehicleTypes={vehicleTypes}
+                />
+              </TabsContent>
+
+              <TabsContent value="spare_part" className="mt-6">
+                <SparePartForm
+                  control={control}
+                  errors={errors.spare_part}
+                  sparePartCategories={sparePartCategories}
+                />
+              </TabsContent>
+            </div>
+
+            <div className="mb-4">
+              <label className="block text-sm font-medium mb-1">URL de la imagen</label>
+              <input
+                type="text"
+                className="w-full border rounded-md p-2"
+                placeholder="https://ejemplo.com/imagen.jpg"
+                value={imageUrl}
+                onChange={(e) => setImageUrl(e.target.value)}
+              />
+              <p className="text-xs text-muted-foreground mt-1">
+                Ingrese una URL de imagen para el producto (opcional)
+              </p>
+            </div>
+          </Tabs>
         </div>
 
-        <div className="flex flex-col gap-2">
-          <Label htmlFor="desc">Descripción *</Label>
-          <Input
-            id="desc"
-            name="desc"
-            placeholder="Nombre del producto"
-            value={formData.desc}
-            onChange={handleChange}
-          />
-        </div>
-
-        <div className="grid grid-cols-2 gap-4">
-          <div className="flex flex-col gap-2">
-            <Label htmlFor="stock">Stock *</Label>
-            <Input
-              id="stock"
-              name="stock"
-              type="number"
-              value={formData.stock}
-              onChange={handleChange}
-            />
-          </div>
-          <div className="flex flex-col gap-2">
-            <Label htmlFor="loc">Ubicación *</Label>
-            <Input
-              id="loc"
-              name="loc"
-              placeholder="Estante / Zona"
-              value={formData.loc}
-              onChange={handleChange}
-            />
-          </div>
-        </div>
-
-        <div className="flex flex-col gap-2">
-          <Label>Tipo de Producto</Label>
-          <Select
-            defaultValue={formData.type}
-            onValueChange={(val) => setFormData({ ...formData, type: val })}
+        <div className="flex justify-end gap-3 pt-4 border-t bg-background pb-2">
+          <Button
+            type="button"
+            variant="outline"
+            onClick={() => setOpen(false)}
+            disabled={isLoading}
           >
-            <SelectTrigger>
-              <SelectValue placeholder="Seleccione tipo" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="repuesto">Repuesto</SelectItem>
-              <SelectItem value="maquinaria">Maquinaria</SelectItem>
-            </SelectContent>
-          </Select>
+            Cancelar
+          </Button>
+          <Button type="submit" disabled={isLoading}>
+            {isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+            Crear Producto
+          </Button>
         </div>
-      </div>
+      </form>
     </Modal>
   )
 }

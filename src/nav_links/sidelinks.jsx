@@ -1,24 +1,28 @@
-import { adminLinks }    from "./customSideLinks/admin"
+import { adminLinks } from "./customSideLinks/admin"
 import { areaManagerLinks } from "./customSideLinks/areaManagerLinks"
 import { advisorLinks } from "./customSideLinks/advisorLinks"
 import { techLinks } from "./customSideLinks/techLinks"
 import { warehouseLinks } from "./customSideLinks/warehouseLinks"
 import { customerLinks } from "./customSideLinks/customer"
 import { operationLinks } from "./customSideLinks/operationLinks"
+import { logisticCoordinatorLinks } from "./customSideLinks/logisticsCoordinator"
 
 const roleLinks = {
   Admin:            adminLinks,
-  // Manager:          areaManagerLinks,   // Jefe de área
-  SalesAdvisor:     advisorLinks,   // Asesor comercial
+  Advisor:          advisorLinks,   // Asesor comercial
   Technician:       techLinks,
-  WarehouseOp:      warehouseLinks, // Almacenero
+  Warehouseman:     warehouseLinks, // Almacenero
   Customer:         customerLinks,
-  // Operation:        operationLinks,       // Jefe de Operaciones
+  LogisticsUser:    logisticCoordinatorLinks, // Coordinador logistico
 }
 
 const managerLinks = {
-  operations: operationLinks,
-  sales: areaManagerLinks
+  operations:   operationLinks,
+  sales:        areaManagerLinks,
+  comercial:    areaManagerLinks,
+  Comercial:    areaManagerLinks,
+  operaciones:  operationLinks,
+  Operaciones:  operationLinks,
 }
 
 export const getSidelinks = () => {
@@ -27,7 +31,8 @@ export const getSidelinks = () => {
   if (!user) return []
 
   if (user.roleable_type === "Manager") {
-    return managerLinks[user.roleable.area]
+    const area = (user.roleable?.area || '').toLowerCase()
+    return managerLinks[area] || areaManagerLinks
   }
 
   return roleLinks[user.roleable_type] || []

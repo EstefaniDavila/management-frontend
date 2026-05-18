@@ -16,7 +16,7 @@ const UpdateCustomerModal = ({ isOpen, handleClose, customer, onUpdate }) => {
     const e = {}
     if (!formData.business_name) e.business_name = 'Razón social obligatoria'
     if (!formData.document_number) e.document_number = 'Documento obligatorio'
-    if (!formData.type) e.type = 'Rubro obligatorio'
+    if (!formData.client_category) e.client_category = 'Rubro obligatorio'
     if (formData.email && !/\S+@\S+\.\S+/.test(formData.email)) e.email = 'Email inválido'
     setErrors(e)
     return Object.keys(e).length === 0
@@ -83,7 +83,7 @@ const UpdateCustomerModal = ({ isOpen, handleClose, customer, onUpdate }) => {
 
           <div className="flex flex-col gap-1">
             <label className="text-sm font-medium">Rubro *</label>
-            <Select value={formData.type} onValueChange={val => handleSelectChange('type', val, setFormData, onChangeExtra)}>
+            <Select value={formData.client_category} onValueChange={val => handleSelectChange('client_category', val, setFormData, onChangeExtra)}>
               <SelectTrigger><SelectValue /></SelectTrigger>
               <SelectContent>
                 <SelectItem value="construccion">Construcción</SelectItem>
@@ -92,7 +92,7 @@ const UpdateCustomerModal = ({ isOpen, handleClose, customer, onUpdate }) => {
                 <SelectItem value="energia">Energía</SelectItem>
               </SelectContent>
             </Select>
-            {errors.type && <span className="text-xs text-red-500">{errors.type}</span>}
+            {errors.client_category && <span className="text-xs text-red-500">{errors.client_category}</span>}
           </div>
 
           <div className="flex flex-col gap-1">

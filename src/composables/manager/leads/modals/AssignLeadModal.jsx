@@ -8,7 +8,7 @@ import { Label } from '@/components/ui/label'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Badge } from '@/components/ui/badge'
 
-const ADVISORS = ['Juan Pérez', 'Carlos Ramírez', 'Luis Torres']
+import useCrud from '@/hooks/useCrud'
 
 const typeLabel = {
   machinery_sale: 'Venta Maquinaria',
@@ -18,15 +18,26 @@ const typeLabel = {
 }
 
 const AssignLeadModal = ({ isOpen, handleClose, lead, onAssign }) => {
-  const [advisor, setAdvisor] = useState('')
+  const { getModel: getAdvisors } = useCrud('/api/v1/manager/advisors')
+  const [advisors, setAdvisors] = useState([])
+  const [selectedAdvisorId, setSelectedAdvisorId] = useState('')
 
   useEffect(() => {
-    if (isOpen) setAdvisor(lead?.assigned_to || '')
+    if (isOpen) {
+      getAdvisors()
+        .then(data => {
+          setAdvisors(data.advisors || [])
+        })
+        .catch(err => console.error("Error fetching advisors:", err))
+
+      // preselect currently assigned advisor ID
+      setSelectedAdvisorId(lead?._original?.assigned_to_id || '')
+    }
   }, [lead, isOpen])
 
   const handleSubmit = () => {
-    if (!advisor) return
-    onAssign(lead.id, advisor)
+    if (!selectedAdvisorId) return
+    onAssign(lead.id, selectedAdvisorId)
     handleClose()
   }
 
@@ -68,7 +79,7 @@ const AssignLeadModal = ({ isOpen, handleClose, lead, onAssign }) => {
               {/* Descripción aparte porque puede ser larga */}
               <div className="flex flex-col gap-0.5">
                 <span className="text-xs text-muted-foreground">Descripción</span>
-                <p className="text-sm leading-relaxed border rounded-lg p-3 bg-muted/30">
+                <p className="text-sm leading-relaxed border rounded-lg p-3 bg-muted/30 whitespace-pre-line">
                   {lead.description}
                 </p>
               </div>
@@ -82,13 +93,13 @@ const AssignLeadModal = ({ isOpen, handleClose, lead, onAssign }) => {
             </p>
             <div className="flex flex-col gap-1.5">
               <Label>Asesor responsable</Label>
-              <Select value={advisor} onValueChange={setAdvisor}>
+              <Select value={selectedAdvisorId} onValueChange={setSelectedAdvisorId}>
                 <SelectTrigger>
                   <SelectValue placeholder="Selecciona un asesor" />
                 </SelectTrigger>
                 <SelectContent>
-                  {ADVISORS.map(a => (
-                    <SelectItem key={a} value={a}>{a}</SelectItem>
+                  {advisors.map(a => (
+                    <SelectItem key={a.id} value={a.id}>{a.name}</SelectItem>
                   ))}
                 </SelectContent>
               </Select>
@@ -104,7 +115,7 @@ const AssignLeadModal = ({ isOpen, handleClose, lead, onAssign }) => {
 
         <SheetMultiStepFooter className="mt-auto pt-6 border-t">
           <Button variant="outline" onClick={handleClose}>Cancelar</Button>
-          <Button onClick={handleSubmit} disabled={!advisor}>
+          <Button onClick={handleSubmit} disabled={!selectedAdvisorId}>
             Confirmar Asignación
           </Button>
         </SheetMultiStepFooter>

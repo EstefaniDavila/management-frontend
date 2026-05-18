@@ -10,14 +10,15 @@ import {
   CardTitle,
 } from "@/components/ui/card"
 
-export function SectionCards() {
+export function SectionCards({ stats }) {
+  if (!stats) return null;
   return (
     <div className="grid grid-cols-1 gap-4 px-4 *:data-[slot=card]:bg-gradient-to-t *:data-[slot=card]:from-primary/5 *:data-[slot=card]:to-card *:data-[slot=card]:shadow-xs lg:px-6 @xl/main:grid-cols-2 @5xl/main:grid-cols-4 dark:*:data-[slot=card]:bg-card">
       <Card className="@container/card">
         <CardHeader>
           <CardDescription>Ingresos Totales</CardDescription>
           <CardTitle className="text-2xl font-semibold tabular-nums @[250px]/card:text-3xl">
-            $1,250.00
+            S/ {parseFloat(stats.total_sales || 0).toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2})}
           </CardTitle>
           <CardAction>
             <Badge variant="outline">
@@ -31,37 +32,37 @@ export function SectionCards() {
             Tendencia al alza este mes <IconTrendingUp className="size-4" />
           </div>
           <div className="text-muted-foreground">
-            Visitantes en los últimos 6 meses
+            Basado en cotizaciones aprobadas
           </div>
         </CardFooter>
       </Card>
       <Card className="@container/card">
         <CardHeader>
-          <CardDescription>Nuevos Clientes</CardDescription>
+          <CardDescription>Nuevos Leads</CardDescription>
           <CardTitle className="text-2xl font-semibold tabular-nums @[250px]/card:text-3xl">
-            1,234
+            {stats.total_leads}
           </CardTitle>
           <CardAction>
             <Badge variant="outline">
-              <IconTrendingDown />
-              -20%
+              <IconTrendingUp />
+              +5%
             </Badge>
           </CardAction>
         </CardHeader>
         <CardFooter className="flex-col items-start gap-1.5 text-sm">
           <div className="line-clamp-1 flex gap-2 font-medium">
-            Caída del 20% este periodo <IconTrendingDown className="size-4" />
+            Leads registrados <IconTrendingUp className="size-4" />
           </div>
           <div className="text-muted-foreground">
-            La adquisición requiere atención
+            Oportunidades de negocio
           </div>
         </CardFooter>
       </Card>
       <Card className="@container/card">
         <CardHeader>
-          <CardDescription>Cuentas Activas</CardDescription>
+          <CardDescription>Cuentas Activas (Clientes)</CardDescription>
           <CardTitle className="text-2xl font-semibold tabular-nums @[250px]/card:text-3xl">
-            45,678
+            {stats.total_clients}
           </CardTitle>
           <CardAction>
             <Badge variant="outline">
@@ -79,9 +80,9 @@ export function SectionCards() {
       </Card>
       <Card className="@container/card">
         <CardHeader>
-          <CardDescription>Tasa de Crecimiento</CardDescription>
+          <CardDescription>Cotizaciones Emitidas</CardDescription>
           <CardTitle className="text-2xl font-semibold tabular-nums @[250px]/card:text-3xl">
-            4.5%
+            {stats.total_quotations}
           </CardTitle>
           <CardAction>
             <Badge variant="outline">

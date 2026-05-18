@@ -11,14 +11,14 @@ export default function AreaRequestsPage() {
     if (userStr) {
       try {
         const user = JSON.parse(userStr)
-        setRole(user.role || '')
+        setRole(user.roleable_type || '')
         
         // Asignación de áreas basada en roles típicos
-        switch(user.role) {
-          case 'SalesAdvisor': setCurrentArea('Comercial'); break;
+        switch(user.roleable_type) {
+          case 'Advisor': setCurrentArea('Comercial'); break;
           case 'Operation': setCurrentArea('Operaciones'); break;
           case 'Manager': setCurrentArea('Jefatura'); break;
-          case 'WarehouseOp': setCurrentArea('Logística'); break;
+          case 'Warehouseman': setCurrentArea('Logística'); break;
           case 'Technician': setCurrentArea('Técnico'); break;
           default: setCurrentArea('General'); break;
         }
