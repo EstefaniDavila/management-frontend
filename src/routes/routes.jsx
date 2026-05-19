@@ -45,7 +45,6 @@ const Routes = () => {
     { path: "/500", Component: GeneralError },
     { path: "/404", Component: NotFoundError },
     { path: "/503", Component: MaintenanceError },
-    { path: "*", Component: NotFoundError },
   ]
 
   let routesForAuthenticatedOnly = []
@@ -91,8 +90,8 @@ const Routes = () => {
     ...routesForPublic,
     ...(!authTokens ? routesForNotAuthenticatedOnly : []),
     ...routesForAuthenticatedOnly,
-  ]
-  )
+    { path: "*", Component: NotFoundError },
+  ])
 
   return <RouterProvider router={router} />
 }

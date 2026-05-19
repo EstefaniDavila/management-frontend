@@ -22,59 +22,6 @@ export const UserProvider = ({ children }) => {
   const authTokensRef = useRef(authTokens)
   const userRef = useRef(user)
 
-  // const loginUser = async (credentials) => {
-  //   try {
-  //     const response = await axios.post(
-  //       `${backend_host}/api/v1/general/users/sign_in`,
-  //       {
-  //         authentication: {
-  //           document_number: credentials.document_number,
-  //           password: credentials.password,
-  //         }
-  //       },
-  //       {
-  //         headers: { 'Content-Type': 'application/json' },
-  //       }
-  //     )
-
-  //     if (response.status === 200) {
-  //       const data = response.data;
-  //       const accessToken = data.access_token;
-  //       const refreshToken = data.refresh_token;
-  //       const expireAt = data.expire_at;
-  //       const user = data.user;
-  //       const message = data.message;
-
-  //       if (accessToken && refreshToken && expireAt && user) {
-  //         const tokens = {
-  //           access_token: accessToken,
-  //           refresh_token: refreshToken,
-  //           expire_at: expireAt,
-  //           message: message,
-  //           user: user
-  //         }
-
-  //         setAuthTokens(tokens)
-  //         authTokensRef.current = tokens
-  //         setUser(jwtDecode(accessToken))
-  //         userRef.current = jwtDecode(accessToken)
-
-  //         localStorage.setItem('authTokens', JSON.stringify(tokens))
-  //         localStorage.setItem('user', JSON.stringify(user))
-  //         window.location.href = '/'
-
-  //       } else {
-  //         console.error('Tokens are missing in the response data')
-  //       }
-  //     } else {
-  //       alert('Something went wrong | incorrect credentials')
-  //     }
-  //   } catch (error) {
-  //     console.error('Error en loginUser:', error.response ? error.response.data : error.message)
-  //     alert('Something went wrong | Please try again later')
-  //   }
-  // }
-
   const loginUser = async (credentials) => {
     try {
       const response = await axios.post(
@@ -139,7 +86,6 @@ export const UserProvider = ({ children }) => {
       if (authTokensRef.current) {
         await axios.delete(
           `${backend_host}/api/v1/general/users/sign_out`,
-          {},
           {
             headers: {
               'Content-Type': 'application/json',
