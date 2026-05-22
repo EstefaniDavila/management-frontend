@@ -18,12 +18,37 @@ import {
   useSidebar,
 } from "@/components/ui/sidebar"
 import { ChevronsUpDownIcon, PlusIcon } from "lucide-react"
+import { useAuth } from "@/providers/UserContext"
 
 export function TeamSwitcher({
   teams
 }) {
   const { isMobile } = useSidebar()
-  const [activeTeam, setActiveTeam] = React.useState(teams[0])
+  const { user, setUser } = useAuth()
+
+  // Match the active team based on current user role, or default to first
+  const currentTeam = teams.find(t => t.roleable_type === user?.roleable_type) || teams[0]
+  const [activeTeam, setActiveTeam] = React.useState(currentTeam)
+
+  const handleSwitchRole = (team) => {
+    setActiveTeam(team)
+    if (user) {
+      // Create a simulated user object with the new role and mock profile
+      const updatedUser = { 
+        ...user, 
+        roleable_type: team.roleable_type, 
+        roleable: null,
+        area: team.area || null,
+        full_name: team.mockName || user.full_name,
+        name: team.mockName || user.name,
+        email: team.mockEmail || user.email
+      }
+      setUser(updatedUser)
+      localStorage.setItem('user', JSON.stringify(updatedUser))
+      // Redirect to root to trigger router refresh based on new role
+      window.location.href = '/'
+    }
+  }
 
   if (!activeTeam) {
     return null
@@ -57,7 +82,7 @@ export function TeamSwitcher({
               Teams
             </DropdownMenuLabel>
             {teams.map((team, index) => (
-              <DropdownMenuItem key={team.name} onClick={() => setActiveTeam(team)} className="gap-2 p-2">
+              <DropdownMenuItem key={team.name} onClick={() => handleSwitchRole(team)} className="gap-2 p-2">
                 <div className="flex size-6 items-center justify-center rounded-md border">
                   {team.logo}
                 </div>

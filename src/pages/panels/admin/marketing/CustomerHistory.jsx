@@ -35,6 +35,8 @@ const CustomerHistory = () => {
         return 'construccion';
       }
 
+      const clientsArray = response.clients || response.data || []
+
       const formattedData = clientsArray.map(item => ({
         id: item.id,
         code: item.code || '-',

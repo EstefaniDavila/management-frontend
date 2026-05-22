@@ -8,7 +8,7 @@ import useCrud from '@/hooks/useCrud'
 import { useEffect } from 'react'
 
 const SalesOrders = () => {
-  const { getModel, deleteModel } = useCrud('/api/v1/admin/sales_orders')
+  const { getModel, deleteModel, updateModel } = useCrud('/api/v1/admin/sales_orders')
   const [salesOrders, setSalesOrders] = useState([])
 
   useEffect(() => {
@@ -30,6 +30,7 @@ const SalesOrders = () => {
         amount: o.total,
         date: new Date(o.created_at).toISOString().split('T')[0],
         status: o.status,
+        items: o.quotation?.quotation_items || [],
         _original: o
       }))
       setSalesOrders(mapped)
@@ -57,9 +58,15 @@ const SalesOrders = () => {
     }
   }
 
-  const handleSave = (form) => {
-    // Para simplificar, recargamos la data tras crear/editar
-    fetchOrders()
+  const handleSave = async (form) => {
+    try {
+      if (form.id && form.status) {
+        await updateModel(form.id, { status: form.status })
+      }
+      fetchOrders()
+    } catch (e) {
+      console.error('Error actualizando orden:', e)
+    }
   }
 
   return (

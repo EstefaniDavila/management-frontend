@@ -18,7 +18,12 @@ import { getSidelinks } from "../nav_links/sidelinks"
 
 const data = {
   teams: [
-    { name: "Acme Inc", logo: <GalleryVerticalEndIcon />, plan: "Enterprise" },
+    { name: "Administrador CAT", logo: <GalleryVerticalEndIcon />, plan: "Admin", roleable_type: "Admin", mockName: "Administrador Global", mockEmail: "admin@cat.com" },
+    { name: "Jefe de Ventas", logo: <GalleryVerticalEndIcon />, plan: "Gerencia", roleable_type: "Manager", area: "comercial", mockName: "Roberto Gerente", mockEmail: "roberto.ventas@cat.com" },
+    { name: "Jefe de Operaciones", logo: <GalleryVerticalEndIcon />, plan: "Gerencia", roleable_type: "Manager", area: "operaciones", mockName: "Elena Operaciones", mockEmail: "elena.ops@cat.com" },
+    { name: "Asesor Comercial", logo: <GalleryVerticalEndIcon />, plan: "Advisor", roleable_type: "Advisor", mockName: "Luis Asesor", mockEmail: "luis.asesor@cat.com" },
+    { name: "Técnico de Taller", logo: <GalleryVerticalEndIcon />, plan: "Technician", roleable_type: "Technician", mockName: "Carlos Técnico", mockEmail: "carlos.tecnico@cat.com" },
+    { name: "Logística y Despacho", logo: <GalleryVerticalEndIcon />, plan: "Logistics", roleable_type: "Warehouseman", mockName: "Ana Logística", mockEmail: "ana.logistica@cat.com" },
   ],
 }
 
