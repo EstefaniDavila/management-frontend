@@ -36,7 +36,7 @@ const columns = (handleDetails, handleReceive, handleCancel, handleDownloadGuide
     {
         accessorKey: 'notas',
         header: 'NOTA',
-        cell: info => `${info.getValue()} unid`,
+        cell: info => info.getValue() || '-',
         enableColumnFilter: true,
     },
     {

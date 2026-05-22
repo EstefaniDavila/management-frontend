@@ -15,7 +15,7 @@ const logisticCoordinatorRoutes = [
           {
             index: true,
             lazy: async () => ({
-              Component: (await import('../../pages/panels/logisticsCoordinator/LogisticCoordinatorDispatch')).default,
+              Component: (await import('../../pages/panels/logisticsCoordinator/LogisticSuppliers')).default,
             }),
           },
           {

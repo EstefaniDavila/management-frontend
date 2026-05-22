@@ -14,6 +14,12 @@ const warehouseRoutes = [
         },
         children: [
           {
+            index: true,
+            lazy: async () => ({
+              Component: (await import('../../pages/panels/warehouse/WarehouseInventory')).default,
+            }),
+          },
+          {
             path: "inventory",
             lazy: async () => ({
               Component: (await import('../../pages/panels/warehouse/WarehouseInventory')).default,
