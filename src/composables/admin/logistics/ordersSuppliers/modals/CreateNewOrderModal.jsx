@@ -25,7 +25,7 @@ import { Plus, Trash2 } from 'lucide-react';
 
 const CreateNewOrderModal = ({ open, setOpen, onSave, suppliers, initialSupplierId }) => {
     const { user } = useAuth();
-    const { getModel } = useCrud('/api/v1/admin/supplier_products');
+    const { getModel } = useCrud('/api/v1/admin/supplier_products'); //test
 
     const [formData, setFormData] = useState({
         supplier_id: '',
