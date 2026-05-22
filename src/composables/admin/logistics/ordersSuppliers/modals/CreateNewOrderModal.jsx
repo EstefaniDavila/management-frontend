@@ -25,6 +25,7 @@ import { Plus, Trash2 } from 'lucide-react';
 
 const CreateNewOrderModal = ({ open, setOpen, onSave, suppliers, initialSupplierId }) => {
     const { user } = useAuth();
+    const { getModel } = useCrud('/api/v1/admin/supplier_products');
 
     const [formData, setFormData] = useState({
         supplier_id: '',
@@ -77,8 +78,8 @@ const CreateNewOrderModal = ({ open, setOpen, onSave, suppliers, initialSupplier
 
             setLoadingProducts(true);
             try {
-                const response = await fetch(`/api/v1/admin/suppliers/${formData.supplier_id}/supplier_products`);
-                const data = await response.json();
+                
+                const data = await getModel(`/api/v1/admin/suppliers/${formData.supplier_id}/supplier_products`);
                 const mappedProducts = data.map(sp => ({
                     id: sp.product.id,
                     name: sp.product.name,
