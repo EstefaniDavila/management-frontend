@@ -12,5 +12,7 @@ export default function ComingSoon() {
         </p>
       </div>
     </div>
+
+
   )
 }
