@@ -4,10 +4,17 @@ import GeneralTooltip from '@/helpers/generalTooltip'
 import { TbEye, TbEdit, TbTrash } from 'react-icons/tb'
 
 const statusColor = {
-  Pending:    'bg-yellow-200 text-yellow-800',
-  Processing: 'bg-blue-200 text-blue-800',
-  Completed:  'bg-green-200 text-green-800',
-  Cancelled:  'bg-red-200 text-red-800',
+  pending:          'bg-yellow-100 text-yellow-800',
+  pending_dispatch: 'bg-orange-100 text-orange-800',
+  dispatched:       'bg-blue-100 text-blue-800',
+  delivered:        'bg-green-100 text-green-800',
+}
+
+const statusLabel = {
+  pending:          'Pendiente',
+  pending_dispatch: 'Pend. Despacho',
+  dispatched:       'Despachado',
+  delivered:        'Entregado',
 }
 
 const typeLabels = {
@@ -66,8 +73,8 @@ const columns = (handleView, handleEdit, handleDelete) => [
     cell: info => {
       const value = info.getValue()
       return (
-        <Badge className={`px-2 py-1 rounded ${statusColor[value]}`}>
-          {value}
+        <Badge className={`px-2 py-1 rounded ${statusColor[value] || 'bg-gray-100 text-gray-800'}`}>
+          {statusLabel[value] || value}
         </Badge>
       )
     },
@@ -84,14 +91,14 @@ const columns = (handleView, handleEdit, handleDelete) => [
             triggerContent={<span className="bg-blue-500 text-white rounded-full p-1"><TbEye size={18}/></span>}
             onClick={() => handleView(row.original)}
           />
-          {status !== 'Delivered' && (
+          {status !== 'delivered' && (
             <GeneralTooltip
               content="Actualizar estado"
               triggerContent={<span className="bg-yellow-500 text-white rounded-full p-1"><TbEdit size={18}/></span>}
               onClick={() => handleEdit(row.original)}
             />
           )}
-          {status === 'Generated' && (
+          {status === 'pending' && (
             <GeneralTooltip
               content="Eliminar"
               triggerContent={<span className="bg-red-500 text-white rounded-full p-1"><TbTrash size={18}/></span>}

@@ -67,9 +67,10 @@ const CreateSalesOrderModal = ({ isOpen, handleClose, onSave, initialData }) => 
                 <Select value={form.status} onValueChange={v => handleChange('status', v)}>
                   <SelectTrigger className="w-full"><SelectValue placeholder="Seleccionar estado" /></SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="Generated">Generated</SelectItem>
-                    <SelectItem value="Dispatched">Dispatched</SelectItem>
-                    <SelectItem value="Delivered">Delivered</SelectItem>
+                    <SelectItem value="pending">Pendiente</SelectItem>
+                    <SelectItem value="pending_dispatch">Pend. Despacho</SelectItem>
+                    <SelectItem value="dispatched">Despachado</SelectItem>
+                    <SelectItem value="delivered">Entregado</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
