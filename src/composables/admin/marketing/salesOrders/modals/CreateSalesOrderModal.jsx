@@ -62,10 +62,10 @@ const CreateSalesOrderModal = ({ isOpen, handleClose, onSave, initialData }) => 
                 <span className="text-xs text-muted-foreground">Ítem</span>
                 <span className="text-sm font-medium">{form.item_description}</span>
               </div>
-              <div className="flex flex-col gap-1.5">
+              <div className="flex flex-col gap-1.5 w-full">
                 <Label>Estado *</Label>
                 <Select value={form.status} onValueChange={v => handleChange('status', v)}>
-                  <SelectTrigger><SelectValue placeholder="Seleccionar estado" /></SelectTrigger>
+                  <SelectTrigger className="w-full"><SelectValue placeholder="Seleccionar estado" /></SelectTrigger>
                   <SelectContent>
                     <SelectItem value="Generated">Generated</SelectItem>
                     <SelectItem value="Dispatched">Dispatched</SelectItem>
