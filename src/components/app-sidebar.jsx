@@ -18,7 +18,7 @@ import { getSidelinks } from "../nav_links/sidelinks"
 
 const data = {
   teams: [
-    { name: "Administrador CAT", logo: <GalleryVerticalEndIcon />, plan: "Admin", roleable_type: "Admin" },
+    { name: "Administrador CAT", logo: <GalleryVerticalEndIcon />, plan: "Admin", roleable_type: "Admin", mockName: "Administrador Global", mockEmail: "admin@cat.com" },
     { name: "Jefe de Ventas", logo: <GalleryVerticalEndIcon />, plan: "Gerencia", roleable_type: "Manager", area: "comercial", mockName: "Roberto Gerente", mockEmail: "roberto.ventas@cat.com" },
     { name: "Jefe de Operaciones", logo: <GalleryVerticalEndIcon />, plan: "Gerencia", roleable_type: "Manager", area: "operaciones", mockName: "Elena Operaciones", mockEmail: "elena.ops@cat.com" },
     { name: "Asesor Comercial", logo: <GalleryVerticalEndIcon />, plan: "Advisor", roleable_type: "Advisor", mockName: "Luis Asesor", mockEmail: "luis.asesor@cat.com" },

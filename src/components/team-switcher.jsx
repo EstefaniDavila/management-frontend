@@ -38,6 +38,7 @@ export function TeamSwitcher({
         ...user, 
         roleable_type: team.roleable_type, 
         roleable: null,
+        area: team.area || null,
         full_name: team.mockName || user.full_name,
         name: team.mockName || user.name,
         email: team.mockEmail || user.email
