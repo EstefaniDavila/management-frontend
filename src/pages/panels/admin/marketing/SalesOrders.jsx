@@ -30,6 +30,7 @@ const SalesOrders = () => {
         amount: o.total,
         date: new Date(o.created_at).toISOString().split('T')[0],
         status: o.status,
+        items: o.quotation?.quotation_items || [],
         _original: o
       }))
       setSalesOrders(mapped)

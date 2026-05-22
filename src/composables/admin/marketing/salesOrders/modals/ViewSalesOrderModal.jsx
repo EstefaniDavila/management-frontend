@@ -70,7 +70,6 @@ const ViewSalesOrderModal = ({ isOpen, handleClose, order }) => {
               {[
                 { label: 'Cliente',      value: order.customer },
                 { label: 'RUC / DNI',    value: order.document },
-                { label: 'Ítem',         value: order.item_description },
                 { label: 'Asesor',       value: order.advisor },
                 { label: 'Monto',        value: `S/ ${order.amount?.toLocaleString()}` },
                 { label: 'Fecha',        value: order.date },
@@ -81,6 +80,28 @@ const ViewSalesOrderModal = ({ isOpen, handleClose, order }) => {
                   <span className="text-sm font-medium">{f.value || '—'}</span>
                 </div>
               ))}
+            </div>
+          </div>
+
+          {/* Ítems / Productos */}
+          <div>
+            <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground mb-3">
+              Ítems / Productos Adquiridos
+            </p>
+            <div className="flex flex-col gap-2 border rounded-lg p-3 bg-muted/30">
+              {order.items && order.items.length > 0 ? (
+                order.items.map(item => (
+                  <div key={item.id} className="flex items-center justify-between border-b pb-2 last:border-0 last:pb-0">
+                    <div className="flex flex-col">
+                      <span className="text-sm font-medium">{item.description}</span>
+                      <span className="text-xs text-muted-foreground">Cant: {item.quantity}</span>
+                    </div>
+                    <span className="text-sm font-semibold">S/ {item.total_price}</span>
+                  </div>
+                ))
+              ) : (
+                <span className="text-sm font-medium">{order.item_description || 'Sin ítems detallados'}</span>
+              )}
             </div>
           </div>
 
