@@ -1,8 +1,8 @@
 import React, { useEffect, useState } from 'react'
 import AreaRequestsTable from '@/composables/shared/AreaRequestsTable'
-
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import AccessRequestsTable from '@/composables/shared/AccessRequestsTable'
+import InformationRequestsTable from '@/composables/shared/InformationRequestsTable'
 
 export default function AreaRequestsPage() {
   const [role, setRole] = useState('')
@@ -44,12 +44,18 @@ export default function AreaRequestsPage() {
           {(role === 'Manager' || role === 'Admin') && (
             <TabsTrigger value="access">Solicitudes de Accesos</TabsTrigger>
           )}
+          {(role === 'Advisor' || role === 'Admin') && (
+            <TabsTrigger value="information">Mesa de Ayuda (Info)</TabsTrigger>
+          )}
         </TabsList>
         <TabsContent value="service">
           <AreaRequestsTable role={role} currentArea={currentArea} />
         </TabsContent>
         <TabsContent value="access">
           <AccessRequestsTable role={role} />
+        </TabsContent>
+        <TabsContent value="information">
+          <InformationRequestsTable role={role} />
         </TabsContent>
       </Tabs>
     </div>
