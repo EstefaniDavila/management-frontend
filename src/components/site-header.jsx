@@ -5,6 +5,7 @@ import { Button } from "@/components/custom/button"
 import { TbBell } from "react-icons/tb"
 import { useNavigate } from "react-router-dom"
 import React, { useState, useEffect } from 'react'
+import BugReportModal from "@/components/bug-report-modal"
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -81,6 +82,7 @@ export function SiteHeader() {
             </DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>
+        <BugReportModal />
         <ThemeSwitch />
       </div>
     </header>
