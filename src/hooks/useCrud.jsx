@@ -63,7 +63,8 @@ const useCrud = (endpoint) => {
     } catch (error) {
       if (error.response) {
         const backendMessage = error.response.data?.message || "Error desconocido"
-        console.error('Error al registrar el registro:', backendMessage)
+        const backendErrors = error.response.data?.errors || error.response.data?.error || ""
+        console.error('Error al registrar el registro:', backendMessage, backendErrors)
         throw error
       } else {
         console.error('Network error or server is not responding:', error)

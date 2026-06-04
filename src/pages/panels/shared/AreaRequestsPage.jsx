@@ -1,6 +1,9 @@
 import React, { useEffect, useState } from 'react'
 import AreaRequestsTable from '@/composables/shared/AreaRequestsTable'
 
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
+import AccessRequestsTable from '@/composables/shared/AccessRequestsTable'
+
 export default function AreaRequestsPage() {
   const [role, setRole] = useState('')
   const [currentArea, setCurrentArea] = useState('')
@@ -17,8 +20,9 @@ export default function AreaRequestsPage() {
         switch(user.roleable_type) {
           case 'Advisor': setCurrentArea('Comercial'); break;
           case 'Operation': setCurrentArea('Operaciones'); break;
-          case 'Manager': setCurrentArea('Jefatura'); break;
-          case 'Warehouseman': setCurrentArea('Logística'); break;
+          case 'Manager': setCurrentArea('Operaciones'); break; // Manager suele ser de Operaciones
+          case 'Warehouseman': 
+          case 'LogisticsUser': setCurrentArea('Logística'); break;
           case 'Technician': setCurrentArea('Técnico'); break;
           default: setCurrentArea('General'); break;
         }
@@ -34,7 +38,20 @@ export default function AreaRequestsPage() {
 
   return (
     <div className="flex flex-col gap-4 w-full">
-      <AreaRequestsTable role={role} currentArea={currentArea} />
+      <Tabs defaultValue="service" className="w-full">
+        <TabsList className="mb-4">
+          <TabsTrigger value="service">Solicitudes de Servicio</TabsTrigger>
+          {(role === 'Manager' || role === 'Admin') && (
+            <TabsTrigger value="access">Solicitudes de Accesos</TabsTrigger>
+          )}
+        </TabsList>
+        <TabsContent value="service">
+          <AreaRequestsTable role={role} currentArea={currentArea} />
+        </TabsContent>
+        <TabsContent value="access">
+          <AccessRequestsTable role={role} />
+        </TabsContent>
+      </Tabs>
     </div>
   )
 }

@@ -104,7 +104,11 @@ export default function AreaRequestsTable({ currentArea, role }) {
   const handleCreateRequest = async () => {
     if (!formData.quotation_id || !formData.area || !formData.name || !formData.description) return
     try {
-      await insertModel({ area_request: formData })
+      await insertModel({ 
+        area_request: formData, 
+        user_id: user?.id, 
+        advisor_id: user?.roleable_type === 'Advisor' ? user?.roleable_id : undefined 
+      })
       setIsDialogOpen(false)
       setFormData({ quotation_id: '', area: '', name: '', description: '' })
       fetchRequests()
@@ -117,6 +121,7 @@ export default function AreaRequestsTable({ currentArea, role }) {
     try {
       await updateModel(
         { 
+          user_id: user?.id,
           area_request: { 
             notes: replyFormData.notes,
             machine_ready: replyFormData.machine_ready === 'true',
@@ -140,20 +145,48 @@ export default function AreaRequestsTable({ currentArea, role }) {
   
   // Filter based on role or area
   const requests = allRequests.filter(req => {
-    // req.area es el destino (toArea)
-    const fromArea = req.creator_role === 'Advisor' ? 'Comercial' : 
-                     req.creator_role === 'Admin' ? 'General' : 
-                     req.creator_role === 'Manager' ? 'Jefatura' : 
-                     req.creator_role === 'Technician' ? 'Técnico' :
-                     req.creator_role === 'Warehouseman' ? 'Logística' : 'Comercial'
+    let fromArea = 'Comercial';
+    if (req.creator_role) {
+      fromArea = req.creator_role === 'Advisor' ? 'Comercial' : 
+                 req.creator_role === 'Admin' ? 'General' : 
+                 req.creator_role === 'Manager' ? 'Operaciones' : 
+                 req.creator_role === 'Technician' ? 'Técnico' :
+                 (req.creator_role === 'Warehouseman' || req.creator_role === 'LogisticsUser') ? 'Logística' : 'Comercial'
+    } else if (req.creator_email && user?.email && req.creator_email === user.email) {
+      // Fallback si producción no envía creator_role:
+      // Si el correo del creador coincide con el usuario actual, el fromArea es su propia área.
+      fromArea = currentArea;
+    }
+
+    let effectiveArea = currentArea;
+    if ((role === 'Admin' || role === 'Manager') && adminFilter !== 'Todas') {
+      effectiveArea = adminFilter;
+    }
 
     let matchesTab = true;
-    if (activeTab === 'received') matchesTab = (req.area === currentArea);
-    else if (activeTab === 'sent') matchesTab = (fromArea === currentArea);
-    else if (activeTab === 'all') matchesTab = true;
+    if (activeTab === 'received') {
+      // Si está completada, el que la "recibe" ahora es quien la originó (fromArea).
+      // Si está pendiente, el que la "recibe" es el área destino (req.area).
+      if (req.status === 'completed') {
+        matchesTab = (fromArea === effectiveArea);
+      } else {
+        matchesTab = (req.area === effectiveArea);
+      }
+    } else if (activeTab === 'sent') {
+      // Si está completada, el que la "envió" es quien la respondió (req.area).
+      // Si está pendiente, el que la "envió" es quien la originó (fromArea).
+      if (req.status === 'completed') {
+        matchesTab = (req.area === effectiveArea);
+      } else {
+        matchesTab = (fromArea === effectiveArea);
+      }
+    } else if (activeTab === 'all') {
+      matchesTab = true;
+    }
 
     let matchesAdminFilter = true;
-    if ((role === 'Admin' || role === 'Manager') && adminFilter !== 'Todas') {
+    // Solo aplicamos este filtro extra en la pestaña Global
+    if ((role === 'Admin' || role === 'Manager') && adminFilter !== 'Todas' && activeTab === 'all') {
       matchesAdminFilter = (fromArea === adminFilter || req.area === adminFilter);
     }
 

@@ -23,6 +23,7 @@ const adminRoutes = [
               Component: (await import('../../app/dashboard/dashboard')).default,
             }),
           },
+          { path: 'users', lazy: async () => ({ Component: (await import('../../pages/panels/admin/general-management/users/UsersManagement')).default }) },
           { path: 'area-control', lazy: async () => ({ Component: (await import('../../pages/panels/admin/general-management/AreaControl')).default }) },
           { path: 'area-requests', lazy: async () => ({ Component: (await import('../../pages/panels/shared/AreaRequestsPage')).default }) },
 
