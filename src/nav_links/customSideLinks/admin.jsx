@@ -12,6 +12,7 @@ import {
   ClockIcon,
   MessageSquareIcon,
   ShoppingBagIcon,
+  History,
 } from "lucide-react"
 
 export const adminLinks = [
@@ -110,6 +111,14 @@ export const adminLinks = [
   //   icon: PackageIcon,
   //   area: "Production & Operations",
   // },
+
+  // ── Change Management ──
+  {
+    title: "Historial de Cambios",
+    href: "/change-history",
+    icon: History,
+    area: "Change Management",
+  },
 
   // ── Settings ──
   {
