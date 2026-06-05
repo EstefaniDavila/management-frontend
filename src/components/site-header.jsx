@@ -19,13 +19,13 @@ import { Badge } from "@/components/ui/badge"
 export function SiteHeader() {
   const navigate = useNavigate();
   const [notifications, setNotifications] = useState([])
-  
+
   useEffect(() => {
     const fetchNotifications = () => {
       const stored = localStorage.getItem('area_requests_data')
       const userArea = localStorage.getItem('userArea') || 'General'
       const role = localStorage.getItem('role') || 'Admin'
-      
+
       if (stored) {
         const reqs = JSON.parse(stored)
         // Filtrar notificaciones (ej. destinadas a mi área, o si soy Admin ver todas las recientes)
@@ -33,7 +33,7 @@ export function SiteHeader() {
         setNotifications(relevant.slice(0, 5)) // Mostrar últimas 5
       }
     }
-    
+
     fetchNotifications()
     window.addEventListener('requests_updated', fetchNotifications)
     return () => window.removeEventListener('requests_updated', fetchNotifications)
@@ -82,7 +82,9 @@ export function SiteHeader() {
             </DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>
-        <BugReportModal />
+        <BugReportModal onSuccess={() =>
+          window.dispatchEvent(new Event('refetch-changes'))
+        } />
         <ThemeSwitch />
       </div>
     </header>

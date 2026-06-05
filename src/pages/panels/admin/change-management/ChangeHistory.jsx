@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react'
+import React, { useState, useEffect, useCallback } from 'react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Plus, RefreshCw } from 'lucide-react'
@@ -11,7 +11,7 @@ import BugReportModal from '@/components/bug-report-modal'
 const ChangeHistory = () => {
     const { getModel, deleteModel, patchModel } = useCrud('/api/v1/admin/error_reports')
     const { user } = useAuth()
-    
+
     const [data, setData] = useState([])
     const [loading, setLoading] = useState(false)
     const [pagination, setPagination] = useState({
@@ -29,15 +29,15 @@ const ChangeHistory = () => {
 
     const currentUserId = user?.id
 
-    console.log('Current user ID:', currentUserId) 
+    console.log('Current user ID:', currentUserId)
 
-    const fetchData = async () => {
+    const fetchData = useCallback(async () => {
         setLoading(true)
         try {
             const params = new URLSearchParams()
             params.append('page', pagination.pageIndex + 1)
             params.append('pageSize', pagination.pageSize)
-            
+
             if (search) {
                 params.append('search_params', search)
                 params.append('search_fields', ['title', 'description'].join(','))
@@ -64,11 +64,14 @@ const ChangeHistory = () => {
         } finally {
             setLoading(false)
         }
-    }
+    }, [pagination.pageIndex, pagination.pageSize, search])
+
 
     useEffect(() => {
-        fetchData()
-    }, [pagination.pageIndex, pagination.pageSize, search])
+        const handler = () => fetchData()
+        window.addEventListener('refetch-changes', handler)
+        return () => window.removeEventListener('refetch-changes', handler)
+    }, [fetchData])
 
     const handleView = (change) => {
         console.log('Ver detalle:', change)
@@ -167,7 +170,7 @@ const ChangeHistory = () => {
                     />
                 </CardContent>
             </Card>
-            
+
             <ReviewChangeModal
                 open={reviewModalOpen}
                 setOpen={setReviewModalOpen}
@@ -176,7 +179,6 @@ const ChangeHistory = () => {
                 onReject={handleReject}
                 loading={reviewLoading}
             />
-             <BugReportModal onSuccess={() => fetchData()} />
         </div>
     )
 }

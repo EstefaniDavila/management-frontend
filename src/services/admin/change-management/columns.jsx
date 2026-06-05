@@ -100,38 +100,37 @@ const columns = (handleView, handleReview, handleDelete) => [
     },
     enableColumnFilter: false,
   },
- {
-  header: 'Acciones',
-  cell: ({ row }) => {
-    const change = row.original
-    const isPending = change.status === 'pending'
-    
-    return (
-      <div className="flex space-x-2">
-        <GeneralTooltip
+  {
+    header: 'Acciones',
+    cell: ({ row }) => {
+      const change = row.original
+      const isPending = change.status === 'pending'
+
+      return (
+        <div className="flex space-x-2">
+          {/*<GeneralTooltip
           content="Ver detalle"
           triggerContent={<span className='bg-blue-500 text-white rounded-full p-1 cursor-pointer hover:bg-blue-600 block'><TbEye size={18}/></span>}
           onClick={() => handleView(change)}
-        />
-        
-        {/* Solo mostrar el botón de evaluar si está pendiente */}
-        {isPending && (
-          <GeneralTooltip
-            content="Evaluar / Revisar"
-            triggerContent={<span className='bg-yellow-500 text-white rounded-full p-1 cursor-pointer hover:bg-yellow-600 block'><TbEdit size={18}/></span>}
-            onClick={() => handleReview(change)}
-          />
-        )}
-        
-        <GeneralTooltip
+        />*/}
+
+          {isPending && (
+            <GeneralTooltip
+              content="Evaluar / Revisar"
+              triggerContent={<span className='bg-yellow-500 text-white rounded-full p-1 cursor-pointer hover:bg-yellow-600 block'><TbEdit size={18} /></span>}
+              onClick={() => handleReview(change)}
+            />
+          )}
+
+          {/* <GeneralTooltip
           content="Eliminar"
           triggerContent={<span className='bg-red-500 text-white rounded-full p-1 cursor-pointer hover:bg-red-600 block'><TbTrash size={18}/></span>}
           onClick={() => handleDelete(change)}
-        />
-      </div>
-    )
-  },
-}
+       /> */}
+        </div>
+      )
+    },
+  }
 ]
 
 export default columns

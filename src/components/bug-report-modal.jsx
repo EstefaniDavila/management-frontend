@@ -116,16 +116,11 @@ export default function BugReportModal({ onSuccess }) {
         })
         setOpen(false)
 
-        console.log('Llamando a onSuccess...')
-        if (onSuccess) {
-          onSuccess()
-          console.log('onSuccess llamado')
-        } else {
-          console.log('onSuccess NO EXISTE')
-        }
-
-        if (onSuccess) {
-          onSuccess()
+        if (onSuccess) 
+          
+                  {
+            console.log('llamando onSuccess')
+            onSuccess()
         }
 
       } else {

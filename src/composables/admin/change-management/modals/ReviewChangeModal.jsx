@@ -53,7 +53,7 @@ const ReviewChangeModal = ({ open, setOpen, change, onAccept, onReject, loading 
               className="flex-1"
               disabled={loading}
             >
-              ✅ Aceptar
+              Aceptar
             </Button>
             <Button
               type="button"
@@ -62,7 +62,7 @@ const ReviewChangeModal = ({ open, setOpen, change, onAccept, onReject, loading 
               className="flex-1"
               disabled={loading}
             >
-              ❌ Rechazar
+              Rechazar
             </Button>
           </div>
         </div>
