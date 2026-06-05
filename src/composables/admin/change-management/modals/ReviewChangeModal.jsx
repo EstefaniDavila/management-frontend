@@ -1,5 +1,5 @@
 import React, { useState } from 'react'
-import Modal from '@/components/custom/Modal'
+import Modal from '@/components/custom/modal'
 import { Label } from '@/components/ui/label'
 import { Textarea } from '@/components/ui/textarea'
 import {
@@ -9,7 +9,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select'
-import { Button } from '@/components/custom/button' 
+import { Button } from '@/components/custom/button'
 
 const ReviewChangeModal = ({ open, setOpen, change, onAccept, onReject, loading }) => {
   const [action, setAction] = useState('accept')
@@ -86,7 +86,7 @@ const ReviewChangeModal = ({ open, setOpen, change, onAccept, onReject, loading 
         <div className="space-y-2">
           <Label>Notas del Administrador {action === 'reject' && '*'}</Label>
           <Textarea
-            placeholder={action === 'accept' 
+            placeholder={action === 'accept'
               ? "Ej: Se requiere con urgencia, asignar a equipo de backend..."
               : "Especificar motivo del rechazo..."
             }
