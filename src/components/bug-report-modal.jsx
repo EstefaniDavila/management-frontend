@@ -17,7 +17,8 @@ import { useAuth } from '@/providers/UserContext'
 import { Bug, Loader2 } from 'lucide-react'
 import axios from 'axios'
 
-export default function BugReportModal() {
+export default function BugReportModal({ onSuccess }) {
+  console.log('onSuccess recibido:', onSuccess)
   const { user } = useAuth()
   const { toast } = useToast()
 
@@ -26,7 +27,7 @@ export default function BugReportModal() {
 
   const [formData, setFormData] = useState({
     title: '',
-    module_affected: 'general',
+    module_affected: 'other',
     severity: 'medium',
     description: '',
     steps_to_reproduce: '',
@@ -34,12 +35,14 @@ export default function BugReportModal() {
 
   const modules = [
     { value: 'sales', label: 'Ventas (Sales)' },
-    { value: 'operations', label: 'Operaciones (Operations)' },
+    { value: 'rentals', label: 'Rentas (Rentals)' },
+    { value: 'maintenance', label: 'Mantenimiento (Maintenance)' },
     { value: 'inventory', label: 'Inventario (Inventory)' },
-    { value: 'logistics', label: 'Logística (Logistics)' },
-    { value: 'customers', label: 'Clientes (Customers)' },
-    { value: 'reports', label: 'Reportes (Reports)' },
-    { value: 'general', label: 'General / Otro' },
+    { value: 'dispatch', label: 'Despacho (Dispatch)' },
+    { value: 'products', label: 'Productos (Products)' },
+    { value: 'clients', label: 'Clientes (Clients)' },
+    { value: 'leads', label: 'Leads' },
+    { value: 'other', label: 'Otro (Other)' },
   ]
 
   const severities = [
@@ -87,7 +90,6 @@ export default function BugReportModal() {
 
     setLoading(true)
 
-    // Crear el payload con la estructura requerida
     const payload = {
       error_report: {
         ...formData,
@@ -105,15 +107,27 @@ export default function BugReportModal() {
           description: 'Gracias por tu reporte. Nuestro equipo técnico lo revisará pronto.',
         })
 
-        // Limpiar el formulario y cerrar
         setFormData({
           title: '',
-          module_affected: 'general',
+          module_affected: 'other',
           severity: 'medium',
           description: '',
           steps_to_reproduce: '',
         })
         setOpen(false)
+
+        console.log('Llamando a onSuccess...')
+        if (onSuccess) {
+          onSuccess()
+          console.log('onSuccess llamado')
+        } else {
+          console.log('onSuccess NO EXISTE')
+        }
+
+        if (onSuccess) {
+          onSuccess()
+        }
+
       } else {
         throw new Error('Error en la respuesta del servidor')
       }
@@ -155,7 +169,7 @@ export default function BugReportModal() {
         </DialogHeader>
 
         <form onSubmit={handleSubmit} className="space-y-4 py-2">
-          {/* Título */}
+
           <div className="grid gap-2">
             <Label htmlFor="title" className="font-semibold text-sm">Título del Error</Label>
             <Input
@@ -170,7 +184,7 @@ export default function BugReportModal() {
           </div>
 
           <div className="grid grid-cols-2 gap-4">
-            {/* Módulo Afectado */}
+
             <div className="grid gap-2">
               <Label htmlFor="module_affected" className="font-semibold text-sm">Módulo Afectado</Label>
               <select
@@ -189,7 +203,6 @@ export default function BugReportModal() {
               </select>
             </div>
 
-            {/* Severidad */}
             <div className="grid gap-2">
               <Label htmlFor="severity" className="font-semibold text-sm">Severidad</Label>
               <select
@@ -209,7 +222,7 @@ export default function BugReportModal() {
             </div>
           </div>
 
-          {/* Descripción */}
+
           <div className="grid gap-2">
             <Label htmlFor="description" className="font-semibold text-sm">Descripción del Problema</Label>
             <Textarea
@@ -224,7 +237,6 @@ export default function BugReportModal() {
             />
           </div>
 
-          {/* Pasos para reproducir */}
           <div className="grid gap-2">
             <Label htmlFor="steps_to_reproduce" className="font-semibold text-sm">Pasos para Reproducir</Label>
             <Textarea
@@ -239,7 +251,6 @@ export default function BugReportModal() {
             />
           </div>
 
-          {/* ID de Usuario (Informativo / Oculto) */}
           {user && (
             <div className="text-[10px] text-muted-foreground text-right italic">
               Reportado por usuario: {user.full_name || user.email}

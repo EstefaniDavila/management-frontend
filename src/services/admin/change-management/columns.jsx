@@ -40,7 +40,10 @@ const columns = (handleView, handleReview, handleDelete) => [
   {
     accessorKey: 'change_code',
     header: 'Código',
-    cell: info => <span className="font-semibold text-xs tracking-wider">{info.getValue() || 'PENDIENTE'}</span>,
+    cell: info => {
+      const val = info.getValue() || (info.row.original.id ? `ERR-${info.row.original.id}` : 'PENDIENTE')
+      return <span className="font-semibold text-xs tracking-wider">{val}</span>
+    },
     enableColumnFilter: true,
   },
   {
@@ -97,28 +100,38 @@ const columns = (handleView, handleReview, handleDelete) => [
     },
     enableColumnFilter: false,
   },
-  {
-    header: 'Acciones',
-    cell: ({ row }) => (
+ {
+  header: 'Acciones',
+  cell: ({ row }) => {
+    const change = row.original
+    const isPending = change.status === 'pending'
+    
+    return (
       <div className="flex space-x-2">
         <GeneralTooltip
           content="Ver detalle"
           triggerContent={<span className='bg-blue-500 text-white rounded-full p-1 cursor-pointer hover:bg-blue-600 block'><TbEye size={18}/></span>}
-          onClick={() => handleView(row.original)}
+          onClick={() => handleView(change)}
         />
-        <GeneralTooltip
-          content="Evaluar / Revisar"
-          triggerContent={<span className='bg-yellow-500 text-white rounded-full p-1 cursor-pointer hover:bg-yellow-600 block'><TbEdit size={18}/></span>}
-          onClick={() => handleReview(row.original)}
-        />
+        
+        {/* Solo mostrar el botón de evaluar si está pendiente */}
+        {isPending && (
+          <GeneralTooltip
+            content="Evaluar / Revisar"
+            triggerContent={<span className='bg-yellow-500 text-white rounded-full p-1 cursor-pointer hover:bg-yellow-600 block'><TbEdit size={18}/></span>}
+            onClick={() => handleReview(change)}
+          />
+        )}
+        
         <GeneralTooltip
           content="Eliminar"
           triggerContent={<span className='bg-red-500 text-white rounded-full p-1 cursor-pointer hover:bg-red-600 block'><TbTrash size={18}/></span>}
-          onClick={() => handleDelete(row.original)}
+          onClick={() => handleDelete(change)}
         />
       </div>
-    ),
-  }
+    )
+  },
+}
 ]
 
 export default columns

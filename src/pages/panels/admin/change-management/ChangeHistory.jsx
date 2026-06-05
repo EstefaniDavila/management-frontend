@@ -1,17 +1,17 @@
-// views/admin/change-management/ChangeManagementView.jsx
-import React, { useState, useEffect, useCallback } from 'react'
+import React, { useState, useEffect } from 'react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Plus, RefreshCw } from 'lucide-react'
-import ChangeTable from '@/components/admin/change-management/ChangeTable'
-import { getChanges, deleteChange } from '@/services/admin/change-management/api'
-import { useToast } from '@/hooks/use-toast'
-import ChangeDetailModal from './ChangeDetailModal'
-import ChangeReviewModal from './ChangeReviewModal'
-import ChangeFormModal from './ChangeFormModal'
-import ConfirmationDialog from '@/components/custom/confirmation-dialog'
+import ChangeTable from '@/composables/admin/change-management/table/ChangeTable'
+import useCrud from '@/hooks/useCrud'
+import { useAuth } from '@/providers/UserContext'
+import ReviewChangeModal from '@/composables/admin/change-management/modals/ReviewChangeModal'
+import BugReportModal from '@/components/bug-report-modal'
 
 const ChangeHistory = () => {
+    const { getModel, deleteModel, patchModel } = useCrud('/api/v1/admin/error_reports')
+    const { user } = useAuth()
+    
     const [data, setData] = useState([])
     const [loading, setLoading] = useState(false)
     const [pagination, setPagination] = useState({
@@ -24,44 +24,54 @@ const ChangeHistory = () => {
 
     // Modals state
     const [selectedChange, setSelectedChange] = useState(null)
-    const [detailModalOpen, setDetailModalOpen] = useState(false)
     const [reviewModalOpen, setReviewModalOpen] = useState(false)
-    const [formModalOpen, setFormModalOpen] = useState(false)
-    const [deleteDialogOpen, setDeleteDialogOpen] = useState(false)
+    const [reviewLoading, setReviewLoading] = useState(false)
 
-    const { toast } = useToast()
+    const currentUserId = user?.id
 
-    const fetchData = useCallback(async () => {
+    console.log('Current user ID:', currentUserId) 
+
+    const fetchData = async () => {
         setLoading(true)
         try {
-            const response = await getChanges({
-                page: pagination.pageIndex + 1,
-                limit: pagination.pageSize,
-                search: search || undefined,
-                searchFields: searchFields.length > 0 ? searchFields : undefined
-            })
+            const params = new URLSearchParams()
+            params.append('page', pagination.pageIndex + 1)
+            params.append('pageSize', pagination.pageSize)
+            
+            if (search) {
+                params.append('search_params', search)
+                params.append('search_fields', ['title', 'description'].join(','))
+            }
 
-            setData(response.data || [])
-            setTotalPages(response.totalPages || 0)
+            const response = await getModel(`?${params.toString()}`)
+            console.log('Error reports API response:', response)
+
+            const dataArray = response.error_reports || response.data || response || []
+            const total = response.total_pages || response.totalPages || 1
+
+            if (Array.isArray(dataArray)) {
+                setData(dataArray)
+                setTotalPages(total)
+            } else if (response && Array.isArray(response)) {
+                setData(response)
+                setTotalPages(1)
+            } else {
+                setData([])
+                setTotalPages(0)
+            }
         } catch (error) {
             console.error('Error fetching changes:', error)
-            toast({
-                title: 'Error',
-                description: 'No se pudieron cargar los cambios',
-                variant: 'destructive'
-            })
         } finally {
             setLoading(false)
         }
-    }, [pagination.pageIndex, pagination.pageSize, search, searchFields, toast])
+    }
 
     useEffect(() => {
         fetchData()
-    }, [fetchData])
+    }, [pagination.pageIndex, pagination.pageSize, search])
 
     const handleView = (change) => {
-        setSelectedChange(change)
-        setDetailModalOpen(true)
+        console.log('Ver detalle:', change)
     }
 
     const handleReview = (change) => {
@@ -69,48 +79,52 @@ const ChangeHistory = () => {
         setReviewModalOpen(true)
     }
 
-    const handleDelete = (change) => {
-        setSelectedChange(change)
-        setDeleteDialogOpen(true)
-    }
-
-    const confirmDelete = async () => {
+    const handleAccept = async (changeType, adminNotes) => {
+        setReviewLoading(true)
         try {
-            await deleteChange(selectedChange.id)
-            toast({
-                title: 'Éxito',
-                description: 'Cambio eliminado correctamente'
-            })
-            fetchData() // Refresh table
+            await patchModel(
+                {
+                    reviewed_by_id: currentUserId,
+                    change_type: changeType,
+                    admin_notes: adminNotes
+                },
+                `/api/v1/admin/error_reports/${selectedChange.id}/accept`
+            )
+            setReviewModalOpen(false)
+            fetchData()
         } catch (error) {
-            console.error('Error deleting change:', error)
-            toast({
-                title: 'Error',
-                description: 'No se pudo eliminar el cambio',
-                variant: 'destructive'
-            })
+            console.error('Error al aceptar:', error)
         } finally {
-            setDeleteDialogOpen(false)
-            setSelectedChange(null)
+            setReviewLoading(false)
         }
     }
 
-    const handleCreateSuccess = () => {
-        setFormModalOpen(false)
-        fetchData()
-        toast({
-            title: 'Éxito',
-            description: 'Cambio creado correctamente'
-        })
+    const handleReject = async (adminNotes) => {
+        setReviewLoading(true)
+        try {
+            await patchModel(
+                {
+                    reviewed_by_id: currentUserId,
+                    admin_notes: adminNotes
+                },
+                `/api/v1/admin/error_reports/${selectedChange.id}/reject`
+            )
+            setReviewModalOpen(false)
+            fetchData()
+        } catch (error) {
+            console.error('Error al rechazar:', error)
+        } finally {
+            setReviewLoading(false)
+        }
     }
 
-    const handleReviewSuccess = () => {
-        setReviewModalOpen(false)
-        fetchData()
-        toast({
-            title: 'Éxito',
-            description: 'Revisión guardada correctamente'
-        })
+    const handleDelete = async (change) => {
+        try {
+            await deleteModel(`/api/v1/admin/error_reports/${change.id}`)
+            fetchData()
+        } catch (error) {
+            console.error('Error al eliminar:', error)
+        }
     }
 
     return (
@@ -123,20 +137,17 @@ const ChangeHistory = () => {
                             Administra y da seguimiento a los cambios del sistema
                         </p>
                     </div>
+                    {/*no por ahora
                     <div className="flex gap-2">
-                        <Button
-                            variant="outline"
-                            onClick={fetchData}
-                            disabled={loading}
-                        >
+                        <Button variant="outline" onClick={fetchData} disabled={loading}>
                             <RefreshCw className={`h-4 w-4 mr-2 ${loading ? 'animate-spin' : ''}`} />
                             Actualizar
                         </Button>
-                        <Button onClick={() => setFormModalOpen(true)}>
+                        <Button onClick={() => console.log('Abrir modal crear')}>
                             <Plus className="h-4 w-4 mr-2" />
                             Nuevo Cambio
                         </Button>
-                    </div>
+                    </div>*/}
                 </CardHeader>
 
                 <CardContent>
@@ -156,41 +167,16 @@ const ChangeHistory = () => {
                     />
                 </CardContent>
             </Card>
-
-            {/* Detail Modal */}
-            <ChangeDetailModal
-                open={detailModalOpen}
-                onOpenChange={setDetailModalOpen}
-                change={selectedChange}
-            />
-
-            {/* Review Modal */}
-            <ChangeReviewModal
+            
+            <ReviewChangeModal
                 open={reviewModalOpen}
-                onOpenChange={setReviewModalOpen}
+                setOpen={setReviewModalOpen}
                 change={selectedChange}
-                onSuccess={handleReviewSuccess}
+                onAccept={handleAccept}
+                onReject={handleReject}
+                loading={reviewLoading}
             />
-
-            {/* Create/Edit Modal */}
-            <ChangeFormModal
-                open={formModalOpen}
-                onOpenChange={setFormModalOpen}
-                onSuccess={handleCreateSuccess}
-                changeToEdit={null}
-            />
-
-            {/* Delete Confirmation */}
-            <ConfirmationDialog
-                open={deleteDialogOpen}
-                onOpenChange={setDeleteDialogOpen}
-                title="Eliminar Cambio"
-                description={`¿Estás seguro de que deseas eliminar el cambio "${selectedChange?.title}"? Esta acción no se puede deshacer.`}
-                onConfirm={confirmDelete}
-                confirmText="Eliminar"
-                cancelText="Cancelar"
-                variant="destructive"
-            />
+             <BugReportModal onSuccess={() => fetchData()} />
         </div>
     )
 }
