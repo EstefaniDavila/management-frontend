@@ -8,6 +8,7 @@ import UpdateQuotationModal from '@/composables/admin/marketing/quotations/modal
 import useCrud from '@/hooks/useCrud'
 import useEntityMutation from '@/hooks/useEntityMutation'
 import { useSales } from '@/providers/SalesContext'
+import RenderProfiler from '@/components/RenderProfiler'
 
 const Quotations = () => {
   const { getModel } = useCrud('/api/v1/admin/quotations')
@@ -141,61 +142,71 @@ const Quotations = () => {
 
   return (
     <>
-      <div className="flex flex-col gap-4">
+      <RenderProfiler id="Admin-Quotations-Dashboard">
+        <div className="flex flex-col gap-4">
 
-        <div className="flex items-center justify-between">
-          <div>
-            <h1 className="text-base font-semibold">Cotizaciones</h1>
-            <p className="text-xs text-muted-foreground">Gestiona las cotizaciones generadas para los clientes</p>
+          <div className="flex items-center justify-between">
+            <div>
+              <h1 className="text-base font-semibold">Cotizaciones</h1>
+              <p className="text-xs text-muted-foreground">Gestiona las cotizaciones generadas para los clientes</p>
+            </div>
+            <Button size="sm" onClick={() => setIsCreateOpen(true)}>
+              <TbPlus size={16} className="mr-1" /> New Quotation
+            </Button>
           </div>
-          <Button size="sm" onClick={() => setIsCreateOpen(true)}>
-            <TbPlus size={16} className="mr-1" /> New Quotation
-          </Button>
+
+          <div className="border rounded-xl bg-card shadow-sm">
+            <div className="px-4 pt-4 pb-2 border-b">
+              <p className="text-sm font-medium">Cotizaciones registradas</p>
+            </div>
+            <div className="p-4">
+              <RenderProfiler id="Admin-Quotations-TanStack-Table">
+                <QuotationsTable
+                  data={quotations}
+                  fetchData={refetchData}
+                  pagination={pagination}
+                  setPagination={setPagination}
+                  totalPages={totalPages}
+                  search={search}
+                  setSearch={setSearch}
+                  searchFields={searchFields}
+                  setSearchFields={setSearchFields}
+                  onView={handleView}
+                  onApprove={handleApprove}
+                  onReject={handleReject}
+                  onDelete={handleDelete}
+                  onEdit={handleEdit}   
+                />
+              </RenderProfiler>
+            </div>
+          </div>
+
         </div>
+      </RenderProfiler>
 
-        <div className="border rounded-xl bg-card shadow-sm">
-          <div className="px-4 pt-4 pb-2 border-b">
-            <p className="text-sm font-medium">Cotizaciones registradas</p>
-          </div>
-          <div className="p-4">
-            <QuotationsTable
-              data={quotations}
-              fetchData={refetchData}
-              pagination={pagination}
-              setPagination={setPagination}
-              totalPages={totalPages}
-              search={search}
-              setSearch={setSearch}
-              searchFields={searchFields}
-              setSearchFields={setSearchFields}
-              onView={handleView}
-              onApprove={handleApprove}
-              onReject={handleReject}
-              onDelete={handleDelete}
-              onEdit={handleEdit}   
-            />
-          </div>
-        </div>
-
-      </div>
-
-      <CreateQuotationModal
-        isOpen={isCreateOpen}
-        handleClose={() => setIsCreateOpen(false)}
-        onCreate={handleCreate}
-      />
-
-      <ViewQuotationModal
-        isOpen={isViewOpen}
-        handleClose={() => { setIsViewOpen(false); setSelected(null) }}
-        quotation={selected}
-      />
-      <UpdateQuotationModal
-        isOpen={isUpdateOpen}
-        handleClose={() => { setIsUpdateOpen(false); setSelected(null) }}
-        quotation={selected}
-        onUpdate={handleUpdate}
+      <RenderProfiler id="Admin-CreateQuotation-Modal">
+        <CreateQuotationModal
+          isOpen={isCreateOpen}
+          handleClose={() => setIsCreateOpen(false)}
+          onCreate={handleCreate}
         />
+      </RenderProfiler>
+
+      <RenderProfiler id="Admin-ViewQuotation-Modal">
+        <ViewQuotationModal
+          isOpen={isViewOpen}
+          handleClose={() => { setIsViewOpen(false); setSelected(null) }}
+          quotation={selected}
+        />
+      </RenderProfiler>
+      <RenderProfiler id="Admin-UpdateQuotation-Modal">
+        <UpdateQuotationModal
+          isOpen={isUpdateOpen}
+          handleClose={() => { setIsUpdateOpen(false); setSelected(null) }}
+          quotation={selected}
+          onUpdate={handleUpdate}
+        />
+      </RenderProfiler>
     </>
   )
 }

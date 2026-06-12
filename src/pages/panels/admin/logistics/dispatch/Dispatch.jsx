@@ -18,6 +18,7 @@ import {
 import AGenerateDispatchModal from '@/composables/admin/logistics/disptachs/AGenerateDispatchModal'
 import ADispatchHistoryModal from '@/composables/admin/logistics/disptachs/ADispatchHistoryModal'
 import useCrud from '@/hooks/useCrud'
+import RenderProfiler from '@/components/RenderProfiler'
 
 const DispatchManagement = () => {
   const [pending, setPending] = useState([]);
@@ -102,125 +103,131 @@ const DispatchManagement = () => {
 
   return (
     <>
-      <div className="p-4 md:p-6 w-full min-h-screen bg-slate-50/50 dark:bg-slate-950/50">
-        <div className="max-w-6xl mx-auto space-y-6">
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-            <div className="flex flex-col gap-2">
-              <h1 className="text-2xl font-bold tracking-tight flex items-center gap-2">
-                DESPACHOS PENDIENTES
-              </h1>
-              <p className="text-muted-foreground text-sm">
-                Ventas con servicio de delivery esperando asignación de transporte.
-              </p>
-            </div>
-
-            <Button
-              variant="outline"
-              className="gap-2"
-              onClick={() => setShowHistoryModal(true)}
-            >
-              <History className="h-4 w-4" />
-              Ver Historial
-              <Badge variant="secondary" className="ml-1">
-                {dispatchHistory.length}
-              </Badge>
-            </Button>
-          </div>
-
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-            <div className="p-3 rounded-lg bg-white dark:bg-slate-900 border shadow-sm">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-xs text-muted-foreground">Pendientes</p>
-                  <p className="text-2xl font-bold">{pending.length}</p>
-                </div>
-                <Clock className="h-8 w-8 text-yellow-500 opacity-50" />
+      <RenderProfiler id="Admin-Dispatch-Dashboard">
+        <div className="p-4 md:p-6 w-full min-h-screen bg-slate-50/50 dark:bg-slate-950/50">
+          <div className="max-w-6xl mx-auto space-y-6">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+              <div className="flex flex-col gap-2">
+                <h1 className="text-2xl font-bold tracking-tight flex items-center gap-2">
+                  DESPACHOS PENDIENTES
+                </h1>
+                <p className="text-muted-foreground text-sm">
+                  Ventas con servicio de delivery esperando asignación de transporte.
+                </p>
               </div>
-            </div>
-            <div className="p-3 rounded-lg bg-white dark:bg-slate-900 border shadow-sm">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-xs text-muted-foreground">En Tránsito</p>
-                  <p className="text-2xl font-bold">{totalEnTransito}</p>
-                </div>
-                <Truck className="h-8 w-8 text-blue-500 opacity-50" />
-              </div>
-            </div>
-            <div className="p-3 rounded-lg bg-white dark:bg-slate-900 border shadow-sm">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-xs text-muted-foreground">Entregados</p>
-                  <p className="text-2xl font-bold">{totalEntregados}</p>
-                </div>
-                <CheckCircle className="h-8 w-8 text-green-500 opacity-50" />
-              </div>
-            </div>
-          </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-            {pending.map((item) => (
-              <Card key={item.id} className="shadow-sm hover:shadow-md transition-shadow border-l-4 border-l-primary">
-                <CardHeader className="pb-2 flex flex-row items-center justify-between space-y-0">
-                  <CardTitle className="text-sm font-bold">{item.code}</CardTitle>
-                  <Badge variant="outline">
-                    {item.status === 'pending' ? 'Pendiente' :
-                      item.status === 'dispatched' ? 'En Tránsito' :
-                        item.status === 'delivered' ? 'Entregado' : 'Cancelado'}
-                  </Badge>
-                </CardHeader>
+              <Button
+                variant="outline"
+                className="gap-2"
+                onClick={() => setShowHistoryModal(true)}
+              >
+                <History className="h-4 w-4" />
+                Ver Historial
+                <Badge variant="secondary" className="ml-1">
+                  {dispatchHistory.length}
+                </Badge>
+              </Button>
+            </div>
 
-                <CardContent className="space-y-4">
-                  <div className="space-y-2">
-                    <div className="flex items-start gap-2">
-                      <Package className="h-4 w-4 text-muted-foreground mt-0.5" />
-                      <span className="text-sm font-semibold leading-none text-wrap break-all">Orden: {item.ordenId}</span>
-                    </div>
-                    <div className="flex items-start gap-2 text-muted-foreground">
-                      <Clock className="h-4 w-4 mt-0.5" />
-                      <span className="text-xs">Creado: {item.fecha}</span>
-                    </div>
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+              <div className="p-3 rounded-lg bg-white dark:bg-slate-900 border shadow-sm">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-xs text-muted-foreground">Pendientes</p>
+                    <p className="text-2xl font-bold">{pending.length}</p>
                   </div>
-
-                  <Button
-                    className="w-full gap-2 group"
-                    variant="default"
-                    onClick={() => handleAssign(item)}
-                  >
-                    <ClipboardList className="h-4 w-4" />
-                    Asignar Conductor
-                    <ChevronRight className="h-4 w-4 ml-auto group-hover:translate-x-1 transition-transform" />
-                  </Button>
-                </CardContent>
-              </Card>
-            ))}
-
-            {pending.length === 0 && (
-              <div className="col-span-full py-20 text-center border-2 border-dashed rounded-xl bg-white dark:bg-slate-900">
-                <div className="flex flex-col items-center gap-2 text-muted-foreground">
-                  <Truck className="h-10 w-10 opacity-20" />
-                  <p>No hay despachos pendientes por el momento.</p>
+                  <Clock className="h-8 w-8 text-yellow-500 opacity-50" />
                 </div>
               </div>
-            )}
+              <div className="p-3 rounded-lg bg-white dark:bg-slate-900 border shadow-sm">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-xs text-muted-foreground">En Tránsito</p>
+                    <p className="text-2xl font-bold">{totalEnTransito}</p>
+                  </div>
+                  <Truck className="h-8 w-8 text-blue-500 opacity-50" />
+                </div>
+              </div>
+              <div className="p-3 rounded-lg bg-white dark:bg-slate-900 border shadow-sm">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-xs text-muted-foreground">Entregados</p>
+                    <p className="text-2xl font-bold">{totalEntregados}</p>
+                  </div>
+                  <CheckCircle className="h-8 w-8 text-green-500 opacity-50" />
+                </div>
+              </div>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+              {pending.map((item) => (
+                <Card key={item.id} className="shadow-sm hover:shadow-md transition-shadow border-l-4 border-l-primary">
+                  <CardHeader className="pb-2 flex flex-row items-center justify-between space-y-0">
+                    <CardTitle className="text-sm font-bold">{item.code}</CardTitle>
+                    <Badge variant="outline">
+                      {item.status === 'pending' ? 'Pendiente' :
+                        item.status === 'dispatched' ? 'En Tránsito' :
+                          item.status === 'delivered' ? 'Entregado' : 'Cancelado'}
+                    </Badge>
+                  </CardHeader>
+
+                  <CardContent className="space-y-4">
+                    <div className="space-y-2">
+                      <div className="flex items-start gap-2">
+                        <Package className="h-4 w-4 text-muted-foreground mt-0.5" />
+                        <span className="text-sm font-semibold leading-none text-wrap break-all">Orden: {item.ordenId}</span>
+                      </div>
+                      <div className="flex items-start gap-2 text-muted-foreground">
+                        <Clock className="h-4 w-4 mt-0.5" />
+                        <span className="text-xs">Creado: {item.fecha}</span>
+                      </div>
+                    </div>
+
+                    <Button
+                      className="w-full gap-2 group"
+                      variant="default"
+                      onClick={() => handleAssign(item)}
+                    >
+                      <ClipboardList className="h-4 w-4" />
+                      Asignar Conductor
+                      <ChevronRight className="h-4 w-4 ml-auto group-hover:translate-x-1 transition-transform" />
+                    </Button>
+                  </CardContent>
+                </Card>
+              ))}
+
+              {pending.length === 0 && (
+                <div className="col-span-full py-20 text-center border-2 border-dashed rounded-xl bg-white dark:bg-slate-900">
+                  <div className="flex flex-col items-center gap-2 text-muted-foreground">
+                    <Truck className="h-10 w-10 opacity-20" />
+                    <p>No hay despachos pendientes por el momento.</p>
+                  </div>
+                </div>
+              )}
+            </div>
           </div>
         </div>
-      </div>
+      </RenderProfiler>
 
       {/* Modal de Generar Despacho */}
-      <AGenerateDispatchModal
-        open={showDispatchModal}
-        setOpen={setShowDispatchModal}
-        onConfirm={handleConfirmDispatch}
-        orderData={orderDataForModal}
-      />
+      <RenderProfiler id="Admin-GenerateDispatch-Modal">
+        <AGenerateDispatchModal
+          open={showDispatchModal}
+          setOpen={setShowDispatchModal}
+          onConfirm={handleConfirmDispatch}
+          orderData={orderDataForModal}
+        />
+      </RenderProfiler>
 
       {/* Modal de Historial */}
-      <ADispatchHistoryModal
-        open={showHistoryModal}
-        setOpen={setShowHistoryModal}
-        history={dispatchHistory}
-        onRefresh={fetchDispatches}
-      />
+      <RenderProfiler id="Admin-DispatchHistory-Modal">
+        <ADispatchHistoryModal
+          open={showHistoryModal}
+          setOpen={setShowHistoryModal}
+          history={dispatchHistory}
+          onRefresh={fetchDispatches}
+        />
+      </RenderProfiler>
     </>
   )
 }

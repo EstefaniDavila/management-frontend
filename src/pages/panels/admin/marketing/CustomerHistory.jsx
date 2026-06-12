@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react'
 import CustomerHistoryTable from '@/composables/admin/marketing/customerHistory/tables/CustomerHistoryTable'
 import CustomerDetailModal from '@/composables/admin/marketing/customerHistory/modals/CustomerDetailModal'
 import useCrud from '@/hooks/useCrud'
+import RenderProfiler from '@/components/RenderProfiler'
 
 const CustomerHistory = () => {
   const { getModel } = useCrud('/api/v1/admin/clients')
@@ -74,44 +75,50 @@ const CustomerHistory = () => {
 
   return (
     <>
-      <div className="flex flex-col gap-4">
+      <RenderProfiler id="Admin-CustomerHistory-Dashboard">
+        <div className="flex flex-col gap-4">
 
-        {/* Título */}
-        <div>
-          <h1 className="text-base font-semibold">Historial de Clientes</h1>
-          <p className="text-xs text-muted-foreground">
-            Consulta el historial de cotizaciones por cliente
-          </p>
-        </div>
-
-        {/* Tabla */}
-        <div className="border rounded-xl bg-card shadow-sm">
-          <div className="px-4 pt-4 pb-2 border-b">
-            <p className="text-sm font-medium">Clientes registrados</p>
+          {/* Título */}
+          <div>
+            <h1 className="text-base font-semibold">Historial de Clientes</h1>
+            <p className="text-xs text-muted-foreground">
+              Consulta el historial de cotizaciones por cliente
+            </p>
           </div>
-          <div className="p-4">
-            <CustomerHistoryTable
-              data={customers}
-              fetchData={fetchCustomers}
-              pagination={pagination}
-              setPagination={setPagination}
-              totalPages={totalPages}
-              search={search}
-              setSearch={setSearch}
-              searchFields={searchFields}
-              setSearchFields={setSearchFields}
-              onView={handleView}
-            />
+
+          {/* Tabla */}
+          <div className="border rounded-xl bg-card shadow-sm">
+            <div className="px-4 pt-4 pb-2 border-b">
+              <p className="text-sm font-medium">Clientes registrados</p>
+            </div>
+            <div className="p-4">
+              <RenderProfiler id="Admin-CustomerHistory-TanStack-Table">
+                <CustomerHistoryTable
+                  data={customers}
+                  fetchData={fetchCustomers}
+                  pagination={pagination}
+                  setPagination={setPagination}
+                  totalPages={totalPages}
+                  search={search}
+                  setSearch={setSearch}
+                  searchFields={searchFields}
+                  setSearchFields={setSearchFields}
+                  onView={handleView}
+                />
+              </RenderProfiler>
+            </div>
           </div>
+
         </div>
+      </RenderProfiler>
 
-      </div>
-
-      <CustomerDetailModal
-        isOpen={isModalOpen}
-        handleClose={() => { setIsModalOpen(false); setSelected(null) }}
-        customer={selected}
-      />
+      <RenderProfiler id="Admin-CustomerDetail-Modal">
+        <CustomerDetailModal
+          isOpen={isModalOpen}
+          handleClose={() => { setIsModalOpen(false); setSelected(null) }}
+          customer={selected}
+        />
+      </RenderProfiler>
     </>
   )
 }

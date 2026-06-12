@@ -15,6 +15,7 @@ import ViewOrderDetailModal from '@/composables/admin/logistics/ordersSuppliers/
 import useCrud from '@/hooks/useCrud';
 import useEntityMutation from '@/hooks/useEntityMutation';
 import UpdateOrderModal from '@/composables/admin/logistics/ordersSuppliers/modals/UpdateOrderModal';
+import RenderProfiler from '@/components/RenderProfiler';
 
 const PurchaseOrderHistory = () => {
   const { getModel: getOrders } = useCrud('/api/v1/admin/purchase_orders');
@@ -370,108 +371,118 @@ const PurchaseOrderHistory = () => {
   const totalPages = Math.ceil(filteredData.length / pagination.pageSize);
 
   return (
-    <div className="px-4 py-4 md:px-6 w-full">
-      <div className="max-w-[1600px] mx-auto flex flex-col gap-4">
+    <RenderProfiler id="Admin-OrdersSuppliers-Dashboard">
+      <div className="px-4 py-4 md:px-6 w-full">
+        <div className="max-w-[1600px] mx-auto flex flex-col gap-4">
 
-        <h1 className="text-base font-semibold tracking-tight text-foreground">
-          Historial de Pedidos a Proveedores
-        </h1>
+          <h1 className="text-base font-semibold tracking-tight text-foreground">
+            Historial de Pedidos a Proveedores
+          </h1>
 
-        <div className="flex flex-wrap gap-2">
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button variant="outline" size="sm" className="gap-2">
-                <Filter className="h-3.5 w-3.5" />
-                Estado: {filterStatus === "todos" ? "Todos" : filterStatus}
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent>
-              <DropdownMenuItem onClick={() => setFilterStatus("todos")}>Todos</DropdownMenuItem>
-              <DropdownMenuItem onClick={() => setFilterStatus("ENTREGADO")}>Entregado</DropdownMenuItem>
-              <DropdownMenuItem onClick={() => setFilterStatus("PENDIENTE")}>Pendiente</DropdownMenuItem>
-              <DropdownMenuItem onClick={() => setFilterStatus("EN_TRANSITO")}>En Tránsito</DropdownMenuItem>
-              <DropdownMenuItem onClick={() => setFilterStatus("CANCELADO")}>Cancelado</DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
+          <div className="flex flex-wrap gap-2">
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="outline" size="sm" className="gap-2">
+                  <Filter className="h-3.5 w-3.5" />
+                  Estado: {filterStatus === "todos" ? "Todos" : filterStatus}
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent>
+                <DropdownMenuItem onClick={() => setFilterStatus("todos")}>Todos</DropdownMenuItem>
+                <DropdownMenuItem onClick={() => setFilterStatus("ENTREGADO")}>Entregado</DropdownMenuItem>
+                <DropdownMenuItem onClick={() => setFilterStatus("PENDIENTE")}>Pendiente</DropdownMenuItem>
+                <DropdownMenuItem onClick={() => setFilterStatus("EN_TRANSITO")}>En Tránsito</DropdownMenuItem>
+                <DropdownMenuItem onClick={() => setFilterStatus("CANCELADO")}>Cancelado</DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
 
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button variant="outline" size="sm" className="gap-2">
-                <Filter className="h-3.5 w-3.5" />
-                Proveedor: {filterProveedor === "todos" ? "Todos" : filterProveedor.split(' ')[0]}
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent className="max-h-64 overflow-y-auto">
-              <DropdownMenuItem onClick={() => setFilterProveedor("todos")}>Todos</DropdownMenuItem>
-              {proveedoresUnicos.map(prov => (
-                <DropdownMenuItem key={prov} onClick={() => setFilterProveedor(prov)}>
-                  {prov}
-                </DropdownMenuItem>
-              ))}
-            </DropdownMenuContent>
-          </DropdownMenu>
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="outline" size="sm" className="gap-2">
+                  <Filter className="h-3.5 w-3.5" />
+                  Proveedor: {filterProveedor === "todos" ? "Todos" : filterProveedor.split(' ')[0]}
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent className="max-h-64 overflow-y-auto">
+                <DropdownMenuItem onClick={() => setFilterProveedor("todos")}>Todos</DropdownMenuItem>
+                {proveedoresUnicos.map(prov => (
+                  <DropdownMenuItem key={prov} onClick={() => setFilterProveedor(prov)}>
+                    {prov}
+                  </DropdownMenuItem>
+                ))}
+              </DropdownMenuContent>
+            </DropdownMenu>
 
-          <Button
-            size="sm"
-            onClick={() => handleOpenModal('create')}
-            className="ml-auto"
-          >
-            + Nuevo Pedido
-          </Button>
-        </div>
-
-        <div className="w-full bg-card rounded-xl border shadow-sm overflow-hidden">
-          <div className="overflow-x-auto">
-            <div className="inline-block min-w-full align-middle p-4"></div>
-            <OrdersSuppliersTable
-              data={filteredData}
-              fetchData={refetchData}
-              pagination={pagination}
-              setPagination={setPagination}
-              totalPages={totalPages}
-              search={search}
-              setSearch={setSearch}
-              searchFields={searchFields}
-              setSearchFields={setSearchFields}
-              handleOpenModal={handleOpenModal}
-              handleDeleteOrder={handleDeleteOrder}
-              handleReceiveOrder={handleReceiveOrder}
-              handleCancelOrder={handleCancelOrder}
-              handleDownloadGuide={handleDownloadGuide}
-            />
+            <Button
+              size="sm"
+              onClick={() => handleOpenModal('create')}
+              className="ml-auto"
+            >
+              + Nuevo Pedido
+            </Button>
           </div>
+
+          <div className="w-full bg-card rounded-xl border shadow-sm overflow-hidden">
+            <div className="overflow-x-auto">
+              <div className="inline-block min-w-full align-middle p-4"></div>
+              <RenderProfiler id="Admin-OrdersSuppliers-TanStack-Table">
+                <OrdersSuppliersTable
+                  data={filteredData}
+                  fetchData={refetchData}
+                  pagination={pagination}
+                  setPagination={setPagination}
+                  totalPages={totalPages}
+                  search={search}
+                  setSearch={setSearch}
+                  searchFields={searchFields}
+                  setSearchFields={setSearchFields}
+                  handleOpenModal={handleOpenModal}
+                  handleDeleteOrder={handleDeleteOrder}
+                  handleReceiveOrder={handleReceiveOrder}
+                  handleCancelOrder={handleCancelOrder}
+                  handleDownloadGuide={handleDownloadGuide}
+                />
+              </RenderProfiler>
+            </div>
+          </div>
+
         </div>
+
+        {typeModal === 'create' && (
+          <RenderProfiler id="Admin-CreateOrderSuppliers-Modal">
+            <CreateNewOrderModal
+              open={isModalOpen}
+              setOpen={handleCloseModal}
+              onSave={handleSaveOrder}
+              suppliers={suppliers}
+            />
+          </RenderProfiler>
+        )}
+
+        {typeModal === 'edit' && (
+          <RenderProfiler id="Admin-UpdateOrderSuppliers-Modal">
+            <UpdateOrderModal
+              open={isModalOpen}
+              setOpen={handleCloseModal}
+              orderToEdit={selectedOrder}
+              onSave={handleUpdateOrder}
+            />
+          </RenderProfiler>
+        )}
+
+        {typeModal === 'details' && selectedOrder && (
+          <RenderProfiler id="Admin-ViewOrderDetails-Modal">
+            <ViewOrderDetailModal
+              open={isModalOpen}
+              setOpen={handleCloseModal}
+              order={selectedOrder}
+
+            />
+          </RenderProfiler>
+        )}
 
       </div>
-
-      {typeModal === 'create' && (
-        <CreateNewOrderModal
-          open={isModalOpen}
-          setOpen={handleCloseModal}
-          onSave={handleSaveOrder}
-          suppliers={suppliers}
-        />
-      )}
-
-      {typeModal === 'edit' && (
-        <UpdateOrderModal
-          open={isModalOpen}
-          setOpen={handleCloseModal}
-          orderToEdit={selectedOrder}
-          onSave={handleUpdateOrder}
-        />
-      )}
-
-      {typeModal === 'details' && selectedOrder && (
-        <ViewOrderDetailModal
-          open={isModalOpen}
-          setOpen={handleCloseModal}
-          order={selectedOrder}
-
-        />
-      )}
-
-    </div>
+    </RenderProfiler>
   );
 };
 

@@ -8,6 +8,7 @@ import SupplierOrderModal from '@/composables/admin/logistics/suppliers/modals/S
 import CreateNewOrderModal from '@/composables/admin/logistics/ordersSuppliers/modals/CreateNewOrderModal';
 import useCrud from '@/hooks/useCrud';
 import useEntityMutation from '@/hooks/useEntityMutation';
+import RenderProfiler from '@/components/RenderProfiler';
 
 const Suppliers = () => {
   const [proveedores, setProveedores] = useState([]);
@@ -116,76 +117,88 @@ const Suppliers = () => {
   };
 
   return (
-    <div className="p-6 w-full min-h-screen bg-background">
-      <div className="max-w-[1600px] mx-auto">
-        <div className="flex flex-col">
-          <div className="flex flex-col sm:flex-row items-end justify-between mb-2">
-            <h1 className="text-xl md:text-2xl font-bold tracking-tight">
-              GESTIÓN DE PROVEEDORES
-            </h1>
+    <RenderProfiler id="Admin-Suppliers-Dashboard">
+      <div className="p-6 w-full min-h-screen bg-background">
+        <div className="max-w-[1600px] mx-auto">
+          <div className="flex flex-col">
+            <div className="flex flex-col sm:flex-row items-end justify-between mb-2">
+              <h1 className="text-xl md:text-2xl font-bold tracking-tight">
+                GESTIÓN DE PROVEEDORES
+              </h1>
 
-            <Button
-              variant="default"
-              className="h-7 px-2 text-xs gap-1 shadow-sm sm:w-auto w-full"
-              onClick={() => handleOpenModal('new')}
-            >
-              <Plus className="h-4 w-4" /> NUEVO PROVEEDOR
-            </Button>
+              <Button
+                variant="default"
+                className="h-7 px-2 text-xs gap-1 shadow-sm sm:w-auto w-full"
+                onClick={() => handleOpenModal('new')}
+              >
+                <Plus className="h-4 w-4" /> NUEVO PROVEEDOR
+              </Button>
 
-          </div>
-          <div className="w-full bg-card rounded-xl border shadow-sm overflow-hidden">
-            <div className="p-4">
-              <SupplierTable
-                data={proveedores}
-                fetchData={refetchData}
-                pagination={pagination}
-                setPagination={setPagination}
-                totalPages={totalPages}
-                search={search}
-                setSearch={setSearch}
-                searchFields={searchFields}
-                setSearchFields={setSearchFields}
-                handleOpenModal={handleOpenModal}
-                handleDeleteConfirm={handleDeleteConfirm}
-              />
             </div>
+            <div className="w-full bg-card rounded-xl border shadow-sm overflow-hidden">
+              <div className="p-4">
+                <RenderProfiler id="Admin-Suppliers-TanStack-Table">
+                  <SupplierTable
+                    data={proveedores}
+                    fetchData={refetchData}
+                    pagination={pagination}
+                    setPagination={setPagination}
+                    totalPages={totalPages}
+                    search={search}
+                    setSearch={setSearch}
+                    searchFields={searchFields}
+                    setSearchFields={setSearchFields}
+                    handleOpenModal={handleOpenModal}
+                    handleDeleteConfirm={handleDeleteConfirm}
+                  />
+                </RenderProfiler>
+              </div>
+            </div>
+
           </div>
-
         </div>
-      </div>
 
-      {typeModal === 'new' && (
-        <CreateNewSupplierModal
-          open={isModalOpen}
-          setOpen={handleCloseModal}
-          onSave={handleSaveProveedor}
-        />
-      )}
-      {typeModal === 'edit' && (
-        <UpdateSupplierModal
-          open={isModalOpen}
-          setOpen={handleCloseModal}
-          supplierToEdit={selectedProveedor}
-          onSave={handleUpdateProveedor}
-        />
-      )}
-      {typeModal === 'details' && (
-        <SupplierOrderModal
-          open={isModalOpen}
-          setOpen={handleCloseModal}
-          supplier={selectedProveedor}
-        />
-      )}
-      {typeModal === 'create' && (
-        <CreateNewOrderModal
-          open={isModalOpen}
-          setOpen={handleCloseModal}
-          onSave={handleSaveOrder}
-          suppliers={proveedores}
-          initialSupplierId={selectedProveedor?.id}
-        />
-      )}
-    </div>
+        {typeModal === 'new' && (
+          <RenderProfiler id="Admin-CreateSupplier-Modal">
+            <CreateNewSupplierModal
+              open={isModalOpen}
+              setOpen={handleCloseModal}
+              onSave={handleSaveProveedor}
+            />
+          </RenderProfiler>
+        )}
+        {typeModal === 'edit' && (
+          <RenderProfiler id="Admin-UpdateSupplier-Modal">
+            <UpdateSupplierModal
+              open={isModalOpen}
+              setOpen={handleCloseModal}
+              supplierToEdit={selectedProveedor}
+              onSave={handleUpdateProveedor}
+            />
+          </RenderProfiler>
+        )}
+        {typeModal === 'details' && (
+          <RenderProfiler id="Admin-SupplierOrder-Modal">
+            <SupplierOrderModal
+              open={isModalOpen}
+              setOpen={handleCloseModal}
+              supplier={selectedProveedor}
+            />
+          </RenderProfiler>
+        )}
+        {typeModal === 'create' && (
+          <RenderProfiler id="Admin-CreateOrder-Modal">
+            <CreateNewOrderModal
+              open={isModalOpen}
+              setOpen={handleCloseModal}
+              onSave={handleSaveOrder}
+              suppliers={proveedores}
+              initialSupplierId={selectedProveedor?.id}
+            />
+          </RenderProfiler>
+        )}
+      </div>
+    </RenderProfiler>
   );
 };
 

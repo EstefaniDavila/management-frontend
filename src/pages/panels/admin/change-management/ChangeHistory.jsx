@@ -7,6 +7,7 @@ import useCrud from '@/hooks/useCrud'
 import { useAuth } from '@/providers/UserContext'
 import ReviewChangeModal from '@/composables/admin/change-management/modals/ReviewChangeModal'
 import BugReportModal from '@/components/bug-report-modal'
+import RenderProfiler from '@/components/RenderProfiler'
 
 const ChangeHistory = () => {
     const { getModel, deleteModel, patchModel } = useCrud('/api/v1/admin/error_reports')
@@ -131,55 +132,61 @@ const ChangeHistory = () => {
     }
 
     return (
-        <div className="container mx-auto py-6 px-4">
-            <Card>
-                <CardHeader className="flex flex-row items-center justify-between">
-                    <div>
-                        <CardTitle className="text-2xl font-bold">Gestión de Cambios</CardTitle>
-                        <p className="text-sm text-muted-foreground mt-1">
-                            Administra y da seguimiento a los cambios del sistema
-                        </p>
-                    </div>
-                    {/*no por ahora
-                    <div className="flex gap-2">
-                        <Button variant="outline" onClick={fetchData} disabled={loading}>
-                            <RefreshCw className={`h-4 w-4 mr-2 ${loading ? 'animate-spin' : ''}`} />
-                            Actualizar
-                        </Button>
-                        <Button onClick={() => console.log('Abrir modal crear')}>
-                            <Plus className="h-4 w-4 mr-2" />
-                            Nuevo Cambio
-                        </Button>
-                    </div>*/}
-                </CardHeader>
+        <RenderProfiler id="Admin-ChangeHistory-Dashboard">
+            <div className="container mx-auto py-6 px-4">
+                <Card>
+                    <CardHeader className="flex flex-row items-center justify-between">
+                        <div>
+                            <CardTitle className="text-2xl font-bold">Gestión de Cambios</CardTitle>
+                            <p className="text-sm text-muted-foreground mt-1">
+                                Administra y da seguimiento a los cambios del sistema
+                            </p>
+                        </div>
+                        {/*no por ahora
+                        <div className="flex gap-2">
+                            <Button variant="outline" onClick={fetchData} disabled={loading}>
+                                <RefreshCw className={`h-4 w-4 mr-2 ${loading ? 'animate-spin' : ''}`} />
+                                Actualizar
+                            </Button>
+                            <Button onClick={() => console.log('Abrir modal crear')}>
+                                <Plus className="h-4 w-4 mr-2" />
+                                Nuevo Cambio
+                            </Button>
+                        </div>*/}
+                    </CardHeader>
 
-                <CardContent>
-                    <ChangeTable
-                        data={data}
-                        fetchData={fetchData}
-                        pagination={pagination}
-                        setPagination={setPagination}
-                        totalPages={totalPages}
-                        search={search}
-                        setSearch={setSearch}
-                        searchFields={searchFields}
-                        setSearchFields={setSearchFields}
-                        onView={handleView}
-                        onReview={handleReview}
-                        onDelete={handleDelete}
+                    <CardContent>
+                        <RenderProfiler id="Admin-ChangeHistory-TanStack-Table">
+                            <ChangeTable
+                                data={data}
+                                fetchData={fetchData}
+                                pagination={pagination}
+                                setPagination={setPagination}
+                                totalPages={totalPages}
+                                search={search}
+                                setSearch={setSearch}
+                                searchFields={searchFields}
+                                setSearchFields={setSearchFields}
+                                onView={handleView}
+                                onReview={handleReview}
+                                onDelete={handleDelete}
+                            />
+                        </RenderProfiler>
+                    </CardContent>
+                </Card>
+
+                <RenderProfiler id="Admin-ReviewChange-Modal">
+                    <ReviewChangeModal
+                        open={reviewModalOpen}
+                        setOpen={setReviewModalOpen}
+                        change={selectedChange}
+                        onAccept={handleAccept}
+                        onReject={handleReject}
+                        loading={reviewLoading}
                     />
-                </CardContent>
-            </Card>
-
-            <ReviewChangeModal
-                open={reviewModalOpen}
-                setOpen={setReviewModalOpen}
-                change={selectedChange}
-                onAccept={handleAccept}
-                onReject={handleReject}
-                loading={reviewLoading}
-            />
-        </div>
+                </RenderProfiler>
+            </div>
+        </RenderProfiler>
     )
 }
 

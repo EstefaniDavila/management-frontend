@@ -7,6 +7,7 @@ import UpdateCustomerModal from '@/composables/admin/marketing/customers/modals/
 import ViewCustomerModal from '@/composables/admin/marketing/customers/modals/ViewCustomerModal'
 import useCrud from '@/hooks/useCrud'
 import useEntityMutation from '@/hooks/useEntityMutation'
+import RenderProfiler from '@/components/RenderProfiler'
 
 const Customers = () => {
   const { getModel } = useCrud('/api/v1/admin/clients')
@@ -123,62 +124,72 @@ const Customers = () => {
 
   return (
     <>
-      <div className="flex flex-col gap-4">
+      <RenderProfiler id="Admin-Customers-Dashboard">
+        <div className="flex flex-col gap-4">
 
-        {/* Título + botón */}
-        <div className="flex items-center justify-between">
-          <div>
-            <h1 className="text-base font-semibold">Gestión de Clientes</h1>
-            <p className="text-xs text-muted-foreground">Administra los clientes registrados en el sistema</p>
+          {/* Título + botón */}
+          <div className="flex items-center justify-between">
+            <div>
+              <h1 className="text-base font-semibold">Gestión de Clientes</h1>
+              <p className="text-xs text-muted-foreground">Administra los clientes registrados en el sistema</p>
+            </div>
+            <Button size="sm" onClick={() => setIsCreateOpen(true)}>
+              <TbPlus size={16} className="mr-1" /> Nuevo Cliente
+            </Button>
           </div>
-          <Button size="sm" onClick={() => setIsCreateOpen(true)}>
-            <TbPlus size={16} className="mr-1" /> Nuevo Cliente
-          </Button>
+
+          {/* Tabla */}
+          <div className="border rounded-xl bg-card shadow-sm">
+            <div className="px-4 pt-4 pb-2 border-b">
+              <p className="text-sm font-medium">Clientes registrados</p>
+            </div>
+            <div className="p-4">
+              <RenderProfiler id="Admin-Customers-TanStack-Table">
+                <CustomersTable
+                  data={customers}
+                  fetchData={refetchData}
+                  pagination={pagination}
+                  setPagination={setPagination}
+                  totalPages={totalPages}
+                  search={search}
+                  setSearch={setSearch}
+                  searchFields={searchFields}
+                  setSearchFields={setSearchFields}
+                  onView={handleView}
+                  onEdit={handleEdit}
+                  onDelete={handleDelete}
+                />
+              </RenderProfiler>
+            </div>
+          </div>
+
         </div>
+      </RenderProfiler>
 
-        {/* Tabla */}
-        <div className="border rounded-xl bg-card shadow-sm">
-          <div className="px-4 pt-4 pb-2 border-b">
-            <p className="text-sm font-medium">Clientes registrados</p>
-          </div>
-          <div className="p-4">
-            <CustomersTable
-              data={customers}
-              fetchData={refetchData}
-              pagination={pagination}
-              setPagination={setPagination}
-              totalPages={totalPages}
-              search={search}
-              setSearch={setSearch}
-              searchFields={searchFields}
-              setSearchFields={setSearchFields}
-              onView={handleView}
-              onEdit={handleEdit}
-              onDelete={handleDelete}
-            />
-          </div>
-        </div>
+      <RenderProfiler id="Admin-CreateCustomer-Modal">
+        <CreateCustomerModal
+          isOpen={isCreateOpen}
+          handleClose={() => setIsCreateOpen(false)}
+          onCreate={handleCreate}
+        />
+      </RenderProfiler>
 
-      </div>
+      <RenderProfiler id="Admin-UpdateCustomer-Modal">
+        <UpdateCustomerModal
+          isOpen={isUpdateOpen}
+          handleClose={() => { setIsUpdateOpen(false); setSelected(null) }}
+          customer={selected}
+          onUpdate={handleUpdate}
+        />
+      </RenderProfiler>
 
-      <CreateCustomerModal
-        isOpen={isCreateOpen}
-        handleClose={() => setIsCreateOpen(false)}
-        onCreate={handleCreate}
-      />
-
-      <UpdateCustomerModal
-        isOpen={isUpdateOpen}
-        handleClose={() => { setIsUpdateOpen(false); setSelected(null) }}
-        customer={selected}
-        onUpdate={handleUpdate}
-      />
-
-      <ViewCustomerModal
-        isOpen={isViewOpen}
-        handleClose={() => { setIsViewOpen(false); setSelected(null) }}
-        customer={selected}
-      />
+      <RenderProfiler id="Admin-ViewCustomer-Modal">
+        <ViewCustomerModal
+          isOpen={isViewOpen}
+          handleClose={() => { setIsViewOpen(false); setSelected(null) }}
+          customer={selected}
+        />
+      </RenderProfiler>
     </>
   )
 }

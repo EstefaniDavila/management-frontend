@@ -9,6 +9,7 @@ import useEntityMutation from '@/hooks/useEntityMutation'
 import { useLocation } from 'react-router-dom'
 import { toast } from 'sonner' // O la librería de notificaciones que uses en el frontend
 import axios from 'axios'
+import RenderProfiler from '@/components/RenderProfiler'
 
 const backend_host = import.meta.env.VITE_BACKEND_HOST
 
@@ -151,59 +152,67 @@ const UsersManagement = () => {
 
   return (
     <>
-      <div className="flex flex-col gap-4">
+      <RenderProfiler id="Admin-Users-Dashboard">
+        <div className="flex flex-col gap-4">
 
-        {/* Header */}
-        <div className="flex items-center justify-between">
-          <div>
-            <h1 className="text-base font-semibold">Gestión de Usuarios</h1>
-            <p className="text-xs text-muted-foreground">Administra los usuarios y roles registrados en el sistema</p>
+          {/* Header */}
+          <div className="flex items-center justify-between">
+            <div>
+              <h1 className="text-base font-semibold">Gestión de Usuarios</h1>
+              <p className="text-xs text-muted-foreground">Administra los usuarios y roles registrados en el sistema</p>
+            </div>
+            <Button size="sm" onClick={() => setIsCreateOpen(true)}>
+              <TbPlus size={16} className="mr-1" /> Nuevo Usuario
+            </Button>
           </div>
-          <Button size="sm" onClick={() => setIsCreateOpen(true)}>
-            <TbPlus size={16} className="mr-1" /> Nuevo Usuario
-          </Button>
+
+          {/* Table */}
+          <div className="border rounded-xl bg-card shadow-sm">
+            <div className="px-4 pt-4 pb-2 border-b">
+              <p className="text-sm font-medium">Usuarios registrados</p>
+            </div>
+            <div className="p-4">
+              <RenderProfiler id="Admin-Users-TanStack-Table">
+                <UsersTable
+                  data={users}
+                  fetchData={refetchData}
+                  pagination={pagination}
+                  setPagination={setPagination}
+                  totalPages={totalPages}
+                  search={search}
+                  setSearch={setSearch}
+                  searchFields={searchFields}
+                  setSearchFields={setSearchFields}
+                  onView={handleView}
+                  onEdit={handleEdit}
+                  onDelete={handleDelete}
+                  onToggleStatus={handleToggleStatus}
+                  onResetPassword={handleResetPassword}
+                />
+              </RenderProfiler>
+            </div>
+          </div>
+
         </div>
+      </RenderProfiler>
 
-        {/* Table */}
-        <div className="border rounded-xl bg-card shadow-sm">
-          <div className="px-4 pt-4 pb-2 border-b">
-            <p className="text-sm font-medium">Usuarios registrados</p>
-          </div>
-          <div className="p-4">
-            <UsersTable
-              data={users}
-              fetchData={refetchData}
-              pagination={pagination}
-              setPagination={setPagination}
-              totalPages={totalPages}
-              search={search}
-              setSearch={setSearch}
-              searchFields={searchFields}
-              setSearchFields={setSearchFields}
-              onView={handleView}
-              onEdit={handleEdit}
-              onDelete={handleDelete}
-              onToggleStatus={handleToggleStatus}
-              onResetPassword={handleResetPassword}
-            />
-          </div>
-        </div>
+      <RenderProfiler id="Admin-CreateUser-Modal">
+        <CreateUserModal
+          isOpen={isCreateOpen}
+          handleClose={() => { setIsCreateOpen(false); setPrefilledData(null); setAccessRequestId(null) }}
+          onCreate={handleCreate}
+          prefilledData={prefilledData}
+        />
+      </RenderProfiler>
 
-      </div>
-
-      <CreateUserModal
-        isOpen={isCreateOpen}
-        handleClose={() => { setIsCreateOpen(false); setPrefilledData(null); setAccessRequestId(null) }}
-        onCreate={handleCreate}
-        prefilledData={prefilledData}
-      />
-
-      <UpdateUserModal
-        isOpen={isUpdateOpen}
-        handleClose={() => { setIsUpdateOpen(false); setSelected(null) }}
-        user={selected}
-        onUpdate={handleUpdate}
-      />
+      <RenderProfiler id="Admin-UpdateUser-Modal">
+        <UpdateUserModal
+          isOpen={isUpdateOpen}
+          handleClose={() => { setIsUpdateOpen(false); setSelected(null) }}
+          user={selected}
+          onUpdate={handleUpdate}
+        />
+      </RenderProfiler>
     </>
   )
 }

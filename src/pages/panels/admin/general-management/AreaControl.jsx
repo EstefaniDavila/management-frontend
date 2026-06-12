@@ -9,6 +9,7 @@ import {
 } from 'lucide-react'
 import RegisterActionModal from '@/composables/admin/general-management/modals/RegisterActionModal'
 import useCrud from '@/hooks/useCrud'
+import RenderProfiler from '@/components/RenderProfiler'
 
 // ── Helpers ────────────────────────────────────────────────
 
@@ -133,13 +134,14 @@ const AreaControl = () => {
 
   return (
     <>
-      <div className="flex flex-col gap-8">
+      <RenderProfiler id="Admin-AreaControl-Dashboard">
+        <div className="flex flex-col gap-8">
 
-        {/* Título */}
-        <div>
-          <h1 className="text-lg font-semibold">Control de Áreas</h1>
-          <p className="text-sm text-muted-foreground">Supervisión del desempeño y gestión de alertas por área en tiempo real</p>
-        </div>
+          {/* Título */}
+          <div>
+            <h1 className="text-lg font-semibold">Control de Áreas</h1>
+            <p className="text-sm text-muted-foreground">Supervisión del desempeño y gestión de alertas por área en tiempo real</p>
+          </div>
 
         {/* Tarjetas por área */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
@@ -272,14 +274,17 @@ const AreaControl = () => {
           </div>
         </div>
 
-      </div>
+        </div>
+      </RenderProfiler>
 
-      <RegisterActionModal
-        isOpen={isActionOpen}
-        handleClose={() => { setIsActionOpen(false); setSelectedAlert(null) }}
-        onSave={handleSaveAction}
-        alert={selectedAlert}
-      />
+      <RenderProfiler id="Admin-ActionRequest-Modal">
+        <RegisterActionModal
+          isOpen={isActionOpen}
+          handleClose={() => { setIsActionOpen(false); setSelectedAlert(null) }}
+          onSave={handleSaveAction}
+          alert={selectedAlert}
+        />
+      </RenderProfiler>
     </>
   )
 }

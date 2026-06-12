@@ -6,6 +6,7 @@ import CreateSalesOrderModal from '@/composables/admin/marketing/salesOrders/mod
 import ViewSalesOrderModal from '@/composables/admin/marketing/salesOrders/modals/ViewSalesOrderModal'
 import useCrud from '@/hooks/useCrud'
 import { useEffect } from 'react'
+import RenderProfiler from '@/components/RenderProfiler'
 
 const SalesOrders = () => {
   const { getModel, deleteModel, updateModel } = useCrud('/api/v1/admin/sales_orders')
@@ -71,54 +72,62 @@ const SalesOrders = () => {
 
   return (
     <>
-      <div className="flex flex-col gap-4">
+      <RenderProfiler id="Admin-SalesOrders-Dashboard">
+        <div className="flex flex-col gap-4">
 
-        <div className="flex items-center justify-between">
-          <div>
-            <h1 className="text-base font-semibold">Órdenes de Venta</h1>
-            <p className="text-xs text-muted-foreground">Gestiona las órdenes generadas a partir de cotizaciones aprobadas</p>
+          <div className="flex items-center justify-between">
+            <div>
+              <h1 className="text-base font-semibold">Órdenes de Venta</h1>
+              <p className="text-xs text-muted-foreground">Gestiona las órdenes generadas a partir de cotizaciones aprobadas</p>
+            </div>
+            <Button size="sm" onClick={handleCreate}>
+              <TbPlus className="mr-1" size={16}/> Nueva Orden
+            </Button>
           </div>
-          <Button size="sm" onClick={handleCreate}>
-            <TbPlus className="mr-1" size={16}/> Nueva Orden
-          </Button>
+
+          <div className="border rounded-xl bg-card shadow-sm">
+            <div className="px-4 pt-4 pb-2 border-b">
+              <p className="text-sm font-medium">Órdenes registradas</p>
+            </div>
+            <div className="p-4">
+              <RenderProfiler id="Admin-SalesOrders-TanStack-Table">
+                <SalesOrdersTable
+                  data={salesOrders}
+                  fetchData={() => {}}
+                  pagination={pagination}
+                  setPagination={setPagination}
+                  totalPages={totalPages}
+                  search={search}
+                  setSearch={setSearch}
+                  searchFields={searchFields}
+                  setSearchFields={setSearchFields}
+                  onView={handleView}
+                  onEdit={handleEdit}
+                  onDelete={handleDelete}
+                />
+              </RenderProfiler>
+            </div>
+          </div>
+
         </div>
+      </RenderProfiler>
 
-        <div className="border rounded-xl bg-card shadow-sm">
-          <div className="px-4 pt-4 pb-2 border-b">
-            <p className="text-sm font-medium">Órdenes registradas</p>
-          </div>
-          <div className="p-4">
-            <SalesOrdersTable
-              data={salesOrders}
-              fetchData={() => {}}
-              pagination={pagination}
-              setPagination={setPagination}
-              totalPages={totalPages}
-              search={search}
-              setSearch={setSearch}
-              searchFields={searchFields}
-              setSearchFields={setSearchFields}
-              onView={handleView}
-              onEdit={handleEdit}
-              onDelete={handleDelete}
-            />
-          </div>
-        </div>
+      <RenderProfiler id="Admin-CreateSalesOrder-Modal">
+        <CreateSalesOrderModal
+          isOpen={isModalOpen}
+          handleClose={() => { setIsModalOpen(false); setSelected(null) }}
+          onSave={handleSave}
+          initialData={selected}
+        />
+      </RenderProfiler>
 
-      </div>
-
-      <CreateSalesOrderModal
-        isOpen={isModalOpen}
-        handleClose={() => { setIsModalOpen(false); setSelected(null) }}
-        onSave={handleSave}
-        initialData={selected}
-      />
-
-      <ViewSalesOrderModal
-        isOpen={isViewOpen}
-        handleClose={() => { setIsViewOpen(false); setSelected(null) }}
-        order={selected}
-      />
+      <RenderProfiler id="Admin-ViewSalesOrder-Modal">
+        <ViewSalesOrderModal
+          isOpen={isViewOpen}
+          handleClose={() => { setIsViewOpen(false); setSelected(null) }}
+          order={selected}
+        />
+      </RenderProfiler>
     </>
   )
 }

@@ -17,6 +17,7 @@ import useCrud from '@/hooks/useCrud';
 import useEntityMutation from '@/hooks/useEntityMutation';
 import { useAuth } from '@/providers/UserContext';
 import axios from 'axios';
+import RenderProfiler from '@/components/RenderProfiler';
 
 const Inventory = () => {
   const [products, setProducts] = useState([]);
@@ -179,101 +180,111 @@ const Inventory = () => {
   const totalPages = Math.ceil(filteredData.length / pagination.pageSize);
 
   return (
-    <div className="px-4 py-4 md:px-6 w-full">
-      <div className="max-w-[1600px] mx-auto flex flex-col gap-4">
-        <h1 className="text-base font-semibold tracking-tight text-foreground">
-          Inventario — Maquinaria y Repuestos
-        </h1>
-        <p className="text-sm text-muted-foreground max-w-[850px] leading-relaxed">
-          Visualiza, filtra y gestiona el inventario de maquinaria y repuestos, incluyendo su disponibilidad, ubicación, estado actual y valores base.
-        </p>
-        <div className="flex flex-wrap gap-2">
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button variant="outline" size="sm" className="gap-2">
-                <Filter className="h-3.5 w-3.5" />
-                Status: {filterStatus}
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent>
-              <DropdownMenuItem onClick={() => setFilterStatus("todos")}>All</DropdownMenuItem>
-              <DropdownMenuItem onClick={() => setFilterStatus("OK")}>OK</DropdownMenuItem>
-              <DropdownMenuItem onClick={() => setFilterStatus("Bajo")}>Low</DropdownMenuItem>
-              <DropdownMenuItem onClick={() => setFilterStatus("AGOT")}>Out of stock</DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
+    <RenderProfiler id="Admin-Inventory-Dashboard">
+      <div className="px-4 py-4 md:px-6 w-full">
+        <div className="max-w-[1600px] mx-auto flex flex-col gap-4">
+          <h1 className="text-base font-semibold tracking-tight text-foreground">
+            Inventario — Maquinaria y Repuestos
+          </h1>
+          <p className="text-sm text-muted-foreground max-w-[850px] leading-relaxed">
+            Visualiza, filtra y gestiona el inventario de maquinaria y repuestos, incluyendo su disponibilidad, ubicación, estado actual y valores base.
+          </p>
+          <div className="flex flex-wrap gap-2">
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="outline" size="sm" className="gap-2">
+                  <Filter className="h-3.5 w-3.5" />
+                  Status: {filterStatus}
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent>
+                <DropdownMenuItem onClick={() => setFilterStatus("todos")}>All</DropdownMenuItem>
+                <DropdownMenuItem onClick={() => setFilterStatus("OK")}>OK</DropdownMenuItem>
+                <DropdownMenuItem onClick={() => setFilterStatus("Bajo")}>Low</DropdownMenuItem>
+                <DropdownMenuItem onClick={() => setFilterStatus("AGOT")}>Out of stock</DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
 
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button variant="outline" size="sm" className="gap-2">
-                <Filter className="h-3.5 w-3.5" />
-                Tipo: {filterType}
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent>
-              <DropdownMenuItem onClick={() => setFilterType("todos")}>Todos</DropdownMenuItem>
-              <DropdownMenuItem onClick={() => setFilterType("Maquinaria")}>Maquinaria</DropdownMenuItem>
-              <DropdownMenuItem onClick={() => setFilterType("Repuesto")}>Respuestos</DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="outline" size="sm" className="gap-2">
+                  <Filter className="h-3.5 w-3.5" />
+                  Tipo: {filterType}
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent>
+                <DropdownMenuItem onClick={() => setFilterType("todos")}>Todos</DropdownMenuItem>
+                <DropdownMenuItem onClick={() => setFilterType("Maquinaria")}>Maquinaria</DropdownMenuItem>
+                <DropdownMenuItem onClick={() => setFilterType("Repuesto")}>Respuestos</DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
 
-          <Button
-            size="sm"
-            onClick={() => handleOpenModal('create')}
-            className="ml-auto"
-          >
-            + Registrar Producto
-          </Button>
-        </div>
-
-        <div className="w-full bg-card rounded-xl border shadow-sm overflow-hidden">
-          <div className="overflow-x-auto">
-            <div className="inline-block min-w-full align-middle p-4"></div>
-            <GeneralInventoryTable
-              data={filteredData}
-              fetchData={refetchData}
-              pagination={pagination}
-              setPagination={setPagination}
-              totalPages={totalPages}
-              search={search}
-              setSearch={setSearch}
-              searchFields={searchFields}
-              setSearchFields={setSearchFields}
-              handleOpenModal={handleOpenModal}
-              handleDeleteProduct={handleDeleteProduct}
-            />
+            <Button
+              size="sm"
+              onClick={() => handleOpenModal('create')}
+              className="ml-auto"
+            >
+              + Registrar Producto
+            </Button>
           </div>
+
+          <div className="w-full bg-card rounded-xl border shadow-sm overflow-hidden">
+            <div className="overflow-x-auto">
+              <div className="inline-block min-w-full align-middle p-4"></div>
+              <RenderProfiler id="Admin-Inventory-TanStack-Table">
+                <GeneralInventoryTable
+                  data={filteredData}
+                  fetchData={refetchData}
+                  pagination={pagination}
+                  setPagination={setPagination}
+                  totalPages={totalPages}
+                  search={search}
+                  setSearch={setSearch}
+                  searchFields={searchFields}
+                  setSearchFields={setSearchFields}
+                  handleOpenModal={handleOpenModal}
+                  handleDeleteProduct={handleDeleteProduct}
+                />
+              </RenderProfiler>
+            </div>
+          </div>
+
         </div>
+
+        {typeModal === 'create' && (
+          <RenderProfiler id="Admin-CreateProduct-Modal">
+            <CreateProductModal
+              open={isModalOpen}
+              setOpen={handleCloseModal}
+              onSave={handleSaveProduct}
+              currentUserId={user?.id}
+            />
+          </RenderProfiler>
+        )}
+
+
+        {isModalOpen && typeModal === 'edit' && (
+          <RenderProfiler id="Admin-UpdateProduct-Modal">
+            <UpdateProductModal
+              open={isModalOpen}
+              setOpen={handleCloseModal}
+              productToEdit={selectedProduct}
+              onSave={handleUpdateProduct}
+            />
+          </RenderProfiler>
+        )}
+        {typeModal === 'history' && (
+          <RenderProfiler id="Admin-HistoryProduct-Modal">
+            <HistoryProductModal
+              open={isModalOpen}
+              setOpen={handleCloseModal}
+              product={selectedProduct}
+            />
+          </RenderProfiler>
+        )}
 
       </div>
-
-      {typeModal === 'create' && (
-        <CreateProductModal
-          open={isModalOpen}
-          setOpen={handleCloseModal}
-          onSave={handleSaveProduct}
-          currentUserId={user?.id}
-        />
-      )}
-
-
-      {isModalOpen && typeModal === 'edit' && (
-        <UpdateProductModal
-          open={isModalOpen}
-          setOpen={handleCloseModal}
-          productToEdit={selectedProduct}
-          onSave={handleUpdateProduct}
-        />
-      )}
-      {typeModal === 'history' && (
-        <HistoryProductModal
-          open={isModalOpen}
-          setOpen={handleCloseModal}
-          product={selectedProduct}
-        />
-      )}
-
-    </div>
+    </RenderProfiler>
   );
 };
 
