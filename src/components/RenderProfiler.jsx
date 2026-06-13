@@ -5,7 +5,15 @@ if (!window.__PERFORMANCE_METRICS__) {
   window.__PERFORMANCE_METRICS__ = {};
   
   window.printPerformanceReport = () => {
-    const report = Object.keys(window.__PERFORMANCE_METRICS__).map(id => {
+    const keys = Object.keys(window.__PERFORMANCE_METRICS__);
+    
+    if (keys.length === 0) {
+      console.warn("⚠️ No se registraron métricas de rendimiento.");
+      console.info("💡 NOTA: React desactiva el Profiler en producción para garantizar la máxima velocidad al usuario. Para ver los datos en la versión construida, haz un nuevo 'npm run build' (ya agregamos la configuración necesaria en vite.config.js).");
+      return "Sin datos.";
+    }
+
+    const report = keys.map(id => {
       const data = window.__PERFORMANCE_METRICS__[id];
       return {
         'Componente / Página': id,
