@@ -116,8 +116,8 @@ const columns = (handleView, handleReview, handleDelete) => [
 
           {isPending && (
             <GeneralTooltip
-              content="Evaluar / Revisar"
-              triggerContent={<span className='bg-yellow-500 text-white rounded-full p-1 cursor-pointer hover:bg-yellow-600 block'><TbEdit size={18} /></span>}
+              content="Ver detalles y Evaluar"
+              triggerContent={<span className='bg-blue-500 text-white rounded-full p-1 cursor-pointer hover:bg-blue-600 block'><TbEye size={18} /></span>}
               onClick={() => handleReview(change)}
             />
           )}

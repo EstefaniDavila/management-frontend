@@ -96,12 +96,19 @@ const ReviewChangeModal = ({ open, setOpen, change, onAccept, onReject, loading 
             disabled={loading}
           />
         </div>
-        <div className="bg-muted/50 p-3 rounded-md space-y-1 text-sm">
-          <p className="font-semibold mb-2">Información del cambio:</p>
-          <p><span className="text-muted-foreground">Código:</span> {change.change_code || 'PENDIENTE'}</p>
-          <p><span className="text-muted-foreground">Módulo:</span> {change.module_affected || '-'}</p>
-          <p><span className="text-muted-foreground">Severidad:</span> {change.severity || '-'}</p>
-          <p><span className="text-muted-foreground">Descripción:</span> {change.description || change.title || '-'}</p>
+        <div className="bg-muted/50 p-4 rounded-lg shadow-inner space-y-2 text-sm border">
+          <p className="font-bold text-base mb-2 border-b pb-1">Información del Incidente</p>
+          <div className="grid grid-cols-2 gap-2">
+            <p><span className="text-muted-foreground font-semibold">Código:</span> {change.change_code || 'PENDIENTE'}</p>
+            <p><span className="text-muted-foreground font-semibold">Módulo:</span> {change.module_affected || '-'}</p>
+            <p><span className="text-muted-foreground font-semibold">Severidad:</span> {change.severity || '-'}</p>
+          </div>
+          <div className="mt-3 pt-3 border-t">
+            <p className="text-muted-foreground font-semibold mb-2">Descripción y Análisis ITIL:</p>
+            <div className="whitespace-pre-wrap font-mono text-xs bg-background p-3 rounded-md border shadow-sm">
+              {change.description || change.title || '-'}
+            </div>
+          </div>
         </div>
       </div>
     </Modal>

@@ -12,6 +12,7 @@ import { Button } from '@/components/custom/button'
 import { Input } from '@/components/ui/input'
 import { Textarea } from '@/components/ui/textarea'
 import { Label } from '@/components/ui/label'
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { useToast } from '@/components/ui/use-toast'
 import { useAuth } from '@/providers/UserContext'
 import { Bug, Loader2, Sparkles, CheckCircle2 } from 'lucide-react'
@@ -77,8 +78,9 @@ export default function BugReportModal({ onSuccess }) {
     setAnalyzing(true)
     try {
       const backendHost = import.meta.env.VITE_BACKEND_HOST
+      const userContext = user?.role?.name || user?.roles?.[0]?.name || user?.email || 'Usuario General'
       const response = await axios.post(`${backendHost}/api/v1/support/classify_incident`, {
-        description: formData.title + ". " + formData.description
+        description: `TÍTULO: ${formData.title}. DESCRIPCIÓN: ${formData.description}. REPORTE HECHO POR (ÁREA/ROL): ${userContext}`
       })
       
       setAiClassification(response.data)
@@ -93,6 +95,25 @@ export default function BugReportModal({ onSuccess }) {
         description: 'Claude ha clasificado el incidente correctamente.',
       })
     } catch (error) {
+      console.error(error)
+      // Si no hay respuesta del backend (servidor caído)
+      if (!error.response) {
+        toast({
+          title: '⚠️ Servidor Caído Detectado',
+          description: 'No hay conexión con el servidor. Auto-escalando a Incidencia P1 (Crítica).',
+          variant: 'destructive',
+        })
+        setAiClassification({
+          severity: 'critical',
+          severity_label: 'P1 (Crítico)',
+          module: 'SISTEMA CORE',
+          sla_response: '<= 15 min',
+          analysis: 'AUTO-ANÁLISIS: El servidor principal no responde. Caída general del sistema detectada.',
+          steps: '1. Intentar acción en el sistema\n2. Sistema no responde (503/Error de Red)'
+        })
+        return
+      }
+
       toast({
         title: 'Error de IA',
         description: 'No se pudo conectar con Claude API.',
@@ -144,11 +165,24 @@ Justificación: ${aiClassification.analysis}
 [DESCRIPCIÓN DEL USUARIO]
 ${formData.description}`;
 
+    const mapModule = (moduleName) => {
+      const name = (moduleName || '').toLowerCase()
+      if (name.includes('ventas') || name.includes('sales')) return 'sales'
+      if (name.includes('rentas') || name.includes('rent')) return 'rentals'
+      if (name.includes('mantenimiento') || name.includes('maintenance')) return 'maintenance'
+      if (name.includes('inventario') || name.includes('almacen') || name.includes('logistica') || name.includes('inventory')) return 'inventory'
+      if (name.includes('despacho') || name.includes('dispatch')) return 'dispatch'
+      if (name.includes('producto') || name.includes('product')) return 'products'
+      if (name.includes('cliente') || name.includes('client')) return 'clients'
+      if (name.includes('lead')) return 'leads'
+      return 'other'
+    }
+
     const payload = {
       error_report: {
         ...formData,
         description: formattedDescription,
-        module_affected: aiClassification.module,
+        module_affected: mapModule(aiClassification.module),
         severity: aiClassification.severity,
         reported_by_id: user?.id || 'anonymous',
       },
@@ -184,6 +218,39 @@ ${formData.description}`;
       }
     } catch (error) {
       console.error('Error al enviar el reporte:', error)
+      
+      // FALLBACK DE EMERGENCIA: Si el servidor está caído
+      if (!error.response) {
+        toast({
+          title: '🚨 Activando Protocolo de Emergencia',
+          description: 'Enviando alerta directa al equipo de TI vía Webhook...',
+          variant: 'destructive',
+        })
+        
+        try {
+          const webhookUrl = import.meta.env.VITE_DISCORD_WEBHOOK_URL
+          if (webhookUrl) {
+            await axios.post(webhookUrl, {
+              content: `🚨 **INCIDENCIA CRÍTICA REPORTADA (SERVIDOR CAÍDO)** 🚨\n**Usuario:** ${user?.full_name || user?.email || 'Desconocido'}\n**Título:** ${formData.title}\n**Descripción:** ${formData.description}\n**Clasificación ITIL:** P1 (Crítico) - Servidor no responde.\n@everyone Por favor revisar de inmediato.`
+            })
+            toast({
+              title: 'Alerta Enviada',
+              description: 'El equipo de TI ha sido notificado por un canal de emergencia alterno.',
+            })
+            setOpen(false)
+          } else {
+            toast({
+              title: 'Falta configurar Webhook',
+              description: 'El servidor está caído y no se configuró el webhook de Discord en el .env',
+              variant: 'destructive',
+            })
+          }
+        } catch (webhookErr) {
+          console.error('Fallo el webhook', webhookErr)
+        }
+        return
+      }
+
       const errorMsg = error.response?.data?.message || error.response?.data?.error || 'No se pudo conectar con el servidor. Inténtalo más tarde.'
       toast({
         title: 'Error al enviar reporte',
@@ -205,21 +272,46 @@ ${formData.description}`;
           title="Reportar un error en el sistema"
         >
           <Bug className="h-5 w-5" />
-          <span className="sr-only">Reportar error</span>
+          <span className="sr-only">Reportar Incidencia</span>
         </Button>
       </DialogTrigger>
-      <DialogContent className="sm:max-w-[500px]">
+      <DialogContent className="sm:max-w-[550px]">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2 text-xl font-bold">
             <Bug className="h-5 w-5 text-destructive" />
-            Reportar un Error / Bug
+            Reportar Bug o Incidencia
           </DialogTitle>
           <DialogDescription>
-            Cuéntanos qué falló en el sistema para que podamos solucionarlo lo antes posible.
+            Cuéntanos qué falló en el sistema. Nuestra IA lo clasificará según estándares ITIL.
           </DialogDescription>
         </DialogHeader>
 
-        <form onSubmit={handleSubmit} className="space-y-4 py-2">
+        <Tabs defaultValue="guide" className="w-full mt-2">
+          <TabsList className="grid w-full grid-cols-2 mb-2">
+            <TabsTrigger value="guide">¿Bug o Incidencia?</TabsTrigger>
+            <TabsTrigger value="form">Formulario</TabsTrigger>
+          </TabsList>
+
+          <TabsContent value="guide" className="p-4 bg-muted/20 rounded-lg border">
+            <div className="space-y-4 text-sm text-muted-foreground">
+              <div>
+                <p className="font-bold text-indigo-700 text-base mb-1">🐛 Bug (Error de Software)</p>
+                <p>Falla en el código del ERP. El sistema hace algo inesperado, muestra un error visual, o no guarda datos correctamente.</p>
+                <p className="italic text-xs mt-1 border-l-2 border-indigo-200 pl-2">Ej: "Al hacer clic en Guardar Cotización, el botón se queda cargando infinito."</p>
+              </div>
+              <div className="pt-3 border-t">
+                <p className="font-bold text-orange-700 text-base mb-1">🔥 Incidencia (Interrupción de Servicio)</p>
+                <p>Una interrupción no planificada de un servicio TI. Incluye caídas de servidor, problemas de red, bases de datos bloqueadas, etc. (ITIL v4).</p>
+                <p className="italic text-xs mt-1 border-l-2 border-orange-200 pl-2">Ej: "Nadie en el área de Ventas puede acceder al ERP, sale error 503."</p>
+              </div>
+              <div className="mt-4 p-3 bg-blue-50/50 border border-blue-200 rounded text-blue-800 text-xs text-center">
+                <strong>No te preocupes por la diferencia.</strong> Escribe tu problema en el Formulario y nuestra Inteligencia Artificial se encargará de clasificar la severidad.
+              </div>
+            </div>
+          </TabsContent>
+
+          <TabsContent value="form">
+            <form onSubmit={handleSubmit} className="space-y-4 py-1">
 
           <div className="grid gap-2">
             <Label htmlFor="title" className="font-semibold text-sm">Título del Error</Label>
@@ -318,6 +410,8 @@ ${formData.description}`;
             </Button>
           </DialogFooter>
         </form>
+        </TabsContent>
+        </Tabs>
       </DialogContent>
     </Dialog>
   )

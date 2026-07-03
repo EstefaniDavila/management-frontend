@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react'
-import { Activity, Database, Server, Cpu, AlertTriangle, CheckCircle, HardDrive, Wifi, Users, Bug, Play } from 'lucide-react'
+import { Activity, Database, Server, Cpu, AlertTriangle, CheckCircle, HardDrive, Wifi, Users, Bug, Play, ShieldAlert } from 'lucide-react'
 import { Button } from '@/components/ui/button'
+import * as Sentry from "@sentry/react"
 import { LineChart, Line, AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts'
 
 import { toast } from 'sonner'
@@ -65,6 +66,33 @@ const MonitoringDashboard = () => {
       checkHealth()
     } catch (error) {
       toast.error("Error conectando al backend para inyectar Chaos.")
+    }
+  }
+
+  const triggerSentryFrontendError = () => {
+    try {
+      // Lanzamos un error explícito para que Sentry lo capture
+      throw new Error("Sentry Frontend Test Error! Este error fue disparado desde el MonitoringDashboard.");
+    } catch (err) {
+      Sentry.captureException(err);
+      addLog('error', 'Error forzado en Frontend reportado a Sentry.')
+      toast.success("¡Error reportado a Sentry (Frontend)! Revisa tu panel de Sentry.");
+    }
+  }
+
+  const triggerSentryBackendError = async () => {
+    try {
+      addLog('info', 'Enviando petición de error al backend...')
+      const res = await fetch(`${backend_host}/api/v1/health/trigger_error`, { method: 'POST' })
+      
+      if (!res.ok) {
+        addLog('error', 'Backend reportó error 500 (Interceptado por Sentry Rails).')
+        toast.success("¡Error de backend enviado! El backend levantó un error 500 y Sentry Rails capturó la excepción. Revisa tu panel.");
+      } else {
+        toast.error("El backend no falló. Verifica si la ruta y controlador se actualizaron bien.");
+      }
+    } catch (error) {
+      toast.error("Error de red conectando al backend para probar Sentry.");
     }
   }
 
@@ -158,13 +186,29 @@ const MonitoringDashboard = () => {
           </h1>
           <p className="text-sm text-muted-foreground">Telemetría avanzada de red e infraestructura en DigitalOcean.</p>
         </div>
-        <Button 
-          variant={chaosMode ? "outline" : "destructive"} 
-          onClick={toggleChaos}
-          className="flex items-center gap-2"
-        >
-          <Play size={16} /> {chaosMode ? "Apagar Chaos (Restaurar BD)" : "Inyectar Chaos (Simular Caída BD)"}
-        </Button>
+        <div className="flex items-center gap-3">
+          <Button 
+            variant="outline" 
+            onClick={triggerSentryFrontendError}
+            className="flex items-center gap-2 border-orange-500/30 hover:bg-orange-500/10 text-orange-400"
+          >
+            <ShieldAlert size={16} /> Probar Sentry (Front)
+          </Button>
+          <Button 
+            variant="outline" 
+            onClick={triggerSentryBackendError}
+            className="flex items-center gap-2 border-red-500/30 hover:bg-red-500/10 text-red-400"
+          >
+            <ShieldAlert size={16} /> Probar Sentry (Back)
+          </Button>
+          <Button 
+            variant={chaosMode ? "outline" : "destructive"} 
+            onClick={toggleChaos}
+            className="flex items-center gap-2"
+          >
+            <Play size={16} /> {chaosMode ? "Apagar Chaos (Restaurar BD)" : "Inyectar Chaos (Simular Caída BD)"}
+          </Button>
+        </div>
       </div>
 
       {/* Estado Global */}
