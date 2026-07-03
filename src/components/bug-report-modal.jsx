@@ -14,7 +14,7 @@ import { Textarea } from '@/components/ui/textarea'
 import { Label } from '@/components/ui/label'
 import { useToast } from '@/components/ui/use-toast'
 import { useAuth } from '@/providers/UserContext'
-import { Bug, Loader2 } from 'lucide-react'
+import { Bug, Loader2, Sparkles, CheckCircle2 } from 'lucide-react'
 import axios from 'axios'
 
 export default function BugReportModal({ onSuccess }) {
@@ -24,11 +24,11 @@ export default function BugReportModal({ onSuccess }) {
 
   const [open, setOpen] = useState(false)
   const [loading, setLoading] = useState(false)
+  const [analyzing, setAnalyzing] = useState(false)
+  const [aiClassification, setAiClassification] = useState(null)
 
   const [formData, setFormData] = useState({
     title: '',
-    module_affected: 'other',
-    severity: 'medium',
     description: '',
     steps_to_reproduce: '',
   })
@@ -58,13 +58,49 @@ export default function BugReportModal({ onSuccess }) {
       ...prev,
       [name]: value,
     }))
+    // Reset classification if user types more after analysis
+    if (name === 'description' && aiClassification) {
+      setAiClassification(null)
+    }
   }
 
-  const handleSelectChange = (name, value) => {
-    setFormData((prev) => ({
-      ...prev,
-      [name]: value,
-    }))
+  const handleAnalyzeAI = async () => {
+    if (!formData.description.trim()) {
+      toast({
+        title: 'Descripción requerida',
+        description: 'Escribe el problema para que Claude lo analice.',
+        variant: 'destructive',
+      })
+      return
+    }
+
+    setAnalyzing(true)
+    try {
+      const backendHost = import.meta.env.VITE_BACKEND_HOST
+      const response = await axios.post(`${backendHost}/api/v1/support/classify_incident`, {
+        description: formData.title + ". " + formData.description
+      })
+      
+      setAiClassification(response.data)
+      if (response.data.steps) {
+        setFormData((prev) => ({
+          ...prev,
+          steps_to_reproduce: response.data.steps
+        }))
+      }
+      toast({
+        title: 'Análisis Completo',
+        description: 'Claude ha clasificado el incidente correctamente.',
+      })
+    } catch (error) {
+      toast({
+        title: 'Error de IA',
+        description: 'No se pudo conectar con Claude API.',
+        variant: 'destructive',
+      })
+    } finally {
+      setAnalyzing(false)
+    }
   }
 
   const handleSubmit = async (e) => {
@@ -88,11 +124,32 @@ export default function BugReportModal({ onSuccess }) {
       return
     }
 
+    if (!aiClassification) {
+      toast({
+        title: 'Análisis IA Pendiente',
+        description: 'Por favor presiona "Analizar Incidente con IA" antes de enviarlo a TI.',
+        variant: 'destructive',
+      })
+      return
+    }
+
     setLoading(true)
+
+    const formattedDescription = `[ANÁLISIS ITIL IA]
+Severidad: ${aiClassification.severity_label}
+Módulo: ${aiClassification.module}
+SLA de Respuesta: ${aiClassification.sla_response}
+Justificación: ${aiClassification.analysis}
+
+[DESCRIPCIÓN DEL USUARIO]
+${formData.description}`;
 
     const payload = {
       error_report: {
         ...formData,
+        description: formattedDescription,
+        module_affected: aiClassification.module,
+        severity: aiClassification.severity,
         reported_by_id: user?.id || 'anonymous',
       },
     }
@@ -109,11 +166,10 @@ export default function BugReportModal({ onSuccess }) {
 
         setFormData({
           title: '',
-          module_affected: 'other',
-          severity: 'medium',
           description: '',
           steps_to_reproduce: '',
         })
+        setAiClassification(null)
         setOpen(false)
 
         if (onSuccess) 
@@ -178,46 +234,6 @@ export default function BugReportModal({ onSuccess }) {
             />
           </div>
 
-          <div className="grid grid-cols-2 gap-4">
-
-            <div className="grid gap-2">
-              <Label htmlFor="module_affected" className="font-semibold text-sm">Módulo Afectado</Label>
-              <select
-                id="module_affected"
-                name="module_affected"
-                value={formData.module_affected}
-                onChange={handleInputChange}
-                disabled={loading}
-                className="flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-sm transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50"
-              >
-                {modules.map((mod) => (
-                  <option key={mod.value} value={mod.value} className="bg-background text-foreground">
-                    {mod.label}
-                  </option>
-                ))}
-              </select>
-            </div>
-
-            <div className="grid gap-2">
-              <Label htmlFor="severity" className="font-semibold text-sm">Severidad</Label>
-              <select
-                id="severity"
-                name="severity"
-                value={formData.severity}
-                onChange={handleInputChange}
-                disabled={loading}
-                className="flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-sm transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50"
-              >
-                {severities.map((sev) => (
-                  <option key={sev.value} value={sev.value} className="bg-background text-foreground">
-                    {sev.label}
-                  </option>
-                ))}
-              </select>
-            </div>
-          </div>
-
-
           <div className="grid gap-2">
             <Label htmlFor="description" className="font-semibold text-sm">Descripción del Problema</Label>
             <Textarea
@@ -227,10 +243,39 @@ export default function BugReportModal({ onSuccess }) {
               onChange={handleInputChange}
               placeholder="Describe detalladamente qué estabas haciendo y qué ocurrió..."
               rows={3}
-              disabled={loading}
+              disabled={loading || analyzing}
               className="resize-none"
             />
           </div>
+
+          {!aiClassification ? (
+            <Button 
+              type="button" 
+              variant="secondary" 
+              className="w-full gap-2 border-indigo-200 bg-indigo-50 text-indigo-700 hover:bg-indigo-100" 
+              onClick={handleAnalyzeAI}
+              disabled={analyzing || loading}
+            >
+              {analyzing ? (
+                <Loader2 className="h-4 w-4 animate-spin" />
+              ) : (
+                <Sparkles className="h-4 w-4 text-indigo-500" />
+              )}
+              {analyzing ? 'Analizando con Claude AI...' : 'Analizar Severidad con IA (ITIL)'}
+            </Button>
+          ) : (
+            <div className="p-3 border rounded-lg bg-green-50 border-green-200 text-sm">
+              <div className="flex items-center gap-2 font-bold text-green-800 mb-2">
+                <CheckCircle2 className="h-4 w-4" /> Clasificación IA Exitosa
+              </div>
+              <div className="grid grid-cols-2 gap-2 text-green-900">
+                <div><strong>Nivel:</strong> {aiClassification.severity_label}</div>
+                <div><strong>Módulo:</strong> {aiClassification.module}</div>
+                <div className="col-span-2"><strong>SLA (Respuesta):</strong> {aiClassification.sla_response}</div>
+                <div className="col-span-2 text-xs italic mt-1">"{aiClassification.analysis}"</div>
+              </div>
+            </div>
+          )}
 
           <div className="grid gap-2">
             <Label htmlFor="steps_to_reproduce" className="font-semibold text-sm">Pasos para Reproducir</Label>

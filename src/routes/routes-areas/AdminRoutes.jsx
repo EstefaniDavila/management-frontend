@@ -24,6 +24,7 @@ const adminRoutes = [
             }),
           },
           { path: 'users', lazy: async () => ({ Component: (await import('../../pages/panels/admin/general-management/users/UsersManagement')).default }) },
+          { path: 'monitoring', lazy: async () => ({ Component: (await import('../../pages/panels/admin/general-management/monitoring/MonitoringDashboard')).default }) },
           { path: 'area-control', lazy: async () => ({ Component: (await import('../../pages/panels/admin/general-management/AreaControl')).default }) },
           { path: 'area-requests', lazy: async () => ({ Component: (await import('../../pages/panels/shared/AreaRequestsPage')).default }) },
           { path: 'change-history', lazy: async () => ({ Component: (await import('../../pages/panels/admin/change-management/ChangeHistory')).default }) },

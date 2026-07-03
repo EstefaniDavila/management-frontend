@@ -13,6 +13,7 @@ import {
   MessageSquareIcon,
   ShoppingBagIcon,
   History,
+  ActivityIcon,
 } from "lucide-react"
 
 export const adminLinks = [
@@ -117,7 +118,15 @@ export const adminLinks = [
     title: "Historial de Cambios",
     href: "/change-history",
     icon: History,
-    area: "Change Management",
+    area: "IT Service Management",
+  },
+
+  // ── IT & System ──
+  {
+    title: "Monitoreo (Eventos)",
+    href: "/monitoring",
+    icon: ActivityIcon,
+    area: "IT Service Management",
   },
 
   // ── Settings ──
