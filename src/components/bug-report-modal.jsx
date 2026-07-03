@@ -295,16 +295,16 @@ ${formData.description}`;
           <TabsContent value="guide" className="p-4 bg-muted/20 rounded-lg border">
             <div className="space-y-4 text-sm text-muted-foreground">
               <div>
-                <p className="font-bold text-indigo-700 text-base mb-1">🐛 Bug (Error de Software)</p>
+                <p className="font-bold text-indigo-600 dark:text-indigo-400 text-base mb-1">🐛 Bug (Error de Software)</p>
                 <p>Falla en el código del ERP. El sistema hace algo inesperado, muestra un error visual, o no guarda datos correctamente.</p>
-                <p className="italic text-xs mt-1 border-l-2 border-indigo-200 pl-2">Ej: "Al hacer clic en Guardar Cotización, el botón se queda cargando infinito."</p>
+                <p className="italic text-xs mt-1 border-l-2 border-indigo-200 dark:border-indigo-500/50 pl-2">Ej: "Al hacer clic en Guardar Cotización, el botón se queda cargando infinito."</p>
               </div>
               <div className="pt-3 border-t">
-                <p className="font-bold text-orange-700 text-base mb-1">🔥 Incidencia (Interrupción de Servicio)</p>
+                <p className="font-bold text-orange-600 dark:text-orange-400 text-base mb-1">🔥 Incidencia (Interrupción de Servicio)</p>
                 <p>Una interrupción no planificada de un servicio TI. Incluye caídas de servidor, problemas de red, bases de datos bloqueadas, etc. (ITIL v4).</p>
-                <p className="italic text-xs mt-1 border-l-2 border-orange-200 pl-2">Ej: "Nadie en el área de Ventas puede acceder al ERP, sale error 503."</p>
+                <p className="italic text-xs mt-1 border-l-2 border-orange-200 dark:border-orange-500/50 pl-2">Ej: "Nadie en el área de Ventas puede acceder al ERP, sale error 503."</p>
               </div>
-              <div className="mt-4 p-3 bg-blue-50/50 border border-blue-200 rounded text-blue-800 text-xs text-center">
+              <div className="mt-4 p-3 bg-blue-50/50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800/50 rounded text-blue-800 dark:text-blue-300 text-xs text-center">
                 <strong>No te preocupes por la diferencia.</strong> Escribe tu problema en el Formulario y nuestra Inteligencia Artificial se encargará de clasificar la severidad.
               </div>
             </div>
