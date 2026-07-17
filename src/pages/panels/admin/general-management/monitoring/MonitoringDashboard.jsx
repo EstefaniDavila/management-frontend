@@ -343,7 +343,7 @@ const MonitoringDashboard = () => {
             <Play size={16} /> 
             {dbState === 'normal' && "Inyectar Chaos (Matar BD Principal)"}
             {dbState === 'broken' && "Restaurar (Failover a Réplica)"}
-            {dbState === 'replica' && "Volver a BD Principal"}
+            {dbState === 'replica' && "Sincronizar y Volver a BD Principal"}
           </Button>
         </div>
       </div>
